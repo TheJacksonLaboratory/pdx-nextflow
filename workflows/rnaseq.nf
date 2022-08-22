@@ -8,6 +8,10 @@ include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_read
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
 include {CLASSIFICATION_A} from   '../modules/xenome/xenome_classification_a'
 include {CLASSIFICATION_B} from   '../modules/fastq-tools/fastq-tools_sort'
+include {RSEM_ALIGNMENT_EXPRESSION} from '../modules/rsem/rsem_alignment_expression'
+include {ADD_GENE_NAME_NORM} from '../modules/perl/perl_add_gene_name_and_normalization'
+include {READ_GROUPS} from '../modules/utility_modules/read_groups'
+
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -58,5 +62,18 @@ workflow RNASEQ {
 
   // Step 3: Xenome Classification B
   CLASSIFICATION_B(CLASSIFICATION_A.out.xenome_fastq)
+
+  // Step 4: RSEM
+  RSEM_ALIGNMENT_EXPRESSION(CLASSIFICATION_B.out.sorted_fastq)
+
+  // Step 5: JOIN
+  data = RSEM_ALIGNMENT_EXPRESSION.out.rsem_genes.join(RSEM_ALIGNMENT_EXPRESSION.out.rsem_isoforms)
+
+  // Step 6: ADD GENE NAME AND NORMALIZATION
+  ADD_GENE_NAME_NORM(data)
+
+  // Step 7: Get Read Group Information
+  READ_GROUPS(read_ch, "picard")
+
 
 }
