@@ -11,6 +11,11 @@ include {CLASSIFICATION_B} from   '../modules/fastq-tools/fastq-tools_sort'
 include {RSEM_ALIGNMENT_EXPRESSION} from '../modules/rsem/rsem_alignment_expression'
 include {ADD_GENE_NAME_NORM} from '../modules/perl/perl_add_gene_name_and_normalization'
 include {READ_GROUPS} from '../modules/utility_modules/read_groups'
+include {PICARD_ADDORREPLACEREADGROUPS} from '../modules/picard/picard_addorreplacereadgroups'
+include {PICARD_REORDERSAM} from '../modules/picard/picard_reordersam'
+include {PICARD_COLLECTRNASEQMETRICS} from '../modules/picard/picard_collectrnaseqmetrics'
+include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
+
 
 
 // prepare reads channel
@@ -74,6 +79,20 @@ workflow RNASEQ {
 
   // Step 7: Get Read Group Information
   READ_GROUPS(read_ch, "picard")
+
+
+  // Step 8: Picard Alignment Metrics
+  PICARD_ADDORREPLACEREADGROUPS(READ_GROUPS.out.read_groups,
+                                RSEM_ALIGNMENT_EXPRESSION.out.bam)
+
+  // Step 9: Picard Alignment Metrics
+  PICARD_REORDERSAM(PICARD_ADDORREPLACEREADGROUPS.out.bam)
+
+  // Step 11: Picard Alignment Metrics
+  PICARD_SORTSAM(PICARD_REORDERSAM.out.bam)
+
+  // Step 12: Picard Alignment Metrics
+  PICARD_COLLECTRNASEQMETRICS(PICARD_SORTSAM.out.bam)  
 
 
 }
