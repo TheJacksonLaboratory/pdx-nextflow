@@ -15,7 +15,14 @@ include {PICARD_ADDORREPLACEREADGROUPS} from '../modules/picard/picard_addorrepl
 include {PICARD_REORDERSAM} from '../modules/picard/picard_reordersam'
 include {PICARD_COLLECTRNASEQMETRICS} from '../modules/picard/picard_collectrnaseqmetrics'
 include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
-
+include {GATK_DEPTHOFCOVERAGE as GATK_DEPTHOFCOVERAGE_CTP;
+         GATK_DEPTHOFCOVERAGE as GATK_DEPTHOFCOVERAGE_PROBES} from '../modules/gatk/gatk_depthofcoverage'
+include {FORMAT_GATK as FORMAT_GATK_CTP;
+         FORMAT_GATK as FORMAT_GATK_PROBES} from '../modules/utility_modules/rna_format_gatk'
+include {COVCALC_GATK as COVCALC_GATK_CTP;
+         COVCALC_GATK as COVCALC_GATK_PROBES} from '../modules/utility_modules/rna_covcalc_gatk'
+include {CLASSIFIER_COVERAGE} from '../modules/utility_modules/rna_classifier_coverage'
+include {RNA_SUMMARY_STATS} from '../modules/utility_modules/aggregate_stats_rna'
 
 
 // prepare reads channel
@@ -88,11 +95,30 @@ workflow RNASEQ {
   // Step 9: Picard Alignment Metrics
   PICARD_REORDERSAM(PICARD_ADDORREPLACEREADGROUPS.out.bam)
 
-  // Step 11: Picard Alignment Metrics
+  // Step 10: Picard Alignment Metrics
   PICARD_SORTSAM(PICARD_REORDERSAM.out.bam)
 
-  // Step 12: Picard Alignment Metrics
+  // Step 11: Picard Alignment Metrics
   PICARD_COLLECTRNASEQMETRICS(PICARD_SORTSAM.out.bam)  
+
+  // Step 12: GATK Coverage Stats (CTP)
+  GATK_DEPTHOFCOVERAGE_CTP(PICARD_SORTSAM.out.bam, PICARD_SORTSAM.out.bai, params.ctp_genes)
+  FORMAT_GATK_CTP(GATK_DEPTHOFCOVERAGE_CTP.out.txt, params.ctp_genes)
+  COVCALC_GATK_CTP(FORMAT_GATK_CTP.out.txt, "CTP")
+
+  // Step 13: GATK Coverage Stats (PROBES)
+  GATK_DEPTHOFCOVERAGE_PROBES(PICARD_SORTSAM.out.bam, PICARD_SORTSAM.out.bai, params.probes)
+  FORMAT_GATK_PROBES(GATK_DEPTHOFCOVERAGE_PROBES.out.txt, params.probes)
+  COVCALC_GATK_PROBES(FORMAT_GATK_PROBES.out.txt, "PROBES")
+
+  // Step 14: Classifier and Coverage
+  CLASSIFIER_COVERAGE(ADD_GENE_NAME_NORM.out.norm_gene_results)
+
+  // Step 15: Summary Stats
+  RNA_SUMMARY_STATS(RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats,
+                    QUALITY_STATISTICS.out.quality_stats,
+                    CLASSIFICATION_A.out.xenome_stats,
+                    PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
 
 
 }
