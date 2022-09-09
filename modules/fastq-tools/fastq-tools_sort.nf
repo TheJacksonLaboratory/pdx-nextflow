@@ -1,4 +1,4 @@
-process CLASSIFICATION_B {
+process FASTQ_SORT {
 
   tag "$sampleID"
 

@@ -7,7 +7,7 @@ include {CONCATENATE_READS_PE} from '../modules/utility_modules/concatenate_read
 include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_reads_SE'
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
 include {XENOME_CLASSIFY} from   '../modules/xenome/xenome'
-include {CLASSIFICATION_B} from   '../modules/fastq-tools/fastq-tools_sort'
+include {FASTQ_SORT as XENOME_SORT} from   '../modules/fastq-tools/fastq-tools_sort'
 include {RSEM_ALIGNMENT_EXPRESSION} from '../modules/rsem/rsem_alignment_expression'
 include {ADD_GENE_NAME_NORM} from '../modules/perl/perl_add_gene_name_and_normalization'
 include {READ_GROUPS} from '../modules/utility_modules/read_groups'
@@ -73,10 +73,10 @@ workflow RNASEQ {
   XENOME_CLASSIFY(QUALITY_STATISTICS.out.trimmed_fastq)
 
   // Step 3: Xenome Classification B
-  CLASSIFICATION_B(XENOME_CLASSIFY.out.xenome_fastq)
+  XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
 
   // Step 4: RSEM
-  RSEM_ALIGNMENT_EXPRESSION(CLASSIFICATION_B.out.sorted_fastq)
+  RSEM_ALIGNMENT_EXPRESSION(XENOME_SORT.out.sorted_fastq)
 
   // Step 5: JOIN
   data = RSEM_ALIGNMENT_EXPRESSION.out.rsem_genes.join(RSEM_ALIGNMENT_EXPRESSION.out.rsem_isoforms)
