@@ -6,7 +6,7 @@ include {getLibraryId} from '../bin/shared/getLibraryId.nf'
 include {CONCATENATE_READS_PE} from '../modules/utility_modules/concatenate_reads_PE'
 include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_reads_SE'
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
-include {CLASSIFICATION_A} from   '../modules/xenome/xenome_classification_a'
+include {XENOME_CLASSIFY} from   '../modules/xenome/xenome'
 include {CLASSIFICATION_B} from   '../modules/fastq-tools/fastq-tools_sort'
 include {RSEM_ALIGNMENT_EXPRESSION} from '../modules/rsem/rsem_alignment_expression'
 include {ADD_GENE_NAME_NORM} from '../modules/perl/perl_add_gene_name_and_normalization'
@@ -70,10 +70,10 @@ workflow RNASEQ {
   QUALITY_STATISTICS(read_ch)
 
   // Step 2: Xenome Classification A
-  CLASSIFICATION_A(QUALITY_STATISTICS.out.trimmed_fastq)
+  XENOME_CLASSIFY(QUALITY_STATISTICS.out.trimmed_fastq)
 
   // Step 3: Xenome Classification B
-  CLASSIFICATION_B(CLASSIFICATION_A.out.xenome_fastq)
+  CLASSIFICATION_B(XENOME_CLASSIFY.out.xenome_fastq)
 
   // Step 4: RSEM
   RSEM_ALIGNMENT_EXPRESSION(CLASSIFICATION_B.out.sorted_fastq)
@@ -117,7 +117,7 @@ workflow RNASEQ {
   // Step 15: Summary Stats
   RNA_SUMMARY_STATS(RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats,
                     QUALITY_STATISTICS.out.quality_stats,
-                    CLASSIFICATION_A.out.xenome_stats,
+                    XENOME_CLASSIFY.out.xenome_stats,
                     PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
 
 

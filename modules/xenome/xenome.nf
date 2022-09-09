@@ -1,4 +1,4 @@
-process CLASSIFICATION_A {
+process XENOME_CLASSIFY {
 
   tag "$sampleID"
 
