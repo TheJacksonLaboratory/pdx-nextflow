@@ -3,18 +3,20 @@ process QUALITY_STATISTICS {
   tag "$sampleID"
 
   cpus 1
-  memory 30.GB
-  time '24:00:00'
+  memory { 30.GB * task.attempt }
+  time { 4.h * task.attempt }
+  errorStrategy 'retry'
+  maxRetries 1
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'quality_stats' }", pattern: "*fastq.gz_stat", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'quality_stats' }", pattern: "*.gz_stat", mode:'copy'
 
   input:
   tuple val(sampleID), file(fq_reads)
 
   output:
-  tuple val(sampleID), file("*.fastq.gz_stat"), emit: quality_stats
+  tuple val(sampleID), file("*.gz_stat"), emit: quality_stats
   tuple val(sampleID), file("*filtered_trimmed"), emit: trimmed_fastq
 
   script:
