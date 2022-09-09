@@ -29,11 +29,16 @@ process RSEM_ALIGNMENT_EXPRESSION {
   script:
   log.info "----- Genome alignment running on: ${sampleID} -----"
 
-  if (params.read_prep == "stranded"){
-    prob="--forward-prob 0"
+  if (params.read_prep == "reverse_stranded"){
+    strand="--strandedness reverse"
   }
+  
+  if (params.read_prep == "forward_stranded") {
+    strand="--strandedness forward"
+  }
+
   if (params.read_prep == "non_stranded"){
-    prob="--forward-prob 0.5"
+    strand=""
   }
 
   if (params.read_type == "PE"){
