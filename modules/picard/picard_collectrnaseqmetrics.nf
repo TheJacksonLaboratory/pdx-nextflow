@@ -32,7 +32,7 @@ process PICARD_COLLECTRNASEQMETRICS {
   }
 
   """
-  java -Djava.io.tmpdir=$TMPDIR -Xmx4g -jar /picard.jar CollectRnaSeqMetric \
+  java -Djava.io.tmpdir=$TMPDIR -Xmx4g -jar /picard.jar CollectRnaSeqMetrics \
   I=${bam} \
   O=${sampleID}_picard_aln_metrics.txt \
   REF_FLAT=${params.ref_flat} \
