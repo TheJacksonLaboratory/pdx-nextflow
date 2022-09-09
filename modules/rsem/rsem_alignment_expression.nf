@@ -30,15 +30,15 @@ process RSEM_ALIGNMENT_EXPRESSION {
   log.info "----- Genome alignment running on: ${sampleID} -----"
 
   if (params.read_prep == "reverse_stranded"){
-    strand="--strandedness reverse"
+    prob = "--forward-prob 0"
   }
   
   if (params.read_prep == "forward_stranded") {
-    strand="--strandedness forward"
+    prob = "--forward-prob 1"
   }
 
   if (params.read_prep == "non_stranded"){
-    strand=""
+    prob = "--forward-prob 0.5"
   }
 
   if (params.read_type == "PE"){
