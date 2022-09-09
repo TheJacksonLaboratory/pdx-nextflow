@@ -2,8 +2,10 @@ process COVCALC_GATK {
   tag "$sampleID"
 
   cpus 1
-  memory 15.GB
-  time '24:00:00'
+  memory { 15.GB * task.attempt }
+  time { 8.h * task.attempt }
+  errorStrategy 'retry'
+  maxRetries 1
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.sif'
 
