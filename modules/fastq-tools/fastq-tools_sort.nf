@@ -3,8 +3,10 @@ process CLASSIFICATION_B {
   tag "$sampleID"
 
   cpus 1
-  memory 30.GB
-  time '24:00:00'
+  memory { 50.GB * task.attempt }
+  time { 2.h * task.attempt }
+  errorStrategy 'retry'
+  maxRetries 1
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/fastq-tools.sif'
 
