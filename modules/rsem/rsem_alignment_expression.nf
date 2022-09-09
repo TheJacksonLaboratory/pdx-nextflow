@@ -3,7 +3,7 @@ process RSEM_ALIGNMENT_EXPRESSION {
 
   cpus 12
   memory { 60.GB * task.attempt }
-  time { 24.h * task.attempt }
+  time { 8.h * task.attempt }
   errorStrategy 'retry'
   maxRetries 1
 
