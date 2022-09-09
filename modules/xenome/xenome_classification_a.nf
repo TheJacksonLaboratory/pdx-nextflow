@@ -2,9 +2,11 @@ process CLASSIFICATION_A {
 
   tag "$sampleID"
 
-  cpus 1
-  memory 30.GB
-  time '24:00:00'
+  cpus 8
+  memory { 50.GB * task.attempt }
+  time { 2.h * task.attempt }
+  errorStrategy 'retry'
+  maxRetries 1
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/xenome_1.0.1.sif'
 
@@ -20,7 +22,7 @@ process CLASSIFICATION_A {
   script:
   log.info "----- Xenome running on: ${sampleID} -----"
   """
-  /xenome-1.0.1-r/xenome classify -T 12 -P ${params.ref_prefix} --pairs --host-name mouse --graft-name human -i ${trimmed[0]} -i ${trimmed[1]} > ${sampleID}_xenome_stats.txt
+  /xenome-1.0.1-r/xenome classify -T 8 -P ${params.ref_prefix} --pairs --host-name mouse --graft-name human -i ${trimmed[0]} -i ${trimmed[1]} > ${sampleID}_xenome_stats.txt
 
   rm -rf *both*fastq* *mouse*fastq* *neither*fastq* *ambiguous*fastq*
   """
