@@ -10,6 +10,9 @@ include {XENOME_CLASSIFY} from   '../modules/xenome/xenome'
 include {FASTQ_SORT as XENOME_SORT} from   '../modules/fastq-tools/fastq-tools_sort'
 include {READ_GROUPS} from '../modules/utility_modules/read_groups'
 include {BWA_MEM} from '../modules/bwa/bwa_mem'
+include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
+include {PICARD_MARKDUPLICATES} from '../modules/picard/picard_markduplicates'
+
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -66,6 +69,10 @@ workflow WES {
 
   // Step 5: BWA-MEM Alignment
   BWA_MEM(XENOME_SORT.out.sorted_fastq, READ_GROUPS.out.read_groups )
+
+  // Step 6: Variant Preprocessing - Part 1
+  PICARD_SORTSAM(BWA_MEM.out.bam)
+  PICARD_MARKDUPLICATES(PICARD_SORTSAM.out.bam)
 
 }
 
