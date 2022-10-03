@@ -8,6 +8,8 @@ include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_read
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
 include {XENOME_CLASSIFY} from   '../modules/xenome/xenome'
 include {FASTQ_SORT as XENOME_SORT} from   '../modules/fastq-tools/fastq-tools_sort'
+include {READ_GROUPS} from '../modules/utility_modules/read_groups'
+include {BWA_MEM} from '../modules/bwa/bwa_mem'
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -58,6 +60,12 @@ workflow WES {
 
   // Step 3: Xenome Classification B
   XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
+
+  // Step 4: Get Read Group Information
+  READ_GROUPS(XENOME_SORT.out.sorted_fastq, "gatk")
+
+  // Step 5: BWA-MEM Alignment
+  BWA_MEM(XENOME_SORT.out.sorted_fastq, READ_GROUPS.out.read_groups )
 
 }
 
