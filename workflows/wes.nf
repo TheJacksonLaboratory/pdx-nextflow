@@ -12,6 +12,9 @@ include {READ_GROUPS} from '../modules/utility_modules/read_groups'
 include {BWA_MEM} from '../modules/bwa/bwa_mem'
 include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
 include {PICARD_MARKDUPLICATES} from '../modules/picard/picard_markduplicates'
+include {GATK_REALIGNERTARGETCREATOR} from '../modules/gatk/gatk_realignertargetcreator'
+include {GATK_INDELREALIGNER} from '../modules/gatk/gatk_indelrealigner'
+
 
 
 // prepare reads channel
@@ -73,6 +76,12 @@ workflow WES {
   // Step 6: Variant Preprocessing - Part 1
   PICARD_SORTSAM(BWA_MEM.out.bam)
   PICARD_MARKDUPLICATES(PICARD_SORTSAM.out.bam)
+
+  // Step 7: Realigner target creator and indel realigner
+  GATK_REALIGNERTARGETCREATOR(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai)
+  GATK_INDELREALIGNER(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai,
+                      GATK_REALIGNERTARGETCREATOR.out.intervals)
+
 
 }
 
