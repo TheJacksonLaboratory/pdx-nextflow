@@ -16,6 +16,7 @@ include {GATK_REALIGNERTARGETCREATOR} from '../modules/gatk/gatk_realignertarget
 include {GATK_INDELREALIGNER} from '../modules/gatk/gatk_indelrealigner'
 include {GATK_BASERECALIBRATOR} from '../modules/gatk/gatk_baserecalibrator'
 include {GATK_PRINTREADS} from '../modules/gatk/gatk_printreads'
+include {PICARD_CALCULATEHSMETRICS} from '../modules/picard/picard_calculatehsmetrics'
 
 
 // prepare reads channel
@@ -88,6 +89,9 @@ workflow WES {
 
   // Step 9: PrintReads
   GATK_PRINTREADS(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai, GATK_BASERECALIBRATOR.out.grp)
+
+  // Step 10: Calculate ehsmetrics
+  PICARD_CALCULATEHSMETRICS(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
 
 
 }
