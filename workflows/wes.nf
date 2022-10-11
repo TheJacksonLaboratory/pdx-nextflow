@@ -14,7 +14,8 @@ include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
 include {PICARD_MARKDUPLICATES} from '../modules/picard/picard_markduplicates'
 include {GATK_REALIGNERTARGETCREATOR} from '../modules/gatk/gatk_realignertargetcreator'
 include {GATK_INDELREALIGNER} from '../modules/gatk/gatk_indelrealigner'
-
+include {GATK_BASERECALIBRATOR} from '../modules/gatk/gatk_baserecalibrator'
+include {GATK_PRINTREADS} from '../modules/gatk/gatk_printreads'
 
 
 // prepare reads channel
@@ -81,6 +82,12 @@ workflow WES {
   GATK_REALIGNERTARGETCREATOR(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai)
   GATK_INDELREALIGNER(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai,
                       GATK_REALIGNERTARGETCREATOR.out.intervals)
+
+  // Step 8: Variant Pre-Processing - Part 2
+  GATK_BASERECALIBRATOR(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai)
+
+  // Step 9: PrintReads
+  GATK_PRINTREADS(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai, GATK_BASERECALIBRATOR.out.grp)
 
 
 }
