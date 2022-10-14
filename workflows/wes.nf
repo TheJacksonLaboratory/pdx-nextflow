@@ -18,6 +18,8 @@ include {GATK_BASERECALIBRATOR} from '../modules/gatk/gatk_baserecalibrator'
 include {GATK_PRINTREADS} from '../modules/gatk/gatk_printreads'
 include {PICARD_CALCULATEHSMETRICS} from '../modules/picard/picard_calculatehsmetrics'
 include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
+include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
+
 
 
 // prepare reads channel
@@ -96,6 +98,10 @@ workflow WES {
 
   // Step 11: MSIsensor2
   MSISENSOR2_MSI(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
+
+  // Step 12: Get sample name
+  GATK_GETSAMPLENAME(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
+
 
 
 
