@@ -19,7 +19,7 @@ include {GATK_PRINTREADS} from '../modules/gatk/gatk_printreads'
 include {PICARD_CALCULATEHSMETRICS} from '../modules/picard/picard_calculatehsmetrics'
 include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
 include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
-
+include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
 
 
 // prepare reads channel
@@ -102,6 +102,8 @@ workflow WES {
   // Step 12: Get sample name
   GATK_GETSAMPLENAME(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
 
+  // Step 13: Mutect2
+  GATK_MUTECT2(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai, GATK_GETSAMPLENAME.out)
 
 
 
