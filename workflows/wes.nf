@@ -21,6 +21,9 @@ include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
 include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
 include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
 include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
+include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
+
+
 
 
 // prepare reads channel
@@ -108,6 +111,10 @@ workflow WES {
 
   // Step 14 : Filter Muctect calls
   GATK_FILTERMUTECTCALLS(GATK_MUTECT2.out.vcf, GATK_MUTECT2.out.tbi)
+
+  // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
+  AD_min_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
+
 
 }
 
