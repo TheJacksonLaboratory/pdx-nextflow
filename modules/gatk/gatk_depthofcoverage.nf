@@ -11,8 +11,7 @@ process GATK_DEPTHOFCOVERAGE {
 
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
+  tuple val(sampleID), file(bam), file(bai)
   val(L)
 
   output:

@@ -21,8 +21,8 @@ include {FORMAT_GATK as FORMAT_GATK_CTP;
          FORMAT_GATK as FORMAT_GATK_PROBES} from "${projectDir}/modules/utility_modules/rna_format_gatk"
 include {COVCALC_GATK as COVCALC_GATK_CTP;
          COVCALC_GATK as COVCALC_GATK_PROBES} from "${projectDir}/modules/utility_modules/rna_covcalc_gatk"
-include {CLASSIFIER_COVERAGE} from "../modules/utility_modules/rna_classifier_coverage"
-include {RNA_SUMMARY_STATS} from "../modules/utility_modules/aggregate_stats_rna"
+include {CLASSIFIER_COVERAGE} from "${projectDir}/modules/utility_modules/rna_classifier_coverage"
+include {RNA_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_rna"
 
 
 // prepare reads channel
@@ -89,8 +89,8 @@ workflow RNASEQ {
 
 
   // Step 8: Picard Alignment Metrics
-  PICARD_ADDORREPLACEREADGROUPS(READ_GROUPS.out.read_groups,
-                                RSEM_ALIGNMENT_EXPRESSION.out.bam)
+  add_replace_groups = READ_GROUPS.out.read_groups.join(RSEM_ALIGNMENT_EXPRESSION.out.bam)
+  PICARD_ADDORREPLACEREADGROUPS(add_replace_groups)
 
   // Step 9: Picard Alignment Metrics
   PICARD_REORDERSAM(PICARD_ADDORREPLACEREADGROUPS.out.bam)
@@ -102,12 +102,14 @@ workflow RNASEQ {
   PICARD_COLLECTRNASEQMETRICS(PICARD_SORTSAM.out.bam)  
 
   // Step 12: GATK Coverage Stats (CTP)
-  GATK_DEPTHOFCOVERAGE_CTP(PICARD_SORTSAM.out.bam, PICARD_SORTSAM.out.bai, params.ctp_genes)
+  depth_of_coverage_ctp = PICARD_SORTSAM.out.bam.join(PICARD_SORTSAM.out.bai)
+  GATK_DEPTHOFCOVERAGE_CTP(depth_of_coverage_ctp, params.ctp_genes)
   FORMAT_GATK_CTP(GATK_DEPTHOFCOVERAGE_CTP.out.txt, params.ctp_genes)
   COVCALC_GATK_CTP(FORMAT_GATK_CTP.out.txt, "CTP")
 
   // Step 13: GATK Coverage Stats (PROBES)
-  GATK_DEPTHOFCOVERAGE_PROBES(PICARD_SORTSAM.out.bam, PICARD_SORTSAM.out.bai, params.probes)
+  depth_of_coverage_probes = PICARD_SORTSAM.out.bam.join(PICARD_SORTSAM.out.bai)
+  GATK_DEPTHOFCOVERAGE_PROBES(depth_of_coverage_probes, params.probes)
   FORMAT_GATK_PROBES(GATK_DEPTHOFCOVERAGE_PROBES.out.txt, params.probes)
   COVCALC_GATK_PROBES(FORMAT_GATK_PROBES.out.txt, "PROBES")
 
@@ -115,10 +117,8 @@ workflow RNASEQ {
   CLASSIFIER_COVERAGE(ADD_GENE_NAME_NORM.out.norm_gene_results)
 
   // Step 15: Summary Stats
-  RNA_SUMMARY_STATS(RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats,
-                    QUALITY_STATISTICS.out.quality_stats,
-                    XENOME_CLASSIFY.out.xenome_stats,
-                    PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
+  aggregate_stats_rna = RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats.join(QUALITY_STATISTICS.out.quality_stats, XENOME_CLASSIFY.out.xenome_stats, PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
+  RNA_SUMMARY_STATS(aggregate_stats_rna)
 
 
 }
