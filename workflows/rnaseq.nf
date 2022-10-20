@@ -117,7 +117,7 @@ workflow RNASEQ {
   CLASSIFIER_COVERAGE(ADD_GENE_NAME_NORM.out.norm_gene_results)
 
   // Step 15: Summary Stats
-  aggregate_stats_rna = RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats.join(QUALITY_STATISTICS.out.quality_stats, XENOME_CLASSIFY.out.xenome_stats, PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
+  aggregate_stats_rna = RSEM_ALIGNMENT_EXPRESSION.out.rsem_stats.join(QUALITY_STATISTICS.out.quality_stats).join(XENOME_CLASSIFY.out.xenome_stats).join(PICARD_COLLECTRNASEQMETRICS.out.picard_metrics)
   RNA_SUMMARY_STATS(aggregate_stats_rna)
 
 
