@@ -22,8 +22,8 @@ include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
 include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
 include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
-
-
+include {SNPSIFT_ANNOTATE as ANNOTATE_AD} from '../modules/snpeff_snpsift/snpsift_annotate'
+include {ADD_CALLER_GATK} from '../modules/utility_modules/add_caller_gatk'
 
 
 // prepare reads channel
@@ -114,6 +114,13 @@ workflow WES {
 
   // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
   AD_min_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
+
+  // Step 16 : Snpsift Annotate
+  ANNOTATE_AD(AD_min_AF_MUT.out.vcf)
+
+  // Step 17 : Add caller gatk
+  ADD_CALLER_GATK(ANNOTATE_AD.out.vcf)
+
 
 
 }
