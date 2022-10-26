@@ -126,10 +126,12 @@ workflow WES {
   ADD_CALLER_GATK(ANNOTATE_AD.out.vcf)
 
   // Step 18 : Join Adjacent SNPs AS
-  JOIN_ADJACENT_SNPS_AS(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai, ADD_CALLER_GATK.out.vcf)
+  join_adjacent_snps = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(ADD_CALLER_GATK.out.vcf)
+  JOIN_ADJACENT_SNPS_AS(join_adjacent_snps)
 
   // Step 19 : Bcftools Annotate
-  BCF_ANNOTATE(JOIN_ADJACENT_SNPS_AS.out.vcf, JOIN_ADJACENT_SNPS_AS.out.tbi)
+  bcf_annotate = JOIN_ADJACENT_SNPS_AS.out.vcf.join(JOIN_ADJACENT_SNPS_AS.out.tbi)
+  BCF_ANNOTATE(bcf_annotate)
 
   // Step 20 : Snpsift Annotate
   ANNOTATE_BCF(BCF_ANNOTATE.out.vcf)

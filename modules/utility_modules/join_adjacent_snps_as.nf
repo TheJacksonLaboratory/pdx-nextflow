@@ -9,9 +9,7 @@ process JOIN_ADJACENT_SNPS_AS {
 
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
-  tuple val(sampleID), file(filt_var_DP)
+  tuple val(sampleID), file(bam), file(bai), file(filt_var_DP)
 
   output:
   tuple val(sampleID), file("*fixAdjSNP.vcf.gz"), emit: vcf

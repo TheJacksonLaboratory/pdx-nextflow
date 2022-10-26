@@ -9,8 +9,7 @@ process BCF_ANNOTATE {
 
 
   input:
-  tuple val(sampleID), file(vcf)
-  tuple val(sampleID), file(tbi)
+  tuple val(sampleID), file(vcf), file(tbi)
 
   output:
   tuple val(sampleID), file("*.noIds.vcf.gz"), emit: vcf
