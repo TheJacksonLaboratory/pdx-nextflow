@@ -21,9 +21,13 @@ include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
 include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
 include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
 include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
-include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
-include {SNPSIFT_ANNOTATE as ANNOTATE_AD} from '../modules/snpeff_snpsift/snpsift_annotate'
+include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT;
+         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
+include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
+         SNPSIFT_ANNOTATE as ANNOTATE_BCF} from '../modules/snpeff_snpsift/snpsift_annotate'
 include {ADD_CALLER_GATK} from '../modules/utility_modules/add_caller_gatk'
+include {JOIN_ADJACENT_SNPS_AS} from '../modules/utility_modules/join_adjacent_snps_as'
+include {BCF_ANNOTATE} from '../modules/bcftools/bcftools_annotate'
 
 
 // prepare reads channel
@@ -120,6 +124,17 @@ workflow WES {
 
   // Step 17 : Add caller gatk
   ADD_CALLER_GATK(ANNOTATE_AD.out.vcf)
+
+  // Step 18 : Join Adjacent SNPs AS
+  join_adjacent_snps = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(ADD_CALLER_GATK.out.vcf)
+  JOIN_ADJACENT_SNPS_AS(join_adjacent_snps)
+
+  // Step 19 : Bcftools Annotate
+  bcf_annotate = JOIN_ADJACENT_SNPS_AS.out.vcf.join(JOIN_ADJACENT_SNPS_AS.out.tbi)
+  BCF_ANNOTATE(bcf_annotate)
+
+  // Step 20 : Snpsift Annotate
+  ANNOTATE_BCF(BCF_ANNOTATE.out.vcf)
 
 
 
