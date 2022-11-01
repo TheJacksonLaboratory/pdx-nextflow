@@ -17,6 +17,7 @@ include {GATK_INDELREALIGNER} from "${projectDir}/modules/gatk/gatk_indelrealign
 include {GATK_BASERECALIBRATOR} from "${projectDir}/modules/gatk/gatk_baserecalibrator"
 include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
 include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_calculatehsmetrics"
+include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -96,4 +97,7 @@ workflow CTP {
   // Step 10: Calculate depth metrics
   printreads_and_index = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
   PICARD_CALCULATEHSMETRICS(printreads_and_index)
+
+  // Step 11: MSIsensor2
+  MSISENSOR2_MSI(printreads_and_index)
 }
