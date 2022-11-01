@@ -24,13 +24,14 @@ include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT;
          ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
 include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
+         SNPSIFT_ANNOTATE as ANNOTATE_ID;
          SNPSIFT_ANNOTATE as ANNOTATE_BCF} from '../modules/snpeff_snpsift/snpsift_annotate'
 include {ADD_CALLER_GATK} from '../modules/utility_modules/add_caller_gatk'
 include {JOIN_ADJACENT_SNPS_AS} from '../modules/utility_modules/join_adjacent_snps_as'
 include {BCF_ANNOTATE} from '../modules/bcftools/bcftools_annotate'
 include {MICROINDEL_CALLING_A} from '../modules/utility_modules/microindel_calling_a'
 include {MICROINDEL_CALLING_B} from '../modules/utility_modules/microindel_calling_b'
-
+include {ADD_CALLER_PINDEL} from '../modules/utility_modules/add_caller_pindel'
 
 
 
@@ -146,6 +147,17 @@ workflow WES {
 
   // Step 22 : Microindel calling part 2
   MICROINDEL_CALLING_B(MICROINDEL_CALLING_A.out.vcf) 
+
+  // Microindel filtering
+  // Step 23 : Recompute the locus depth and Add Estimated Allele Frequency
+  AD_min_AF_IND(MICROINDEL_CALLING_B.out.vcf)
+
+  // Step 24 : Snpsift Annotate
+  ANNOTATE_ID(AD_min_AF_IND.out.vcf)
+
+  // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
+  ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
+
 
 
 
