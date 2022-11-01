@@ -6,6 +6,8 @@ include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {QUALITY_STATISTICS} from "${projectDir}/modules/utility_modules/quality_stats"
+include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
+include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -49,4 +51,10 @@ workflow CTP {
 
   // Step 1: Qual_Stat
   QUALITY_STATISTICS(read_ch)
+
+  // Step 2: Xenome Classification
+  XENOME_CLASSIFY(QUALITY_STATISTICS.out.trimmed_fastq)
+
+  // Step 3: Sorting Post-Xenome Reads
+  XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
 }
