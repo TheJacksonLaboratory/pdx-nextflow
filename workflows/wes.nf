@@ -89,37 +89,45 @@ workflow WES {
   READ_GROUPS(XENOME_SORT.out.sorted_fastq, "gatk")
 
   // Step 5: BWA-MEM Alignment
-  BWA_MEM(XENOME_SORT.out.sorted_fastq, READ_GROUPS.out.read_groups )
+  xenome_and_rg = XENOME_SORT.out.sorted_fastq.join(XENOME_SORT.out.sorted_fastq)
+  BWA_MEM(XENOME_SORT.out.sorted_fastq, READ_GROUPS.out.read_groups)
 
   // Step 6: Variant Preprocessing - Part 1
   PICARD_SORTSAM(BWA_MEM.out.bam)
   PICARD_MARKDUPLICATES(PICARD_SORTSAM.out.bam)
 
   // Step 7: Realigner target creator and indel realigner
-  GATK_REALIGNERTARGETCREATOR(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai)
-  GATK_INDELREALIGNER(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai,
-                      GATK_REALIGNERTARGETCREATOR.out.intervals)
+
+  dedup_and_index = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai)
+  GATK_REALIGNERTARGETCREATOR(dedup_and_index)
+
+  dedup_index_and_intervals = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_REALIGNERTARGETCREATOR.out.intervals)
+  GATK_INDELREALIGNER(dedup_index_and_intervals)
 
   // Step 8: Variant Pre-Processing - Part 2
-  GATK_BASERECALIBRATOR(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai)
+  GATK_BASERECALIBRATOR(dedup_and_index)
 
   // Step 9: PrintReads
-  GATK_PRINTREADS(PICARD_MARKDUPLICATES.out.dedup_bam, PICARD_MARKDUPLICATES.out.dedup_bai, GATK_BASERECALIBRATOR.out.grp)
+  dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
+  GATK_PRINTREADS(dedup_index_and_grp)
 
   // Step 10: Calculate ehsmetrics
-  PICARD_CALCULATEHSMETRICS(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
+  printreads_and_index = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  PICARD_CALCULATEHSMETRICS(printreads_and_index)
 
   // Step 11: MSIsensor2
-  MSISENSOR2_MSI(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
+  MSISENSOR2_MSI(printreads_and_index)
 
   // Step 12: Get sample name
-  GATK_GETSAMPLENAME(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai)
+  GATK_GETSAMPLENAME(printreads_and_index)
 
   // Step 13: Mutect2
-  GATK_MUTECT2(GATK_PRINTREADS.out.bam, GATK_PRINTREADS.out.bai, GATK_GETSAMPLENAME.out)
+  printreads_index_and_name = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(GATK_GETSAMPLENAME.out)
+  GATK_MUTECT2(printreads_index_and_name)
 
   // Step 14 : Filter Muctect calls
-  GATK_FILTERMUTECTCALLS(GATK_MUTECT2.out.vcf, GATK_MUTECT2.out.tbi)
+  vcf_and_index = GATK_MUTECT2.out.vcf.join(GATK_MUTECT2.out.tbi)
+  GATK_FILTERMUTECTCALLS(vcf_and_index)
 
   // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
   AD_min_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
