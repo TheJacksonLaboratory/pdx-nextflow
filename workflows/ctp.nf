@@ -49,3 +49,4 @@ workflow CTP {
 
   // Step 1: Qual_Stat
   QUALITY_STATISTICS(read_ch)
+}
