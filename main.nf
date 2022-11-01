@@ -9,6 +9,9 @@ if (params.workflow == "rnaseq"){
 if (params.workflow == "wes"){
   include {WES} from './workflows/wes'
 }
+if (params.workflow == "ctp"){
+  include {CTP} from './workflows/ctp'
+}
 // conditional to kick off appropriate workflow
 workflow{
   if (params.workflow == "rnaseq"){
@@ -17,4 +20,7 @@ workflow{
   if (params.workflow == "wes"){
     WES()
     }
+  if (params.workflow == "ctp") {
+    CTP()
+  }
 }
