@@ -11,9 +11,7 @@ process GATK_INDELREALIGNER{
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'gatk' }", pattern: "*.bam", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
-  tuple val(sampleID), file(intervals)
+  tuple val(sampleID), file(bam), file(bai), file(intervals)
 
   output:
   tuple val(sampleID), file("*.bam"), emit: bam

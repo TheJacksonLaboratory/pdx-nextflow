@@ -10,8 +10,7 @@ process GATK_FILTERMUTECTCALLS {
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.vcf", mode:'copy'
 
   input:
-  tuple val(sampleID), file(vcf)
-  tuple val(sampleID), file(tbi)
+  tuple val(sampleID), file(vcf), file(tbi)
 
   output:
   tuple val(sampleID), file("*.vcf"), emit: vcf
