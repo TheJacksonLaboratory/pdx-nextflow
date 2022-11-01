@@ -14,6 +14,8 @@ include {PICARD_SORTSAM} from "${projectDir}/modules/picard/picard_sortsam"
 include {PICARD_MARKDUPLICATES} from "${projectDir}/modules/picard/picard_markduplicates"
 include {GATK_REALIGNERTARGETCREATOR} from "${projectDir}/modules/gatk/gatk_realignertargetcreator"
 include {GATK_INDELREALIGNER} from "${projectDir}/modules/gatk/gatk_indelrealigner"
+include {GATK_BASERECALIBRATOR} from "${projectDir}/modules/gatk/gatk_baserecalibrator"
+include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -81,5 +83,12 @@ workflow CTP {
   GATK_REALIGNERTARGETCREATOR(dedup_and_index)
 
   dedup_index_and_intervals = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_REALIGNERTARGETCREATOR.out.intervals)
-  GATK_INDELREALIGNER(dedup_index_and_intervals)  
+  GATK_INDELREALIGNER(dedup_index_and_intervals)
+
+  // Step 8: Variant Pre-Processing - Part 2
+  GATK_BASERECALIBRATOR(dedup_and_index)
+
+  // Step 9: PrintReads
+  dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
+  GATK_PRINTREADS(dedup_index_and_grp)
 }
