@@ -90,7 +90,7 @@ workflow WES {
 
   // Step 5: BWA-MEM Alignment
   xenome_and_rg = XENOME_SORT.out.sorted_fastq.join(XENOME_SORT.out.sorted_fastq)
-  BWA_MEM(XENOME_SORT.out.sorted_fastq, READ_GROUPS.out.read_groups)
+  BWA_MEM(xenome_and_rg)
 
   // Step 6: Variant Preprocessing - Part 1
   PICARD_SORTSAM(BWA_MEM.out.bam)
