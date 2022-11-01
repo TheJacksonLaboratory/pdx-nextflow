@@ -16,6 +16,7 @@ include {GATK_REALIGNERTARGETCREATOR} from "${projectDir}/modules/gatk/gatk_real
 include {GATK_INDELREALIGNER} from "${projectDir}/modules/gatk/gatk_indelrealigner"
 include {GATK_BASERECALIBRATOR} from "${projectDir}/modules/gatk/gatk_baserecalibrator"
 include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
+include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_calculatehsmetrics"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -91,4 +92,8 @@ workflow CTP {
   // Step 9: PrintReads
   dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
   GATK_PRINTREADS(dedup_index_and_grp)
+
+  // Step 10: Calculate depth metrics
+  printreads_and_index = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  PICARD_CALCULATEHSMETRICS(printreads_and_index)
 }
