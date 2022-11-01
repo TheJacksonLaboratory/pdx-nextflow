@@ -10,8 +10,7 @@ process BWA_MEM {
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bwakit_v0.7.15_cv1.sif'
 
   input:
-  tuple val(sampleID), file(fq_reads)
-  tuple val(sampleID), file(read_groups)
+  tuple val(sampleID), file(fq_reads), file(read_groups)
 
   output:
   tuple val(sampleID), file("*.bam"), emit: bam

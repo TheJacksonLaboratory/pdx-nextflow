@@ -10,8 +10,7 @@ process GATK_GETSAMPLENAME {
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*_tumor_SN.txt", mode:'copy'
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
+  tuple val(sampleID), file(bam), file(bai)
 
   output:
   tuple val(sampleID), file("*_tumor_SN.txt") 
