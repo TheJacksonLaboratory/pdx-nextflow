@@ -10,8 +10,7 @@ process GATK_BASERECALIBRATOR {
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'gatk' }", pattern: "*.grp", mode:'copy'
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
+  tuple val(sampleID), file(bam), file(bai)
 
   output:
   tuple val(sampleID), file("*.grp"), emit: grp

@@ -10,8 +10,7 @@ process GATK_REALIGNERTARGETCREATOR {
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'gatk' }", pattern: "*.intervals", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
+  tuple val(sampleID), file(bam), file(bai)
 
   output:
   tuple val(sampleID), file("*.intervals"), emit: intervals
