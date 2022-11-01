@@ -12,6 +12,8 @@ include {READ_GROUPS} from "${projectDir}/modules/utility_modules/read_groups"
 include {BWA_MEM} from "${projectDir}/modules/bwa/bwa_mem"
 include {PICARD_SORTSAM} from "${projectDir}/modules/picard/picard_sortsam"
 include {PICARD_MARKDUPLICATES} from "${projectDir}/modules/picard/picard_markduplicates"
+include {GATK_REALIGNERTARGETCREATOR} from "${projectDir}/modules/gatk/gatk_realignertargetcreator"
+include {GATK_INDELREALIGNER} from "${projectDir}/modules/gatk/gatk_indelrealigner"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -72,4 +74,12 @@ workflow CTP {
   // Step 6: Variant Preprocessing - Part 1
   PICARD_SORTSAM(BWA_MEM.out.bam)
   PICARD_MARKDUPLICATES(PICARD_SORTSAM.out.bam)
+
+  // Step 7: Realigner target creator and indel realigner
+
+  dedup_and_index = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai)
+  GATK_REALIGNERTARGETCREATOR(dedup_and_index)
+
+  dedup_index_and_intervals = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_REALIGNERTARGETCREATOR.out.intervals)
+  GATK_INDELREALIGNER(dedup_index_and_intervals)  
 }
