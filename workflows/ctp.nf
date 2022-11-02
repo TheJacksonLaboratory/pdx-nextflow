@@ -20,6 +20,7 @@ include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_ca
 include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
 include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename"
 include {GATK_MUTECT2_CTP} from "${projectDir}/modules/gatk/gatk_mutect2_ctp"
+include {GATK_FILTERMUTECTCALLS_CTP} from "${projectDir}/modules/gatk/gatk_filtermutectcalls_ctp"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -109,4 +110,8 @@ workflow CTP {
   // Step 13: Mutect2
   printreads_index_and_name = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(GATK_GETSAMPLENAME.out)
   GATK_MUTECT2_CTP(printreads_index_and_name)
+
+  // Step 14 : Filter Mutect calls
+  vcf_and_index = GATK_MUTECT2_CTP.out.vcf.join(GATK_MUTECT2_CTP.out.tbi)
+  GATK_FILTERMUTECTCALLS_CTP(vcf_and_index)
 }
