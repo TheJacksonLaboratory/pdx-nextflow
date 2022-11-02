@@ -27,7 +27,8 @@ include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
          SNPSIFT_ANNOTATE as ANNOTATE_ID;
          SNPSIFT_ANNOTATE as ANNOTATE_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
 include {ADD_CALLER_GATK} from "${projectDir}/modules/utility_modules/add_caller_gatk"
-include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"    
+include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"
+include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
 
 
 // prepare reads channel
@@ -135,5 +136,9 @@ workflow CTP {
   // Step 18 : Join Adjacent SNPs AS
   join_adjacent_snps = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(ADD_CALLER_GATK.out.vcf)
   JOIN_ADJACENT_SNPS_AS(join_adjacent_snps)
+
+  // Step 19 : Bcftools Annotate
+  bcf_annotate = JOIN_ADJACENT_SNPS_AS.out.vcf.join(JOIN_ADJACENT_SNPS_AS.out.tbi)
+  BCF_ANNOTATE(bcf_annotate)
 
 }
