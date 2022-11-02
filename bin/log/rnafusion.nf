@@ -19,6 +19,9 @@ ______________________________________________________
 --pubdir                        ${params.pubdir}
 --organize_by                   ${params.organize_by}
 --ref_prefix                    ${params.ref_prefix}
+--star_fusion_ref               ${params.star_fusion_ref}
+--star_index                    ${params.star_index}
+--star_fusion_opt               ${params.star_fusion_opt}
 
 Project Directory: ${projectDir}
 ______________________________________________________

@@ -8,6 +8,7 @@ include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/conca
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
 include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
+include {STAR_FUSION as STAR_FUSION} from "${projectDir}/modules/star-fusion/star-fusion"
 
 // log params
 param_log()
@@ -58,5 +59,8 @@ workflow RNAFUSION {
 
   // Step 2: Xenome Classification B
   XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
+
+  // Step 3: Star-fusion
+  STAR_FUSION(XENOME_SORT.out.sorted_fastq)
 
 }
