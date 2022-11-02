@@ -16,6 +16,6 @@ process ALLELE_DEPTH_MIN_AND_AF_FROM_ADS {
   log.info "----- Computing locus depth for: ${sampleID} -----"
 
   """
-  python ${projectDir}/bin/wes/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf 15
+  python ${projectDir}/bin/wes/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${params.minDP}
   """
 }
