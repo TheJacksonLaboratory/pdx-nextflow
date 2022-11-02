@@ -7,7 +7,7 @@ if (params.workflow == "rnaseq"){
   include {RNASEQ} from './workflows/rnaseq'
 }
 if (params.workflow == "rnafusion"){
-  include {RNASEQ} from './workflows/rnafusion'
+  include {RNAFUSION} from './workflows/rnafusion'
 }
 // conditional to kick off appropriate workflow
 workflow{
@@ -15,6 +15,6 @@ workflow{
     RNASEQ()
     }
   if (params.workflow == "rnafusion"){
-    RNASEQ()
+    RNAFUSION()
     }
 }

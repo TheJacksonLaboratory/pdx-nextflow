@@ -3,10 +3,14 @@ nextflow.enable.dsl=2
 
 // import modules
 include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
+include {param_log} from "${projectDir}/bin/log/rnafusion.nf"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
 include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
+
+// log params
+param_log()
 
 // prepare reads channel
 if (params.concat_lanes){
