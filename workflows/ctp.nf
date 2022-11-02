@@ -21,6 +21,8 @@ include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
 include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename"
 include {GATK_MUTECT2_CTP} from "${projectDir}/modules/gatk/gatk_mutect2_ctp"
 include {GATK_FILTERMUTECTCALLS_CTP} from "${projectDir}/modules/gatk/gatk_filtermutectcalls_ctp"
+include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_MUT;
+         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -114,4 +116,11 @@ workflow CTP {
   // Step 14 : Filter Mutect calls
   vcf_and_index = GATK_MUTECT2_CTP.out.vcf.join(GATK_MUTECT2_CTP.out.tbi)
   GATK_FILTERMUTECTCALLS_CTP(vcf_and_index)
+
+  // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
+  AD_MIN_AF_MUT(GATK_FILTERMUTECTCALLS_CTP.out.vcf)
+
+  // Step 16 : Snpsift Annotate
+  ANNOTATE_AD(AD_MIN_AF_MUT.out.vcf)
+
 }
