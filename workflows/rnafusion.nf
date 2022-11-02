@@ -5,6 +5,8 @@ nextflow.enable.dsl=2
 include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
+include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
+include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -46,5 +48,11 @@ workflow RNAFUSION {
         read_ch = CONCATENATE_READS_SE.out.concat_fastq
     }
   }
+
+  // Step 1: Xenome Classification A
+  XENOME_CLASSIFY(read_ch)
+
+  // Step 2: Xenome Classification B
+  XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
 
 }
