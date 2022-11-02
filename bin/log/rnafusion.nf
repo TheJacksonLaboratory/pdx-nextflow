@@ -22,6 +22,9 @@ ______________________________________________________
 --star_fusion_ref               ${params.star_fusion_ref}
 --star_index                    ${params.star_index}
 --star_fusion_opt               ${params.star_fusion_opt}
+--read_length                   ${params.read_length}
+--fusion_report_opt             ${params.fusion_report_opt}
+--databases                     ${params.databases}
 
 Project Directory: ${projectDir}
 ______________________________________________________

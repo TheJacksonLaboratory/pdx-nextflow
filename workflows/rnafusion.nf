@@ -10,6 +10,8 @@ include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
 include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
 include {STAR_FUSION as STAR_FUSION} from "${projectDir}/modules/star-fusion/star-fusion"
 include {FASTQC} from "${projectDir}/modules/fastqc/fastqc"
+include {FUSION_REPORT} from "${projectDir}/modules/fusion-report/fusion_report"
+include {MULTIQC} from "${projectDir}/modules/multiqc/multiqc"
 
 // log params
 param_log()
@@ -64,7 +66,19 @@ workflow RNAFUSION {
   // Step 3: Star-fusion
   STAR_FUSION(XENOME_SORT.out.sorted_fastq)
 
-  // Step n: FASTQC
+  // Step 4: FASTQC
   FASTQC(read_ch)
+
+  // Step 5: Fusion Reporter
+  FUSION_REPORT(STAR_FUSION.out.star_fusion_fusions)
+
+  // Step 6: MultiQC
+  ch_multiqc_files = Channel.empty()
+  ch_multiqc_files = ch_multiqc_files.mix(FUSION_REPORT.out.summary_fusions_mq.collect{it[1]}.ifEmpty([]))
+  ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.quality_stats.collect{it[1]}.ifEmpty([]))
+
+  MULTIQC (
+      ch_multiqc_files.collect()
+  )
 
 }
