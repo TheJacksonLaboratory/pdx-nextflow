@@ -23,6 +23,10 @@ include {GATK_MUTECT2_CTP} from "${projectDir}/modules/gatk/gatk_mutect2_ctp"
 include {GATK_FILTERMUTECTCALLS_CTP} from "${projectDir}/modules/gatk/gatk_filtermutectcalls_ctp"
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_MUT;
          ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
+include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
+         SNPSIFT_ANNOTATE as ANNOTATE_ID;
+         SNPSIFT_ANNOTATE as ANNOTATE_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
+
 
 // prepare reads channel
 if (params.concat_lanes){
