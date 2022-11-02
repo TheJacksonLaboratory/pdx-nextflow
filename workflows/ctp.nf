@@ -26,6 +26,8 @@ include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_MUT;
 include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
          SNPSIFT_ANNOTATE as ANNOTATE_ID;
          SNPSIFT_ANNOTATE as ANNOTATE_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
+include {ADD_CALLER_GATK} from "${projectDir}/modules/utility_modules/add_caller_gatk"
+include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"    
 
 
 // prepare reads channel
@@ -126,5 +128,12 @@ workflow CTP {
 
   // Step 16 : Snpsift Annotate
   ANNOTATE_AD(AD_MIN_AF_MUT.out.vcf)
+
+  // Step 17 : Add caller gatk
+  ADD_CALLER_GATK(ANNOTATE_AD.out.vcf)
+
+  // Step 18 : Join Adjacent SNPs AS
+  join_adjacent_snps = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(ADD_CALLER_GATK.out.vcf)
+  JOIN_ADJACENT_SNPS_AS(join_adjacent_snps)
 
 }
