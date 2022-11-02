@@ -141,4 +141,7 @@ workflow CTP {
   bcf_annotate = JOIN_ADJACENT_SNPS_AS.out.vcf.join(JOIN_ADJACENT_SNPS_AS.out.tbi)
   BCF_ANNOTATE(bcf_annotate)
 
+  // Step 20 : Snpsift Annotate
+  ANNOTATE_BCF(BCF_ANNOTATE.out.vcf)  
+
 }
