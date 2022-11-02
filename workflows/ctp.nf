@@ -18,6 +18,8 @@ include {GATK_BASERECALIBRATOR} from "${projectDir}/modules/gatk/gatk_baserecali
 include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
 include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_calculatehsmetrics"
 include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
+include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename"
+include {GATK_MUTECT2_CTP} from "${projectDir}/modules/gatk/gatk_mutect2_ctp"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -100,4 +102,11 @@ workflow CTP {
 
   // Step 11: MSIsensor2
   MSISENSOR2_MSI(printreads_and_index)
+
+  // Step 12: Get sample name
+  GATK_GETSAMPLENAME(printreads_and_index)
+
+  // Step 13: Mutect2
+  printreads_index_and_name = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(GATK_GETSAMPLENAME.out)
+  GATK_MUTECT2_CTP(printreads_index_and_name)
 }
