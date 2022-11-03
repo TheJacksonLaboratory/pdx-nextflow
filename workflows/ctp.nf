@@ -29,7 +29,8 @@ include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
 include {ADD_CALLER_GATK} from "${projectDir}/modules/utility_modules/add_caller_gatk"
 include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"
 include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
-
+include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
+include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -143,5 +144,12 @@ workflow CTP {
 
   // Step 20 : Snpsift Annotate
   ANNOTATE_BCF(BCF_ANNOTATE.out.vcf)  
+
+  // Step 21 : Microindel calling part 1
+  microindel_call_a = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  MICROINDEL_CALLING_A(microindel_call_a)
+
+  // Step 22 : Microindel calling part 2
+  MICROINDEL_CALLING_B(MICROINDEL_CALLING_A.out.vcf) 
 
 }

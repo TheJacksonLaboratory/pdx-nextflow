@@ -26,8 +26,5 @@ process MICROINDEL_CALLING_B {
 
   python ${projectDir}/bin/wes/filter_for_minimum_depth.py ${sampleID}_microIndels.raw.vcf ${sampleID}_micro_Indels.DPfiltered1.vcf
 
-  touch  ${sampleID}_BP  ${sampleID}_D  ${sampleID}_DSI  ${sampleID}_INT  ${sampleID}_INT_final  ${sampleID}_INV  ${sampleID}_LI  ${sampleID}_RP  ${sampleID}_SI  ${sampleID}_TD
-
-
   """
 }
