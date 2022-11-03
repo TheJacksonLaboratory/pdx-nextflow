@@ -9,6 +9,9 @@ if (params.workflow == "rnaseq"){
 if (params.workflow == "rnafusion"){
   include {RNAFUSION} from './workflows/rnafusion'
 }
+if (params.workflow == "cnv"){
+  include {CNV} from './workflows/cnv'
+}
 // conditional to kick off appropriate workflow
 workflow{
   if (params.workflow == "rnaseq"){
@@ -17,4 +20,7 @@ workflow{
   if (params.workflow == "rnafusion"){
     RNAFUSION()
     }
+  if (params.workflow == "cnv"){
+    CNV()
+  }
 }
