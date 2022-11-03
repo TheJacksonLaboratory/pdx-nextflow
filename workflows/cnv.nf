@@ -8,6 +8,7 @@ include {helpMessage} from "${projectDir}/bin/help/cnv.nf"
 include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {GET_MODEL_GENDER} from "${projectDir}/modules/apt/apt-get_model_gender"
 include {LRRBAF} from "${projectDir}/modules/apt/apt-LRRBAF"
+include {ASCAT} from "${projectDir}/modules/ascat/ascat"
 
 // log params
 param_log()
@@ -94,6 +95,10 @@ workflow CNV {
     lrrbaf_input = GET_MODEL_GENDER.out.cel_list.join.sample_CEL_ch
 
     LRRBAF(lrrbaf_input)
+
+    ascat_input = LRRBAF.out.lrrbaf.join.GET_MODEL_GENDER.out.gender
+
+    ASCAT(ascat_input)
 
 }
 

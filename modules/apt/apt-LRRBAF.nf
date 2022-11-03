@@ -3,7 +3,7 @@ process LRRBAF {
     tag "$sampleID"
 
     cpus 1
-    memory 2.GB
+    memory 6.GB
     time 8.h
     errorStrategy 'finish'
 
