@@ -6,6 +6,7 @@ include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
 include {param_log} from "${projectDir}/bin/log/cnv.nf"
 include {helpMessage} from "${projectDir}/bin/help/cnv.nf"
 include {RUN_START} from "${projectDir}/bin/shared/run_start"
+include {GET_MODEL_GENDER} from "${projectDir}/modules/apt/apt-get_model_gender"
 
 // log params
 param_log()
@@ -60,6 +61,25 @@ if ( ! params.exp_mart_genes ) {
   exit 1, "Parameter ERROR: file containing genes exported to PDX data mart database must be specified."
 }
 
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ Opening Variables and Channels ~ ~ ~ ~ ~
+def celRE = ~/.CEL$/
+
+celin = params.celInput
+celin2 = file(celin)
+
+// Need to specify absolute path to CEL file because relative paths cause symlink breakage
+cel = celin2.toAbsolutePath().toString()
+
+def sampleID = ( celin2.name - celRE )
+
+
+//~~~~~~~~~~ Initial Channel of SampleID and CEL Data ~~~~
+Channel.of( sampleID, cel )
+       .toList()
+       .set { sample_CEL_ch }
+
+sample_CEL_ch.view()
+
 // main workflow
 workflow CNV {
 
@@ -69,9 +89,8 @@ workflow CNV {
     run_check.delete()
     
     RUN_START()
-
-
-
+    
+    GET_MODEL_GENDER(sample_CEL_ch)
 
 }
 
