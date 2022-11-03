@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 // import modules
 include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
 include {param_log} from "${projectDir}/bin/log/rnafusion.nf"
+include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
@@ -46,6 +47,9 @@ read_ch.ifEmpty{ exit 1, "ERROR: No Files Found in Path: ${params.sample_folder}
 // main workflow
 workflow RNAFUSION {
 
+  // Create `pipeline_running.txt` used in 'on.complete' and in JAX PDX loader
+  RUN_START()
+
   // Step 0: Concatenate Fastq files if required.
   if (params.concat_lanes){
     if (params.read_type == 'PE'){
@@ -80,5 +84,20 @@ workflow RNAFUSION {
   MULTIQC (
       ch_multiqc_files.collect()
   )
+}
 
+workflow.onComplete {
+  if (workflow.success && params.preserve_work == "no") {
+    workflow.workDir.deleteDir()
+    log.info "Cleaned Work Directory"
+  } else {
+    log.info "Keeping Work Directory"
+  }
+  if (workflow.success) {
+    log.info "Pipeline completed successfully"
+    run_check = file("${params.pubdir}/pipeline_running.txt")
+    run_check.renameTo("${params.pubdir}/pipeline_complete.txt")
+  } else {
+      log.info "Pipeline completed with errors"
+  }
 }

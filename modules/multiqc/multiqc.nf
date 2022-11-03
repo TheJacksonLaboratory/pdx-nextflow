@@ -20,29 +20,3 @@ process MULTIQC {
     """
 
 }
-
-
-  process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
-
-    input:
-
-    file ('fastqc/*') from ch_fastqc_results.collect().ifEmpty([])
-
-    file (fusions_mq) from summary_fusions_mq.collect().ifEmpty([])
-
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
-
-    when: !params.debug
-
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    """
-    multiqc -f $rtitle $rfilename $custom_config_file .
-    """
-}

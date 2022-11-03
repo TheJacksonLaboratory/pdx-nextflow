@@ -25,6 +25,7 @@ ______________________________________________________
 --read_length                   ${params.read_length}
 --fusion_report_opt             ${params.fusion_report_opt}
 --databases                     ${params.databases}
+--preserve_work                 ${params.preserve_work}
 
 Project Directory: ${projectDir}
 ______________________________________________________
