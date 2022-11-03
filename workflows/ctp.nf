@@ -31,6 +31,7 @@ include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join
 include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
 include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
 include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
+include {ADD_CALLER_PINDEL} from "${projectDir}/modules/utility_modules/add_caller_pindel"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -150,6 +151,16 @@ workflow CTP {
   MICROINDEL_CALLING_A(microindel_call_a)
 
   // Step 22 : Microindel calling part 2
-  MICROINDEL_CALLING_B(MICROINDEL_CALLING_A.out.vcf) 
+  MICROINDEL_CALLING_B(MICROINDEL_CALLING_A.out.vcf)
+
+  // Microindel filtering
+  // Step 23 : Recompute the locus depth and Add Estimated Allele Frequency
+  AD_MIN_AF_IND(MICROINDEL_CALLING_B.out.vcf)
+
+  // Step 24 : Snpsift Annotate
+  ANNOTATE_ID(AD_MIN_AF_IND.out.vcf)
+
+  // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
+  ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
 
 }
