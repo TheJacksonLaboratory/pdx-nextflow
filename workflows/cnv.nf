@@ -62,5 +62,31 @@ if ( ! params.exp_mart_genes ) {
 
 // main workflow
 workflow CNV {
+
+    // Remove `pipeline_complete.txt` from prior run, if this is a 'resume' or sample re-run. 
+    // This file is used in 'on.complete' and in JAX PDX loader
+    run_check = file("${params.pubdir}/pipeline_complete.txt")
+    run_check.delete()
+    
     RUN_START()
+
+
+
+
+}
+
+workflow.onComplete {
+    if (workflow.success && params.preserve_work == "no") {
+    workflow.workDir.deleteDir()
+    log.info "Cleaned Work Directory"
+    } else {
+    log.info "Keeping Work Directory"
+    }
+    if (workflow.success) {
+    log.info "Pipeline completed successfully"
+    run_check = file("${params.pubdir}/pipeline_running.txt")
+    run_check.renameTo("${params.pubdir}/pipeline_complete.txt")
+    } else {
+    log.info "Pipeline completed with errors"
+    }
 }

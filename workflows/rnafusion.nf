@@ -47,6 +47,11 @@ read_ch.ifEmpty{ exit 1, "ERROR: No Files Found in Path: ${params.sample_folder}
 // main workflow
 workflow RNAFUSION {
 
+  // Remove `pipeline_complete.txt` from prior run, if this is a 'resume' or sample re-run. 
+  // This file is used in 'on.complete' and in JAX PDX loader
+  run_check = file("${params.pubdir}/pipeline_complete.txt")
+  run_check.delete()
+
   // Create `pipeline_running.txt` used in 'on.complete' and in JAX PDX loader
   RUN_START()
 
