@@ -17,9 +17,9 @@ process GET_MODEL_GENDER {
 
     output:
         tuple val(sampleID), file("listfile1"), emit: cel_list
-        tuple val(sampleID), file("gender.txt"), optional: true, emit: gender
+        tuple val(sampleID), file("gender.txt"), emit: gender
         file("*txt")
-        file("*log") //this might not be needed.
+        file("*log") //this might not be needed. Output was not originally being saved. 
 
     script:
     """

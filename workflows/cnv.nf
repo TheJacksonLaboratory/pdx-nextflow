@@ -7,6 +7,7 @@ include {param_log} from "${projectDir}/bin/log/cnv.nf"
 include {helpMessage} from "${projectDir}/bin/help/cnv.nf"
 include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {GET_MODEL_GENDER} from "${projectDir}/modules/apt/apt-get_model_gender"
+include {LRRBAF} from "${projectDir}/modules/apt/apt-LRRBAF"
 
 // log params
 param_log()
@@ -78,8 +79,6 @@ Channel.of( sampleID, cel )
        .toList()
        .set { sample_CEL_ch }
 
-sample_CEL_ch.view()
-
 // main workflow
 workflow CNV {
 
@@ -91,6 +90,10 @@ workflow CNV {
     RUN_START()
     
     GET_MODEL_GENDER(sample_CEL_ch)
+
+    lrrbaf_input = GET_MODEL_GENDER.out.cel_list.join.sample_CEL_ch
+
+    LRRBAF(lrrbaf_input)
 
 }
 
