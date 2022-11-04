@@ -16,7 +16,7 @@ process GATK_BASERECALIBRATOR {
   tuple val(sampleID), file("*.grp"), emit: grp
 
   script:
-  log.info "----- GATK BaseRecalibrator Running on: ${sampleID} -----"
+  
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
   """

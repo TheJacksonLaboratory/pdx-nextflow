@@ -15,8 +15,7 @@ process BCF_ANNOTATE {
   tuple val(sampleID), file("*.noIds.vcf.gz"), emit: vcf
 
   script:
-  log.info "----- BCFTools Annotate Running on: ${sampleID} -----"
-
+  
   """
   bcftools annotate \
   --output ${sampleID}_variant_fixAdjSNP.noIds.vcf.gz \
