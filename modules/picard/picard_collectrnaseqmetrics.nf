@@ -17,8 +17,7 @@ process PICARD_COLLECTRNASEQMETRICS {
   tuple val(sampleID), file("*metrics.txt"), emit: picard_metrics
 
   script:
-  log.info "----- Collect RNA Sequence Metrics on: ${sampleID} -----"
-
+  
     if (params.read_prep == "reverse_stranded") {
     strand_setting = "SECOND_READ_TRANSCRIPTION_STRAND"
   }

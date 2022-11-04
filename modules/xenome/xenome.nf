@@ -20,7 +20,7 @@ process XENOME_CLASSIFY {
   tuple val(sampleID), file("*.txt"), emit: xenome_stats
 
   script:
-  log.info "----- Xenome running on: ${sampleID} -----"
+  
   """
   /xenome-1.0.1-r/xenome classify -T 8 -P ${params.ref_prefix} --pairs --host-name mouse --graft-name human -i ${trimmed[0]} -i ${trimmed[1]} > ${sampleID}_xenome_stats.txt
 

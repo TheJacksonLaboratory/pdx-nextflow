@@ -15,8 +15,7 @@ process RNA_SUMMARY_STATS {
     tuple val(sampleID), file("*.txt")
 
     script:
-    log.info "----- Summary Metrics running on ${sampleID} -----"
-
+    
     if (params.read_type == "PE")
 
       """
