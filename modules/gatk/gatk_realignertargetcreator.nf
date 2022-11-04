@@ -16,7 +16,7 @@ process GATK_REALIGNERTARGETCREATOR {
   tuple val(sampleID), file("*.intervals"), emit: intervals
 
   script:
-  log.info "----- GATK RealignerTargetCreator Running on: ${sampleID} -----"
+  
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
 
