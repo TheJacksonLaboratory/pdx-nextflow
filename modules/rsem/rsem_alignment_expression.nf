@@ -27,8 +27,7 @@ process RSEM_ALIGNMENT_EXPRESSION {
   tuple val(sampleID), file("*.transcript.bam"), emit: transcript_bam
 
   script:
-  log.info "----- Genome alignment running on: ${sampleID} -----"
-
+  
   if (params.read_prep == "reverse_stranded"){
     prob = "--forward-prob 0"
   }

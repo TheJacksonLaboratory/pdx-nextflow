@@ -17,7 +17,6 @@ process FASTQ_SORT {
   tuple val(sampleID), file("*sorted_human*{1,2}.fastq"), emit: sorted_fastq
 
   script:
-  log.info "----- Sorting human reads from Xenome step running on: ${sampleID} -----"
   command_two = params.read_type == 'PE' ? "fastq-sort --id ${trimmed_hsa[1]} > ${sampleID}_sorted_human_2.fastq" : ''
 
   """

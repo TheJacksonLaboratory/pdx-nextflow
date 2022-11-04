@@ -20,8 +20,7 @@ process ADD_GENE_NAME_NORM {
   tuple val(sampleID), file("*genes.results.Normalized"), emit: norm_gene_results
 
   script:
-  log.info "----- Gene name addition and normalization running on: ${sampleID} -----"
-
+  
   """
   perl ${projectDir}/bin/rnaseq/GeneName_and_Normalization_without_UCSC.pl \
   -i1 ${genes} \

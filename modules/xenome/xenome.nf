@@ -20,7 +20,6 @@ process XENOME_CLASSIFY {
   tuple val(sampleID), file("*.txt"), emit: xenome_stats
 
   script:
-  log.info "----- Xenome running on: ${sampleID} -----"
 
   read_input = params.read_type == 'PE' ? "-i ${trimmed[0]} -i ${trimmed[1]}" : "-i ${trimmed[0]}"
   pairs = params.read_type == 'PE' ? "--pairs" : ""
