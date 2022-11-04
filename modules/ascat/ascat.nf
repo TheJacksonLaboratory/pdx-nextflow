@@ -20,7 +20,7 @@ process ASCAT {
         file("*txt")
         file("*png")
         file("*Rout")
-        // file("*RData") this could be saved as an intermediate. It was not ultimately saved in the pipeline. 
+        // file("*RData") this could be saved as an intermediate. It was not ultimately saved in the orignal pipeline. 
 
     shell:
     '''

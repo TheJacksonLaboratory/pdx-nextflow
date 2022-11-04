@@ -59,4 +59,12 @@ process GET_MODEL_GENDER {
     
     """
 
+    stub:
+    """
+    touch listfile1
+    touch gender.txt
+    touch text.txt
+    touch test.log
+    """
+
 }

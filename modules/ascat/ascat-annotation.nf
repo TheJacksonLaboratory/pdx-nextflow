@@ -15,7 +15,7 @@ process ASCAT_ANNOTATION {
         tuple val(sampleID), path(raw_segs), path(sample_ploidy), path(sample_gender)
  
     output:
-        tuple sampleID, file("*segments_raw.extend.ensgene_cnvbreak.txt") into ascast_annot
+        tuple val(sampleID), file("*segments_raw.extend.ensgene_cnvbreak.txt"), emit: ascast_annot
         file("*segments*txt")
         file("*png")
 
