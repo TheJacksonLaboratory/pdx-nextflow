@@ -15,8 +15,7 @@ process MICROINDEL_CALLING_B {
   tuple val(sampleID), file("*.DPfiltered1.vcf"), emit: vcf
 
   script:
-  log.info "----- Microindel calling, part 2 running on ${sampleID} -----"
-
+  
   """
   bedtools intersect \
   -header \

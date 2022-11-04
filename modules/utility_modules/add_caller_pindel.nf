@@ -13,8 +13,7 @@ process ADD_CALLER_PINDEL {
   tuple val(sampleID), file("*DPfiltered.vcf"), emit: vcf
 
   script:
-  log.info "----- Computing locus depth for: ${sampleID} -----"
-
+  
   """
   ${projectDir}/bin/wes/caller_add_pindel.sh ${vcf} ${sampleID}_microIndels.DPfiltered.vcf
   """

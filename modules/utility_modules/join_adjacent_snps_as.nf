@@ -16,8 +16,7 @@ process JOIN_ADJACENT_SNPS_AS {
   tuple val(sampleID), file("*fixAdjSNP.vcf.gz.tbi"), emit: tbi
 
   script:
-  log.info "----- Fix Adjacent SNPs for: ${sampleID} -----"
-
+  
   """
   python ${projectDir}/bin/wes/joinAdjacentSNPs_AS.py -v ${filt_var_DP} \
   -o ${sampleID}_variant_fixAdjSNP.vcf \

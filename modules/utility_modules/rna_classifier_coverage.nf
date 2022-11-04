@@ -18,7 +18,7 @@ process CLASSIFIER_COVERAGE {
   tuple val(sampleID), file("*classification"), emit: classified
 
   script:
-  log.info "----- Classifier and coverage Running on: ${sampleID} -----"
+  
 
   """
   python ${projectDir}/bin/rnaseq/lymphoma_classifier.py -o ${sampleID}_classification ${norm_genes} ${params.classifier_table} ${sampleID}

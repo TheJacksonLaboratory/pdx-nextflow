@@ -14,7 +14,6 @@ process ADD_CALLER_GATK {
   tuple val(sampleID), file("*DPfiltered.vcf"), emit: vcf
 
   script:
-  log.info "----- Add Caller column for: ${sampleID} -----"
 
   """
   ${projectDir}/bin/wes/caller_add_gatk.sh ${add_filters} ${sampleID}_variants.DPfiltered.vcf
