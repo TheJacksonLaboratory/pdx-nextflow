@@ -9,7 +9,7 @@ process ASCAT {
 
     container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/devtools_ASCAT_R.sif'
 
-    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'ascat' }", pattern: "*.{txt,png,Rout,RData}", mode:'copy'
+    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'ascat' }", pattern: "*.{txt,png,Rout}", mode:'copy'
 
     input:
         tuple val(sampleID), path(lrr_baf), path(gender)
@@ -20,7 +20,7 @@ process ASCAT {
         file("*txt")
         file("*png")
         file("*Rout")
-        file("*RData")
+        // file("*RData") this could be saved as an intermediate. It was not ultimately saved in the pipeline. 
 
     shell:
     '''

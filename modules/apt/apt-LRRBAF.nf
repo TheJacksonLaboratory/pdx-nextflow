@@ -24,9 +24,8 @@ process LRRBAF {
     """
     /apt_2.11.3_linux_64_bit_x86_binaries/bin/apt-probeset-summarize --cdf-file ${params.snp6chip} --analysis quant-norm.sketch=50000,pm-only,med-polish,expr.genotype=true --target-sketch ${params.hapmap_norm_target} --out-dir .  --cel-files ${cel_list_file}
 
-    ${projectDir}/bin/cnv/normalize_affy_geno_cluster.pl ${params.genoclust} quant-norm.pm-only.med-polish.expr.summary.txt -locfile ${params.gw6_pfb_file} -out lrr_baf.txt  
-    """
+    ${projectDir}/bin/cnv/normalize_affy_geno_cluster.pl ${params.genoclust} quant-norm.pm-only.med-polish.expr.summary.txt -locfile ${params.gw6_pfb_file} -out lrr_baf.txt
 
+    rm -rf quant-norm.pm-only.med-polish.expr.summary.txt quant-norm.pm-only.med-polish.expr.report.txt
+    """
 }
-//  rm -rf quant-norm.pm-only.med-polish.expr.summary.txt quant-norm.pm-only.med-polish.expr.report.txt this step removed from end of script step. Intermediate files will be removed via work. Doing `rm` can disallow the '-resume' feature. 
-    

@@ -9,6 +9,7 @@ include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {GET_MODEL_GENDER} from "${projectDir}/modules/apt/apt-get_model_gender"
 include {LRRBAF} from "${projectDir}/modules/apt/apt-LRRBAF"
 include {ASCAT} from "${projectDir}/modules/ascat/ascat"
+//include {ASCAT_ANNOTATION} from "${projectDir}/modules/ascat/ascat-annotation"
 
 // log params
 param_log()
@@ -99,6 +100,12 @@ workflow CNV {
     ascat_input = LRRBAF.out.lrrbaf.join.GET_MODEL_GENDER.out.gender
 
     ASCAT(ascat_input)
+
+    ascat_annotation_input = ASCAT.out.raw_seg.join.ASCAT.out.ploidy.join.GET_MODEL_GENDER.out.gender
+
+    ASCAT_ANNOTATION(ascat_annotation_input)
+
+    // rm *.RData *.BAF.txt *.LogR.txt lrr_baf1.txt *.PCFed.txt
 
 }
 

@@ -54,8 +54,9 @@ process GET_MODEL_GENDER {
     cat birdseed.calls.txt | grep -v "#" | cut -f1-2 > birdseed.calls1.txt
 
     cat birdseed.report.txt | grep -v "#" | head -2 > birdseed.report1.txt
-
+    
+    rm -rf listfile birdseed.report.txt birdseed.confidences.txt birdseed.calls.txt 
+    
     """
 
 }
- // rm -rf listfile birdseed.report.txt birdseed.confidences.txt birdseed.calls.txt this step removed from end of script step. Intermediate files will be removed via work. Doing `rm` can disallow the '-resume' feature. 

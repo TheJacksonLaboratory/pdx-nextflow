@@ -32,8 +32,6 @@ process FUSION_REPORT {
     // tools += !starfusion.empty() ? "--starfusion ${starfusion} " : ''
     // Code left if ever expanded to multiple tools. 
 
-    log.info "----- Running Fusion Report on: ${sampleID} -----"
-
     """
     fusion_report run ${sampleID} . ${params.databases} --starfusion ${starfusion} ${extra_params}
     mv fusion_list.tsv ${sampleID}_fusion_list.tsv

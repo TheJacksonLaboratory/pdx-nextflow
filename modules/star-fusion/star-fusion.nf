@@ -25,8 +25,6 @@ process STAR_FUSION {
     option = params.read_type == 'PE' ? "--left_fq ${reads[0]} --right_fq ${reads[1]}" : "--left_fq ${reads[0]}"
     def extra_params = params.star_fusion_opt ? params.star_fusion_opt : ''
 
-    log.info "----- Running Star Fusion on: ${sampleID} -----"
-
     """
     STAR \\
         --genomeDir ${params.star_index} \\
