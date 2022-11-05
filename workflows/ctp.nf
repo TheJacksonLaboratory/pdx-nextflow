@@ -32,6 +32,11 @@ include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
 include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
 include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
 include {ADD_CALLER_PINDEL} from "${projectDir}/modules/utility_modules/add_caller_pindel"
+include {SNPSIFT_MICROINDELS_CTP} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels_ctp"
+include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
+include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
+include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
+include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -102,11 +107,12 @@ workflow CTP {
   GATK_INDELREALIGNER(dedup_index_and_intervals)
 
   // Step 8: Variant Pre-Processing - Part 2
-  GATK_BASERECALIBRATOR(dedup_and_index)
+  realigned_and_index = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai)
+  GATK_BASERECALIBRATOR(realigned_and_index)
 
   // Step 9: PrintReads
-  dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
-  GATK_PRINTREADS(dedup_index_and_grp)
+  realigned_index_and_grp = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai).join(GATK_BASERECALIBRATOR.out.grp)
+  GATK_PRINTREADS(realigned_index_and_grp)
 
   // Step 10: Calculate depth metrics
   printreads_and_index = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
@@ -163,4 +169,12 @@ workflow CTP {
   // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
   ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
 
+  // Step 26 : Merge earlier annotated variants with microindels
+  variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  SNPSIFT_MICROINDELS_CTP(variants_and_microindels)
+
+  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS_CTP.out.vcf)
+  SNPSIFT_DBNSFP(SNPEFF_ANNOTATE.out.vcf, "BOTH")
+  SNPSIFT_COSMIC(SNPSIFT_DBNSFP.out.vcf)
+  EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
 }
