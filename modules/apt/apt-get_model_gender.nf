@@ -18,7 +18,11 @@ process GET_MODEL_GENDER {
     output:
         tuple val(sampleID), file("listfile1"), emit: cel_list
         tuple val(sampleID), file("gender.txt"), emit: gender
-        file("*txt")
+        file("birdseed.calls1.txt")
+        file("birdseed.confidences1.txt")
+        file("birdseed.report1.txt")
+        file("gender_birdseed.txt")
+        file("gender_elims.txt")
         file("*log") //this might not be needed. Output was not originally being saved. 
 
     script:
@@ -54,17 +58,21 @@ process GET_MODEL_GENDER {
     cat birdseed.calls.txt | grep -v "#" | cut -f1-2 > birdseed.calls1.txt
 
     cat birdseed.report.txt | grep -v "#" | head -2 > birdseed.report1.txt
-    
-    rm -rf listfile birdseed.report.txt birdseed.confidences.txt birdseed.calls.txt 
-    
+
     """
 
     stub:
     """
     touch listfile1
     touch gender.txt
-    touch text.txt
     touch test.log
+    touch birdseed.calls1.txt
+    touch birdseed.confidences1.txt
+    touch birdseed.report1.txt
+    touch gender_birdseed.txt
+    touch gender_elims.txt
     """
-
 }
+
+//    rm -rf listfile birdseed.report.txt birdseed.confidences.txt birdseed.calls.txt 
+//    This was originally included but isn't needed in a nextflow context.

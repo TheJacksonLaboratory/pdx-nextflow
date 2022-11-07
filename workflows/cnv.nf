@@ -105,8 +105,6 @@ workflow CNV {
 
     ASCAT_ANNOTATION(ascat_annotation_input)
 
-    // rm *.RData *.BAF.txt *.LogR.txt lrr_baf1.txt *.PCFed.txt
-
 }
 
 workflow.onComplete {

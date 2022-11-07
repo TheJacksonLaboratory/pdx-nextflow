@@ -17,7 +17,8 @@ process ASCAT {
     output:
         tuple val(sampleID), file("*segments_raw.txt"), emit: raw_seg
         tuple val(sampleID), file("*ploidy.txt"), emit: ploidy
-        file("*txt")
+        file("*aberrantcellfraction.txt")
+        file("*segments.txt")
         file("*png")
         file("*Rout")
         // file("*RData") this could be saved as an intermediate. It was not ultimately saved in the orignal pipeline. 
@@ -31,4 +32,3 @@ process ASCAT {
 
     '''
 }
-

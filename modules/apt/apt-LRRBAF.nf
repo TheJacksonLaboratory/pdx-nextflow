@@ -26,6 +26,7 @@ process LRRBAF {
 
     ${projectDir}/bin/cnv/normalize_affy_geno_cluster.pl ${params.genoclust} quant-norm.pm-only.med-polish.expr.summary.txt -locfile ${params.gw6_pfb_file} -out lrr_baf.txt
 
-    rm -rf quant-norm.pm-only.med-polish.expr.summary.txt quant-norm.pm-only.med-polish.expr.report.txt
     """
 }
+//    rm -rf quant-norm.pm-only.med-polish.expr.summary.txt quant-norm.pm-only.med-polish.expr.report.txt 
+//    This was originally included, but is not needed in the nextflow context. 

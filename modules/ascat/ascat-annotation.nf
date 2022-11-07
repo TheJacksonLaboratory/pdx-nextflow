@@ -32,8 +32,9 @@ process ASCAT_ANNOTATION {
 
     R CMD BATCH --slave "--args !{sampleID}.segments_raw.extend.txt $msp ./ " !{projectDir}/bin/cnv/seg_plot.R
 
-    rm -rf tmp.txt  
-
     '''
 
 }
+
+//     rm -rf tmp.txt  
+//     This was originally included, but is not needed in the nextflow context. 
