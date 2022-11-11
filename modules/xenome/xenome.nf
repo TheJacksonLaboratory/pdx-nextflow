@@ -26,7 +26,5 @@ process XENOME_CLASSIFY {
 
   """
   /xenome-1.0.1-r/xenome classify -T 8 -P ${params.ref_prefix} ${pairs} --host-name mouse --graft-name human ${read_input} > ${sampleID}_xenome_stats.txt
-
-  rm -rf *both*fastq* *mouse*fastq* *neither*fastq* *ambiguous*fastq*
   """
 }

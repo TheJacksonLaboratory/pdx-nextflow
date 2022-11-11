@@ -7,6 +7,7 @@ include {param_log} from "${projectDir}/bin/log/rnafusion.nf"
 include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
+include {GUNZIP} from "${projectDir}/modules/utility_modules/gunzip"
 include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
 include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
 include {STAR_FUSION as STAR_FUSION} from "${projectDir}/modules/star-fusion/star-fusion"
@@ -66,8 +67,11 @@ workflow RNAFUSION {
     }
   }
 
+  // Step 00: Unzip Reads if needed.
+  GUNZIP(read_ch)
+
   // Step 1: Xenome Classification A
-  XENOME_CLASSIFY(read_ch)
+  XENOME_CLASSIFY(GUNZIP.out.gunzip_fastq)
 
   // Step 2: Xenome Classification B
   XENOME_SORT(XENOME_CLASSIFY.out.xenome_fastq)
