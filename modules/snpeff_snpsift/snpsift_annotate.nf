@@ -9,7 +9,6 @@ process SNPSIFT_ANNOTATE{
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'snpeff' }", pattern:"*.vcf", mode:'copy'
 
-
   input:
   tuple val(sampleID), file(vcf)
 
@@ -18,23 +17,22 @@ process SNPSIFT_ANNOTATE{
 
   script:
   
-
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
   
   if (vcf =~ 'mutect'){
-    options = 'mutect_snp_indel_filtered.vcf.additionalfilters.tmp.vcf'
+    output_suffix = 'mutect_snp_indel_filtered.vcf.additionalfilters.tmp.vcf'
   }
   if (vcf =~ 'SNP'){
-    options = 'variant_fixAdjSNP.vcf'
+    output_suffix = 'variant_fixAdjSNP.vcf'
   }
   if (vcf =~ 'microIndels'){
-    options = 'microIndels.DPfiltered1.vcf.additionalfilters.tmp.vcf'
+    output_suffix = 'microIndels.DPfiltered1.vcf.additionalfilters.tmp.vcf'
   }
 
   """
   java -Xmx${my_mem}G -jar /snpEff_v4_3/snpEff/SnpSift.jar \
   annotate \
-  -id ${params.dbsnp} ${vcf} > ${sampleID}_${options}
+  -id ${params.dbsnp} ${vcf} > ${sampleID}_${output_suffix}
   """
 }

@@ -3,9 +3,11 @@ process GATK_MUTECT2_CTP {
 
   cpus 1
   memory 120.GB
-  time '05:00:00'
+  time '24:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
+  errorStrategy "finish"
+
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
   input:
   tuple val(sampleID), file(bam), file(bai), file(tumor)
@@ -21,7 +23,7 @@ process GATK_MUTECT2_CTP {
   """
   tumorName=\$(cat ${tumor})
 
-  java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+  java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
   Mutect2 \
   -R ${params.ref_fa} \
   -I ${bam}  \
