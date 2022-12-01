@@ -16,14 +16,15 @@ process XENOME_CLASSIFY {
   tuple val(sampleID), file(trimmed)
 
   output:
-  tuple val(sampleID), file("human*{1,2}.fastq"), emit: xenome_fastq
+  tuple val(sampleID), file("human*.fastq"), emit: xenome_fastq
   tuple val(sampleID), file("*.txt"), emit: xenome_stats
 
   script:
-  
-  """
-  /xenome-1.0.1-r/xenome classify -T 8 -P ${params.ref_prefix} --pairs --host-name mouse --graft-name human -i ${trimmed[0]} -i ${trimmed[1]} > ${sampleID}_xenome_stats.txt
 
-  rm -rf *both*fastq* *mouse*fastq* *neither*fastq* *ambiguous*fastq*
+  read_input = params.read_type == 'PE' ? "-i ${trimmed[0]} -i ${trimmed[1]}" : "-i ${trimmed[0]}"
+  pairs = params.read_type == 'PE' ? "--pairs" : ""
+
+  """
+  /xenome-1.0.1-r/xenome classify -T 8 -P ${params.ref_prefix} ${pairs} --host-name mouse --graft-name human ${read_input} > ${sampleID}_xenome_stats.txt
   """
 }
