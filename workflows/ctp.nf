@@ -38,6 +38,7 @@ include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbns
 include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
+include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -191,4 +192,11 @@ workflow CTP {
   // Step 31: Calculate TMB score from variants and microindels
   tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
   TMB_SCORE_CTP(tmb_input)
+
+  // Aggregate statistcs
+
+  // Step 32: 
+
+  fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
+  CTP_SUMMARY_STATS(fq_alignment_metrics)
 }
