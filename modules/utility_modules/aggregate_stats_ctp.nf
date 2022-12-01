@@ -13,7 +13,7 @@ process CTP_SUMMARY_STATS {
     tuple val(sampleID), file(filter_stat), file(duplicate_metrics), file(cov_metrics)
 
     output:
-    file("${SampleID}_summary_stats.txt")
+    file("${sampleID}_summary_stats.txt")
 
     script:
     """
