@@ -17,7 +17,7 @@ process SNPSIFT_ANNOTATE{
   tuple val(sampleID), file("*.vcf*"), emit: vcf
 
   script:
-  log.info "----- snpSift Annotate Running on: ${sampleID} -----"
+  
 
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]

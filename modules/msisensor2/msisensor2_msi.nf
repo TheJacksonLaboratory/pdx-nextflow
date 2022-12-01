@@ -16,7 +16,7 @@ process MSISENSOR2_MSI {
   tuple val(sampleID), file("*msisensor"), emit: msisensor
 
   script:
-  log.info "----- MSIsensor2 Running on: ${sampleID} -----"
+  
   """
   mkdir models
 

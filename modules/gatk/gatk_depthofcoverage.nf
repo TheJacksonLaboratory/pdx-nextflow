@@ -11,15 +11,14 @@ process GATK_DEPTHOFCOVERAGE {
 
 
   input:
-  tuple val(sampleID), file(bam)
-  tuple val(sampleID), file(bai)
+  tuple val(sampleID), file(bam), file(bai)
   val(L)
 
   output:
   tuple val(sampleID), file("*_gatk_temp*.txt"), emit: txt
 
   script:
-  log.info "----- GATK Depth of Coverage Running on: ${sampleID} -----"
+  
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
   id = L =~ /probes/ ?  "1" : "4"

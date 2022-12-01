@@ -16,7 +16,7 @@ process GATK_GETSAMPLENAME {
   tuple val(sampleID), file("*_tumor_SN.txt") 
 
   script:
-  log.info "----- Get Sample Name Running on: ${sampleID} -----"
+  
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
   """

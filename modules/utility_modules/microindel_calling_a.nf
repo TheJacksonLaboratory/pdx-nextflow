@@ -15,8 +15,7 @@ process MICROINDEL_CALLING_A {
   tuple val(sampleID), file("*.vcf"), emit: vcf
 
   script:
-  log.info "----- Microindel calling, part 1 running on ${sampleID} -----"
-
+  
   """
   echo -e "${bam}\t350\t${sampleID}" > ${sampleID}_pindel_config.txt
 

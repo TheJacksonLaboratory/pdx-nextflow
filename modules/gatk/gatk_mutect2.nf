@@ -15,7 +15,7 @@ process GATK_MUTECT2 {
   tuple val(sampleID), file("*.vcf.gz.tbi"), emit: tbi
 
   script:
-  log.info "----- Variant Calling Mutect2 Running on: ${sampleID} -----"
+  
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
   """
