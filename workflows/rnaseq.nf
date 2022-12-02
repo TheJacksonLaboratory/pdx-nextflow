@@ -105,13 +105,15 @@ workflow RNASEQ {
   depth_of_coverage_ctp = PICARD_SORTSAM.out.bam.join(PICARD_SORTSAM.out.bai)
   GATK_DEPTHOFCOVERAGE_CTP(depth_of_coverage_ctp, params.ctp_genes)
   FORMAT_GATK_CTP(GATK_DEPTHOFCOVERAGE_CTP.out.txt, params.ctp_genes)
-  COVCALC_GATK_CTP(FORMAT_GATK_CTP.out.txt, "CTP")
+  COVCALC_GATK_CTP(FORMAT_GATK_CTP.out.txt, "CCP")
+  //COVCALC_GATK_CTP(FORMAT_GATK_CTP.out.txt, "CTP")
 
   // Step 13: GATK Coverage Stats (PROBES)
   depth_of_coverage_probes = PICARD_SORTSAM.out.bam.join(PICARD_SORTSAM.out.bai)
   GATK_DEPTHOFCOVERAGE_PROBES(depth_of_coverage_probes, params.probes)
   FORMAT_GATK_PROBES(GATK_DEPTHOFCOVERAGE_PROBES.out.txt, params.probes)
-  COVCALC_GATK_PROBES(FORMAT_GATK_PROBES.out.txt, "PROBES")
+  COVCALC_GATK_PROBES(FORMAT_GATK_PROBES.out.txt, "exome")
+  //COVCALC_GATK_PROBES(FORMAT_GATK_PROBES.out.txt, "PROBES")
 
   // Step 14: Classifier and Coverage
   CLASSIFIER_COVERAGE(ADD_GENE_NAME_NORM.out.norm_gene_results)

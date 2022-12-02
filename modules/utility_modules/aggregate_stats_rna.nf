@@ -6,7 +6,7 @@ process RNA_SUMMARY_STATS {
 
     container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/perl.sif'
 
-    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'summary_stats' }", pattern: "*stats.txt", mode:'copy'
+    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'summary_stats' }", pattern: "*stats.txt", mode:'copy'
 
     input:
     tuple val(sampleID), file(rsem_stats), file(quality_stats), file(xenome_stats), file(picard_metrics)

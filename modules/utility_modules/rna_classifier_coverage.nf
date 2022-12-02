@@ -9,7 +9,7 @@ process CLASSIFIER_COVERAGE {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.v2.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.bed", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'classifier' }", pattern: "*classification", mode:'copy'
 
   input:
   tuple val(sampleID), file(norm_genes)
