@@ -21,6 +21,6 @@ process COVCALC_GATK {
   script:
   
   """
-  python ${projectDir}/bin/rnaseq/coveragecalculator.py ${txt} ${sampleID}_${filename}_avg_median_coverage.bed
+  python ${projectDir}/bin/rnaseq/coveragecalculator.py ${txt} ${sampleID}_${filename}_interval_avg_median_coverage.bed
   """
 }

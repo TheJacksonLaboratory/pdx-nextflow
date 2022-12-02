@@ -10,13 +10,14 @@ process QUALITY_STATISTICS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'quality_stats' }", pattern: "*.gz_stat", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'quality_stats' }", pattern: "*_fastqs_stat.txt", mode:'copy'
 
   input:
   tuple val(sampleID), file(fq_reads)
 
   output:
   tuple val(sampleID), file("*.gz_stat"), emit: quality_stats
+  tuple val(sampleID), file("*_fastqs_stat.txt"), emit: fastqs_stats
   tuple val(sampleID), file("*filtered_trimmed"), emit: trimmed_fastq
 
   script:
@@ -32,5 +33,6 @@ process QUALITY_STATISTICS {
 
   """
   python ${projectDir}/bin/shared/filter_trim.py $mode_HQ ${params.min_pct_hq_reads}  $inputfq
+  cp *.gz_stat ${sampleID}_fastqs_stat.txt
   """
 }
