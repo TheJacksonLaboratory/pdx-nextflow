@@ -33,7 +33,10 @@ include {MICROINDEL_CALLING_A} from '../modules/utility_modules/microindel_calli
 include {MICROINDEL_CALLING_B} from '../modules/utility_modules/microindel_calling_b'
 include {ADD_CALLER_PINDEL} from '../modules/utility_modules/add_caller_pindel'
 include {SNPSIFT_MICROINDELS} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels"
-
+include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
+include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
+include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
+include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -169,6 +172,19 @@ workflow WES {
   // Step 26 : Merge earlier annotated variants with microindels
   variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
   SNPSIFT_MICROINDELS(variants_and_microindels)
+
+  // Variant annotation
+  // Step 27: Annotation with snpsift
+  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS.out.vcf)
+
+  // Step 28: Annotation with DBNSFP
+  SNPSIFT_DBNSFP(SNPEFF_ANNOTATE.out.vcf, "BOTH")
+
+  // Step 29: Annotation with COSMIC
+  SNPSIFT_COSMIC(SNPSIFT_DBNSFP.out.vcf)
+  
+  // Step 30: Extract required annotated fields and prepare output tables
+  EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
 
 }
 
