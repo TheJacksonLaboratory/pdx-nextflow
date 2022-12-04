@@ -3,6 +3,8 @@ nextflow.enable.dsl=2
 
 // import modules
 include {getLibraryId} from '../bin/shared/getLibraryId.nf'
+include {param_log} from "${projectDir}/bin/log/wes"
+include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from '../modules/utility_modules/concatenate_reads_PE'
 include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_reads_SE'
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
@@ -44,6 +46,9 @@ include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcove
 include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
 
 
+// log params
+param_log()
+
 // prepare reads channel
 if (params.concat_lanes){
   if (params.read_type == 'PE'){
@@ -73,6 +78,14 @@ read_ch.ifEmpty{ exit 1, "ERROR: No Files Found in Path: ${params.sample_folder}
 
 // main workflow
 workflow WES {
+
+  // Remove `pipeline_complete.txt` from prior run, if this is a 'resume' or sample re-run. 
+  // This file is used in 'on.complete' and in JAX PDX loader
+  run_check = file("${params.pubdir}/pipeline_complete.txt")
+  run_check.delete()
+
+  // Create `pipeline_running.txt` used in 'on.complete' and in JAX PDX loader
+  RUN_START()
 
   // Step 0: Concatenate Fastq files if required.
   if (params.concat_lanes){
@@ -209,3 +222,18 @@ workflow WES {
   COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "HEX")
 }
 
+workflow.onComplete {
+  if (workflow.success && params.preserve_work == "no") {
+    workflow.workDir.deleteDir()
+    log.info "Cleaned Work Directory"
+  } else {
+    log.info "Keeping Work Directory"
+  }
+  if (workflow.success) {
+    log.info "Pipeline completed successfully"
+    run_check = file("${params.pubdir}/pipeline_running.txt")
+    run_check.renameTo("${params.pubdir}/pipeline_complete.txt")
+  } else {
+      log.info "Pipeline completed with errors"
+  }
+}
