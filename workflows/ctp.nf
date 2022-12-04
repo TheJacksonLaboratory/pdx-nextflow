@@ -40,6 +40,7 @@ include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fiel
 include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
 include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
 include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
+include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -202,4 +203,5 @@ workflow CTP {
   CTP_SUMMARY_STATS(fq_alignment_metrics)
   depth_of_coverage_ctp = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
   GATK_DEPTHOFCOVERAGE(depth_of_coverage_ctp, params.ctp_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "CTP")
 }
