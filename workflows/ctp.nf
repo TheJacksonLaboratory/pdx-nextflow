@@ -2,8 +2,9 @@
 nextflow.enable.dsl=2
 
 // import modules
-include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
+include {param_log} from "${projectDir}/bin/log/ctp"
+include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {QUALITY_STATISTICS} from "${projectDir}/modules/utility_modules/quality_stats"
@@ -42,6 +43,9 @@ include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ct
 include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
 include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
 include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
+
+// log params
+param_log()
 
 // prepare reads channel
 if (params.concat_lanes){
