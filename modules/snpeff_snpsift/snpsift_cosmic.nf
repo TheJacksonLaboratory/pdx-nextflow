@@ -17,8 +17,9 @@ process SNPSIFT_COSMIC {
   script:
 
   """
-  
-  java -jar /snpEff_v4_3/snpEff/SnpSift.jar annotate -id ${params.Cosmic_newer} ${vcf} > ${sampleID}_all_genes_variants_microindels_cosmicannotation.vcf
+  cat ${vcf} | /snpEff_v4_3/snpEff/scripts/vcfEffOnePerLine.pl > ${sampleID}_onePerLine.vcf
+
+  java -jar /snpEff_v4_3/snpEff/SnpSift.jar annotate -id ${params.Cosmic_newer} ${sampleID}_onePerLine.vcf > ${sampleID}_all_genes_variants_microindels_cosmicannotation.vcf
   
   """
 }
