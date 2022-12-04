@@ -1,4 +1,4 @@
-process CTP_SUMMARY_STATS {
+process SUMMARY_STATS {
     tag "$sampleID"
 
     cpus = 1
