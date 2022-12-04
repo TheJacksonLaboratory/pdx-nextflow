@@ -188,7 +188,7 @@ workflow CTP {
 
   // Step 26 : Merge earlier annotated variants with microindels
   variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
-  SNPSIFT_MICROINDELS_CTP(variants_and_microindels)
+  SNPSIFT_MICROINDELS(variants_and_microindels)
 
   // Variant annotation
 
