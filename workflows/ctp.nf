@@ -3,6 +3,8 @@ nextflow.enable.dsl=2
 
 // import modules
 include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
+include {param_log} from "${projectDir}/bin/log/ctp"
+include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
 include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
 include {QUALITY_STATISTICS} from "${projectDir}/modules/utility_modules/quality_stats"
@@ -32,6 +34,18 @@ include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
 include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
 include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
 include {ADD_CALLER_PINDEL} from "${projectDir}/modules/utility_modules/add_caller_pindel"
+include {SNPSIFT_MICROINDELS_CTP} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels_ctp"
+include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
+include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
+include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
+include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
+include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
+include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
+include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
+include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
+
+// log params
+param_log()
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -61,6 +75,14 @@ read_ch.ifEmpty{ exit 1, "ERROR: No Files Found in Path: ${params.sample_folder}
 
 // main workflow
 workflow CTP {
+
+  // Remove `pipeline_complete.txt` from prior run, if this is a 'resume' or sample re-run. 
+  // This file is used in 'on.complete' and in JAX PDX loader
+  run_check = file("${params.pubdir}/pipeline_complete.txt")
+  run_check.delete()
+
+  // Create `pipeline_running.txt` used in 'on.complete' and in JAX PDX loader
+  RUN_START()
 
   // Step 0: Concatenate Fastq files if required.
   if (params.concat_lanes){
@@ -102,11 +124,12 @@ workflow CTP {
   GATK_INDELREALIGNER(dedup_index_and_intervals)
 
   // Step 8: Variant Pre-Processing - Part 2
-  GATK_BASERECALIBRATOR(dedup_and_index)
+  realigned_and_index = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai)
+  GATK_BASERECALIBRATOR(realigned_and_index)
 
   // Step 9: PrintReads
-  dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
-  GATK_PRINTREADS(dedup_index_and_grp)
+  realigned_index_and_grp = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai).join(GATK_BASERECALIBRATOR.out.grp)
+  GATK_PRINTREADS(realigned_index_and_grp)
 
   // Step 10: Calculate depth metrics
   printreads_and_index = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
@@ -163,4 +186,51 @@ workflow CTP {
   // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
   ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
 
+  // Step 26 : Merge earlier annotated variants with microindels
+  variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  SNPSIFT_MICROINDELS_CTP(variants_and_microindels)
+
+  // Variant annotation
+
+  // Step 27: Annotation with snpsift
+  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS_CTP.out.vcf)
+  
+  // Step 28: Annotation with DBNSFP
+  SNPSIFT_DBNSFP(SNPEFF_ANNOTATE.out.vcf, "BOTH")
+  
+  // Step 29: Annotation with COSMIC
+  SNPSIFT_COSMIC(SNPSIFT_DBNSFP.out.vcf)
+  
+  // Step 30: Extract required annotated fields and prepare output tables
+  EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
+
+  // Step 31: Calculate TMB score from variants and microindels
+  tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  TMB_SCORE_CTP(tmb_input)
+
+  // Aggregate statistcs
+
+  // Step 32: 
+
+  fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
+  CTP_SUMMARY_STATS(fq_alignment_metrics)
+  depth_of_coverage_ctp = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage_ctp, params.ctp_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "CTP")
+}
+
+workflow.onComplete {
+  if (workflow.success && params.preserve_work == "no") {
+    workflow.workDir.deleteDir()
+    log.info "Cleaned Work Directory"
+  } else {
+    log.info "Keeping Work Directory"
+  }
+  if (workflow.success) {
+    log.info "Pipeline completed successfully"
+    run_check = file("${params.pubdir}/pipeline_running.txt")
+    run_check.renameTo("${params.pubdir}/pipeline_complete.txt")
+  } else {
+      log.info "Pipeline completed with errors"
+  }
 }
