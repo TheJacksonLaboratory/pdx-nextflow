@@ -37,6 +37,8 @@ include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_anno
 include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
 include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
+include {TMB_SCORE_PREPROCESS} from "${projectDir}/modules/utility_modules/tmb_score_preprocess"
+include {TMB_SCORE} from "${projectDir}/modules/utility_modules/tmb_score"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -186,5 +188,11 @@ workflow WES {
   // Step 30: Extract required annotated fields and prepare output tables
   EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
 
+  // Step 31: Calculate TMB score from variants and microindels
+  tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  TMB_SCORE_PREPROCESS(tmb_input)
+
+  tmb_input_postprocess = TMB_SCORE_PREPROCESS.out.tab.join(TMB_SCORE_PREPROCESS.out.count2).join(TMB_SCORE_PREPROCESS.out.count3)
+  TMB_SCORE(tmb_input_postprocess)
 }
 
