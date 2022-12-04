@@ -3,6 +3,8 @@ nextflow.enable.dsl=2
 
 // import modules
 include {getLibraryId} from '../bin/shared/getLibraryId.nf'
+include {param_log} from "${projectDir}/bin/log/wes"
+include {RUN_START} from "${projectDir}/bin/shared/run_start"
 include {CONCATENATE_READS_PE} from '../modules/utility_modules/concatenate_reads_PE'
 include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_reads_SE'
 include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
@@ -32,8 +34,20 @@ include {BCF_ANNOTATE} from '../modules/bcftools/bcftools_annotate'
 include {MICROINDEL_CALLING_A} from '../modules/utility_modules/microindel_calling_a'
 include {MICROINDEL_CALLING_B} from '../modules/utility_modules/microindel_calling_b'
 include {ADD_CALLER_PINDEL} from '../modules/utility_modules/add_caller_pindel'
+include {SNPSIFT_MICROINDELS} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels"
+include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
+include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
+include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
+include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
+include {TMB_SCORE_PREPROCESS} from "${projectDir}/modules/utility_modules/tmb_score_preprocess"
+include {TMB_SCORE} from "${projectDir}/modules/utility_modules/tmb_score"
+include {SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_exome"
+include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
+include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
 
 
+// log params
+param_log()
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -64,6 +78,14 @@ read_ch.ifEmpty{ exit 1, "ERROR: No Files Found in Path: ${params.sample_folder}
 
 // main workflow
 workflow WES {
+
+  // Remove `pipeline_complete.txt` from prior run, if this is a 'resume' or sample re-run. 
+  // This file is used in 'on.complete' and in JAX PDX loader
+  run_check = file("${params.pubdir}/pipeline_complete.txt")
+  run_check.delete()
+
+  // Create `pipeline_running.txt` used in 'on.complete' and in JAX PDX loader
+  RUN_START()
 
   // Step 0: Concatenate Fastq files if required.
   if (params.concat_lanes){
@@ -166,8 +188,52 @@ workflow WES {
   // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
   ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
 
+  // Step 26 : Merge earlier annotated variants with microindels
+  variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  SNPSIFT_MICROINDELS(variants_and_microindels)
 
+  // Variant annotation
+  // Step 27: Annotation with snpsift
+  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS.out.vcf)
 
+  // Step 28: Annotation with DBNSFP
+  SNPSIFT_DBNSFP(SNPEFF_ANNOTATE.out.vcf, "BOTH")
 
+  // Step 29: Annotation with COSMIC
+  SNPSIFT_COSMIC(SNPSIFT_DBNSFP.out.vcf)
+  
+  // Step 30: Extract required annotated fields and prepare output tables
+  EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
+
+  // Step 31: Calculate TMB score from variants and microindels
+  tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  TMB_SCORE_PREPROCESS(tmb_input)
+
+  tmb_input_postprocess = TMB_SCORE_PREPROCESS.out.tab.join(TMB_SCORE_PREPROCESS.out.count2).join(TMB_SCORE_PREPROCESS.out.count3)
+  TMB_SCORE(tmb_input_postprocess)
+
+  // Step 32: Summary statistics
+
+  fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
+  SUMMARY_STATS(fq_alignment_metrics)
+
+  depth_of_coverage_hex = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage_hex, params.hex_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "HEX")
 }
 
+workflow.onComplete {
+  if (workflow.success && params.preserve_work == "no") {
+    workflow.workDir.deleteDir()
+    log.info "Cleaned Work Directory"
+  } else {
+    log.info "Keeping Work Directory"
+  }
+  if (workflow.success) {
+    log.info "Pipeline completed successfully"
+    run_check = file("${params.pubdir}/pipeline_running.txt")
+    run_check.renameTo("${params.pubdir}/pipeline_complete.txt")
+  } else {
+      log.info "Pipeline completed with errors"
+  }
+}

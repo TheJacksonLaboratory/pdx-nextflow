@@ -34,7 +34,7 @@ include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
 include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
 include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
 include {ADD_CALLER_PINDEL} from "${projectDir}/modules/utility_modules/add_caller_pindel"
-include {SNPSIFT_MICROINDELS_CTP} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels_ctp"
+include {SNPSIFT_MICROINDELS} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels"
 include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
 include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
 include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
@@ -188,7 +188,7 @@ workflow CTP {
 
   // Step 26 : Merge earlier annotated variants with microindels
   variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
-  SNPSIFT_MICROINDELS_CTP(variants_and_microindels)
+  SNPSIFT_MICROINDELS(variants_and_microindels)
 
   // Variant annotation
 
