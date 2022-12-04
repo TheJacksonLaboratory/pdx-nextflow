@@ -10,7 +10,7 @@ process XENOME_CLASSIFY {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/xenome_1.0.1.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'xenome' }", pattern: "*.txt", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'xenome' }", pattern: "*.txt", mode:'copy'
 
   input:
   tuple val(sampleID), file(trimmed)
