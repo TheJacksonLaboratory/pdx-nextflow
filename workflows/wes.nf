@@ -39,6 +39,10 @@ include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosm
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 include {TMB_SCORE_PREPROCESS} from "${projectDir}/modules/utility_modules/tmb_score_preprocess"
 include {TMB_SCORE} from "${projectDir}/modules/utility_modules/tmb_score"
+include {SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_exome"
+include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
+include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
+
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -194,5 +198,14 @@ workflow WES {
 
   tmb_input_postprocess = TMB_SCORE_PREPROCESS.out.tab.join(TMB_SCORE_PREPROCESS.out.count2).join(TMB_SCORE_PREPROCESS.out.count3)
   TMB_SCORE(tmb_input_postprocess)
+
+  // Step 32: Summary statistics
+
+  fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
+  SUMMARY_STATS(fq_alignment_metrics)
+
+  depth_of_coverage_hex = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage_hex, params.hex_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "HEX")
 }
 
