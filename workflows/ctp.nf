@@ -39,6 +39,7 @@ include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosm
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
 include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
+include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -199,4 +200,6 @@ workflow CTP {
 
   fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
   CTP_SUMMARY_STATS(fq_alignment_metrics)
+  depth_of_coverage_ctp = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage_ctp, params.ctp_genes)
 }
