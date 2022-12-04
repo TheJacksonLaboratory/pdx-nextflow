@@ -38,6 +38,9 @@ include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbns
 include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
 include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
+include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
+include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
+include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
 
 // prepare reads channel
 if (params.concat_lanes){
@@ -191,4 +194,14 @@ workflow CTP {
   // Step 31: Calculate TMB score from variants and microindels
   tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
   TMB_SCORE_CTP(tmb_input)
+
+  // Aggregate statistcs
+
+  // Step 32: 
+
+  fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
+  CTP_SUMMARY_STATS(fq_alignment_metrics)
+  depth_of_coverage_ctp = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage_ctp, params.ctp_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "CTP")
 }
