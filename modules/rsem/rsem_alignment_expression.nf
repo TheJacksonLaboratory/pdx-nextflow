@@ -9,7 +9,7 @@ process RSEM_ALIGNMENT_EXPRESSION {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/rsem_bowtie2_samtools_picard.v2.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'rsem' }", pattern: "*stats", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*stats", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*results*", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'rsem' }", pattern: "*genome.bam", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'rsem' }", pattern: "*transcript.bam", mode:'copy'
@@ -20,7 +20,7 @@ process RSEM_ALIGNMENT_EXPRESSION {
   output:
   file "*stats"
   file "*results*"
-  tuple val(sampleID), file("rsem_aln_*.stats"), emit: rsem_stats
+  tuple val(sampleID), file("*rsem_aln.stats"), emit: rsem_stats
   tuple val(sampleID), file("*genes.results"), emit: rsem_genes
   tuple val(sampleID), file("*isoforms.results"), emit: rsem_isoforms
   tuple val(sampleID), file("*.genome.bam"), emit: bam
@@ -62,6 +62,6 @@ process RSEM_ALIGNMENT_EXPRESSION {
   ${trimmedfq} \
   ${params.rsem_ref_prefix} \
   ${sampleID} \
-  2> rsem_aln_${sampleID}.stats
+  2> ${sampleID}_rsem_aln.stats
   """
 }

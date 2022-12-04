@@ -52,7 +52,7 @@ process TMB_SCORE_CTP {
   bedtools coverage -a !{params.bins_ctpcoverage} -b !{sampleID}_count2 | cut -f 1-5 >> !{sampleID}_HM.tab
 
 
-  Rscript !{params.tmb_prog} !{sampleID}_HM.tab !{sampleID}_TMB.score
+  Rscript !{projectDir}/bin/wes/TMB_final_CTP.R !{sampleID}_HM.tab !{sampleID}_TMB.score
 
   '''
 }
