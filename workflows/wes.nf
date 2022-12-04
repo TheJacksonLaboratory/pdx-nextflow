@@ -32,7 +32,7 @@ include {BCF_ANNOTATE} from '../modules/bcftools/bcftools_annotate'
 include {MICROINDEL_CALLING_A} from '../modules/utility_modules/microindel_calling_a'
 include {MICROINDEL_CALLING_B} from '../modules/utility_modules/microindel_calling_b'
 include {ADD_CALLER_PINDEL} from '../modules/utility_modules/add_caller_pindel'
-
+include {SNPSIFT_MICROINDELS} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels"
 
 
 // prepare reads channel
@@ -166,8 +166,9 @@ workflow WES {
   // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
   ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
 
-
-
+  // Step 26 : Merge earlier annotated variants with microindels
+  variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  SNPSIFT_MICROINDELS(variants_and_microindels)
 
 }
 
