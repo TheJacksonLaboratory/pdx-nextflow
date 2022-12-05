@@ -7,6 +7,8 @@ process TMB_SCORE_PREPROCESS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_java_1.8_snpeff_4.3_R.sif'
 
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'tmb_pre' }", pattern: "*HM.tab", mode:'copy'
+
   input:
   tuple val(sampleID), file(variant_vcf), file(pindel_vcf)
 
