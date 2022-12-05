@@ -13,7 +13,6 @@ process TMB_SCORE {
     tuple val(sampleID), file(tab), file(count2), file(count3)
 
   output:
-    tuple val(sampleID), file("*HM.tab"), emit: tab
     tuple val(sampleID), file("*score"), emit: score
   
   script:
