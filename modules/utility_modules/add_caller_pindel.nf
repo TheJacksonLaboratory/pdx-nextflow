@@ -5,12 +5,13 @@ process ADD_CALLER_PINDEL {
   memory 5.GB
   time '01:00:00'
 
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'pindel' }", mode:'copy'
 
   input:
   tuple val(sampleID), file(vcf)
 
   output:
-  tuple val(sampleID), file("*DPfiltered.vcf"), emit: vcf
+  tuple val(sampleID), file("${sampleID}_microIndels.DPfiltered.vcf"), emit: vcf
 
   script:
   

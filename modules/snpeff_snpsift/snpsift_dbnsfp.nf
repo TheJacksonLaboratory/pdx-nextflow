@@ -7,8 +7,6 @@ process SNPSIFT_DBNSFP{
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'snpeff' }", pattern:"*.vcf", mode:'copy'
-
   input:
   tuple val(sampleID), file(vcf)
   val(indel_snp)

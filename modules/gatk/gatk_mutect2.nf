@@ -7,12 +7,15 @@ process GATK_MUTECT2 {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
+
   input:
   tuple val(sampleID), file(bam), file(bai), file(tumor)
 
   output:
   tuple val(sampleID), file("*.vcf.gz"), emit: vcf
   tuple val(sampleID), file("*.vcf.gz.tbi"), emit: tbi
+  tuple val(sampleID), file("*.vcf.idx"), emit: idx
 
   script:
   

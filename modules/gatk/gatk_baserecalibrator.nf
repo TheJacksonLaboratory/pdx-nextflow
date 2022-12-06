@@ -7,7 +7,7 @@ process GATK_BASERECALIBRATOR {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/GATK_3.4_java_1.7_samtools.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'gatk' }", pattern: "*.grp", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.grp", mode:'copy'
 
   input:
   tuple val(sampleID), file(bam), file(bai)

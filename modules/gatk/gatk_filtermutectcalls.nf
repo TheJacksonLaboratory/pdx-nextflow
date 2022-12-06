@@ -7,13 +7,14 @@ process GATK_FILTERMUTECTCALLS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.vcf", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
 
   input:
   tuple val(sampleID), file(vcf), file(tbi)
 
   output:
   tuple val(sampleID), file("*.vcf"), emit: vcf
+  file("*.vcf.idx")
 
   script:
   

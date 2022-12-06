@@ -7,7 +7,7 @@ process JOIN_ADJACENT_SNPS_AS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/perl_java_1.8_python_2.7.3_tabix_samtools_bcftools_htslib_snpEff_4_3.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'adjSNP' }", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'adjSNP' }", mode:'copy', pattern: "${sampleID}_AdjSNP.log.txt"
 
   input:
   tuple val(sampleID), file(bam), file(bai), file(filt_var_DP)
