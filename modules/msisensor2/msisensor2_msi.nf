@@ -5,7 +5,7 @@ process MSISENSOR2_MSI {
   memory = 6.GB
   time = '03:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/msisensor2_latest.sif'
+  container '/pdx/pdx_resource_service/elion/containers/msisensor2_latest.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'msisensor2' }", pattern: "*sensor*", mode:'copy'
 

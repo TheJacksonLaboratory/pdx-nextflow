@@ -5,7 +5,7 @@ process SUMMARY_STATS {
     memory = 5.GB
     time = '01:00:00'
 
-    container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2.7.3_java_1.8_GATK_3.4_samtools_1.3.1.sif'
+    container '/pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2.7.3_java_1.8_GATK_3.4_samtools_1.3.1.sif'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'summary_stats' }", mode:'copy'
 

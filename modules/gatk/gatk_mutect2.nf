@@ -5,7 +5,7 @@ process GATK_MUTECT2 {
   memory 15.GB
   time '05:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
+  container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
   input:
   tuple val(sampleID), file(bam), file(bai), file(tumor)

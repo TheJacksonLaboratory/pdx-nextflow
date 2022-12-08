@@ -5,7 +5,7 @@ process GATK_FILTERMUTECTCALLS {
   memory 15.GB
   time '05:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
+  container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.vcf", mode:'copy'
 
