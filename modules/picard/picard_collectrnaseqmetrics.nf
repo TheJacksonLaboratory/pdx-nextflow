@@ -7,7 +7,6 @@ process PICARD_COLLECTRNASEQMETRICS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/java_samtools_python_R_picard.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'picard' }", pattern: "*.bam", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", pattern: "*.pdf", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", pattern: "*picard_aln_metrics.txt", mode:'copy'
 
@@ -16,7 +15,7 @@ process PICARD_COLLECTRNASEQMETRICS {
 
   output:
   tuple val(sampleID), file("*metrics.txt"), emit: picard_metrics
-  tuple val(sampleID), file("*.pdf")
+  tuple val(sampleID), file("*.pdf"), optional: true
 
   script:
   
