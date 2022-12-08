@@ -16,7 +16,7 @@ process PICARD_COLLECTRNASEQMETRICS {
 
   output:
   tuple val(sampleID), file("*metrics.txt"), emit: picard_metrics
-  tuple val(sampleID), file("*.pdf")
+  tuple val(sampleID), file("*.pdf"), optional: true
 
   script:
   
