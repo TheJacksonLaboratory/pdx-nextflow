@@ -7,13 +7,13 @@ process PICARD_CALCULATEHSMETRICS {
 
   container '/pdx/pdx_resource_service/elion/containers/picard-1.95_python_2_7_3.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'picard' }", pattern: "*.txt", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", mode:'copy'
 
   input:
   tuple val(sampleID), file(bam), file(bai)
 
   output:
-  tuple val(sampleID), file("*Metrics.txt"), emit: hsmetrics
+  tuple val(sampleID), file("${sampleID}_CoverageMetrics.txt"), emit: hsmetrics
 
   script:
   

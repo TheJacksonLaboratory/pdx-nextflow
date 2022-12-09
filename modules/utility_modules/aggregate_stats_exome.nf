@@ -7,7 +7,7 @@ process SUMMARY_STATS {
 
     container '/pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2.7.3_java_1.8_GATK_3.4_samtools_1.3.1.sif'
 
-    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'summary_stats' }", mode:'copy'
+    publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'summary_stats' }", mode:'copy'
 
     input:
     tuple val(sampleID), file(filter_stat), file(duplicate_metrics), file(cov_metrics)
@@ -18,7 +18,7 @@ process SUMMARY_STATS {
     script:
     """
 
-    python  ${projectDir}/bin/wes/aggregate_stats_updated.py ${sampleID}_summary_stats.txt ${filter_stat} ${duplicate_metrics} ${cov_metrics}
+    python  ${projectDir}/bin/exome/aggregate_stats_updated.py ${sampleID}_summary_stats.txt ${filter_stat} ${duplicate_metrics} ${cov_metrics}
 
     """
 }

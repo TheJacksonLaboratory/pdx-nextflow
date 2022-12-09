@@ -23,7 +23,7 @@ process MICROINDEL_CALLING_B {
   -b  ${params.targets_gatk} \
   -f 1.0 > ${sampleID}_microIndels.raw.vcf
 
-  python ${projectDir}/bin/wes/filter_for_minimum_depth.py ${sampleID}_microIndels.raw.vcf ${sampleID}_micro_Indels.DPfiltered1.vcf
+  python ${projectDir}/bin/exome/filter_for_minimum_depth.py ${sampleID}_microIndels.raw.vcf ${sampleID}_micro_Indels.DPfiltered1.vcf
 
   """
 }

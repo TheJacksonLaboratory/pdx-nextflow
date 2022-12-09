@@ -7,7 +7,7 @@ process GATK_REALIGNERTARGETCREATOR {
 
   container '/pdx/pdx_resource_service/elion/containers/GATK_3.4_java_1.7_samtools.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'gatk' }", pattern: "*.intervals", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.intervals", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate
 
   input:
   tuple val(sampleID), file(bam), file(bai)
