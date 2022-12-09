@@ -20,7 +20,7 @@ process JOIN_ADJACENT_SNPS_AS {
   script:
   
   """
-  python ${projectDir}/bin/wes/joinAdjacentSNPs_AS.py -v ${filt_var_DP} \
+  python ${projectDir}/bin/exome/joinAdjacentSNPs_AS.py -v ${filt_var_DP} \
   -o ${sampleID}_variant_fixAdjSNP.vcf \
   1 ${bam} ${params.fa2bit} 2>${sampleID}_AdjSNP.log.txt
 

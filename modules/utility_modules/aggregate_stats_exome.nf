@@ -18,7 +18,7 @@ process SUMMARY_STATS {
     script:
     """
 
-    python  ${projectDir}/bin/wes/aggregate_stats_updated.py ${sampleID}_summary_stats.txt ${filter_stat} ${duplicate_metrics} ${cov_metrics}
+    python  ${projectDir}/bin/exome/aggregate_stats_updated.py ${sampleID}_summary_stats.txt ${filter_stat} ${duplicate_metrics} ${cov_metrics}
 
     """
 }

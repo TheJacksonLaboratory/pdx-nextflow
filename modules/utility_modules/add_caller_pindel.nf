@@ -16,6 +16,6 @@ process ADD_CALLER_PINDEL {
   script:
   
   """
-  ${projectDir}/bin/wes/caller_add_pindel.sh ${vcf} ${sampleID}_microIndels.DPfiltered.vcf
+  ${projectDir}/bin/exome/caller_add_pindel.sh ${vcf} ${sampleID}_microIndels.DPfiltered.vcf
   """
 }
