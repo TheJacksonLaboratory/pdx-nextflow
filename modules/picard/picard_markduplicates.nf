@@ -9,7 +9,7 @@ process PICARD_MARKDUPLICATES {
 
   // save if mouse and wes or save if keep intermediate
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'picard' }", pattern: "*.bam", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'picard' }", pattern: "*.txt", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", pattern: "${sampleID}_dup_metrics.dat", mode:'copy'
 
   input:
   tuple val(sampleID), file(bam)
@@ -17,7 +17,7 @@ process PICARD_MARKDUPLICATES {
   output:
   tuple val(sampleID), file("*_dedup.bam"), emit: dedup_bam
   tuple val(sampleID), file("*_dedup.bai"), emit: dedup_bai
-  tuple val(sampleID), file("*.txt"), emit: dedup_metrics
+  tuple val(sampleID), file("${sampleID}_dup_metrics.dat"), emit: dedup_metrics
 
   script:
   
@@ -28,7 +28,7 @@ process PICARD_MARKDUPLICATES {
   java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /picard.jar MarkDuplicates \
   I=${bam} \
   O=${sampleID}_dedup.bam \
-  M=${sampleID}_dup_metrics.txt \
+  M=${sampleID}_dup_metrics.dat \
   REMOVE_DUPLICATES=true \
   CREATE_INDEX=true \
   VALIDATION_STRINGENCY=SILENT

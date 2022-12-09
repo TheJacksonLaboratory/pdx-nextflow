@@ -16,6 +16,6 @@ process ADD_CALLER_GATK {
   script:
 
   """
-  ${projectDir}/bin/wes/caller_add_gatk.sh ${add_filters} ${sampleID}_variants.DPfiltered.vcf
+  ${projectDir}/bin/exome/caller_add_gatk.sh ${add_filters} ${sampleID}_variants.DPfiltered.vcf
   """
 }

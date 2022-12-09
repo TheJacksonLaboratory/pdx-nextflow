@@ -221,7 +221,7 @@ workflow CTP {
   
   depth_of_coverage = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
   GATK_DEPTHOFCOVERAGE(depth_of_coverage, params.ctp_genes)
-  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "CTP")
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "targetinterval")
 }
 
 workflow.onComplete {

@@ -7,8 +7,6 @@ process GATK_GETSAMPLENAME {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*_tumor_SN.txt", mode:'copy'
-
   input:
   tuple val(sampleID), file(bam), file(bai)
 

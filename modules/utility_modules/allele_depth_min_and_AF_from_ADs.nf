@@ -15,6 +15,6 @@ process ALLELE_DEPTH_MIN_AND_AF_FROM_ADS {
   script:
   
   """
-  python ${projectDir}/bin/wes/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${params.minDP}
+  python ${projectDir}/bin/exome/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${params.minDP}
   """
 }
