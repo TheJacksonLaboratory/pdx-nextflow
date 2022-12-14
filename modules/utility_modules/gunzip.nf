@@ -8,6 +8,8 @@ process GUNZIP {
   errorStrategy 'retry'
   maxRetries 1
 
+  container "/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
+
   stageInMode 'copy'
 
   input:
