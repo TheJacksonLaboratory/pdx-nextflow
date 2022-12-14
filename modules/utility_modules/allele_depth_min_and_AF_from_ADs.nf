@@ -5,6 +5,7 @@ process ALLELE_DEPTH_MIN_AND_AF_FROM_ADS {
   memory 5.GB
   time '01:00:00'
 
+  container "/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
 
   input:
   tuple val(sampleID), file(mutect2_filtered)
