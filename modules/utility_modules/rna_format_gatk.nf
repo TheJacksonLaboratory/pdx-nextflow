@@ -7,6 +7,8 @@ process FORMAT_GATK {
   errorStrategy 'retry'
   maxRetries 1
 
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2_7_3.sif'
+
   input:
   tuple val(sampleID), file(txt)
   val(L)
@@ -17,8 +19,7 @@ process FORMAT_GATK {
   script:
   
   """
-  chmod +x ${projectDir}/bin/rnaseq/gatk_formatter.sh
-  ${projectDir}/bin/rnaseq/gatk_formatter.sh ${txt} ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_formatter.txt ${L}
+  bash ${projectDir}/bin/rnaseq/gatk_formatter.sh ${txt} ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_formatter.txt ${L}
   """
   // This is a script to format gatk coverage file for subsequent use in log aggregation 
 }
