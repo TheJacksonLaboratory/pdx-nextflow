@@ -3,7 +3,7 @@ def param_log(){
 log.info """
 ______________________________________________________
 
-                RNA FUSION PARAMETER LOG
+                CNV PARAMETER LOG
 
 --comment: ${params.comment}
 
