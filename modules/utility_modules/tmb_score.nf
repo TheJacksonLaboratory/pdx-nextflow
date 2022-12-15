@@ -14,10 +14,13 @@ process TMB_SCORE {
 
   output:
     tuple val(sampleID), file("*score"), emit: score
+    tuple val(sampleID), file("*_HM.tab"), emit: tab
   
   script:
   if (params.workflow == "ctp")
     """
+    cp ${sampleID}_temp_HM.tab ${sampleID}_HM.tab
+
     bedtools coverage -a ${params.bins_ctpcoverage} -b ${sampleID}_count2 | cut -f 1-5 >> ${sampleID}_HM.tab
 
     Rscript ${projectDir}/bin/exome/TMB_final_CTP.R ${sampleID}_HM.tab ${sampleID}_TMB.score
@@ -25,6 +28,8 @@ process TMB_SCORE {
 
   else if (params.workflow == "wes")
     """
+
+    cp ${sampleID}_temp_HM.tab ${sampleID}_HM.tab
 
     bedtools coverage -a ${params.bins_hexcoverage} -b ${sampleID}_count3 | cut -f 1-5 >> ${sampleID}_HM.tab
 

@@ -7,13 +7,13 @@ process TMB_SCORE_PREPROCESS {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_java_1.8_snpeff_4.3_R.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'tmb_pre' }", pattern: "*HM.tab", mode:'copy'
+  //publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'tmb_pre' }", pattern: "*HM.tab", mode:'copy'
 
   input:
   tuple val(sampleID), file(variant_vcf), file(pindel_vcf)
 
   output:
-  tuple val(sampleID), file("*HM.tab"), emit: tab
+  tuple val(sampleID), file("*temp_HM.tab"), emit: tab
   tuple val(sampleID), file("${sampleID}_count2"), emit: count2
   tuple val(sampleID), file("${sampleID}_count3"), emit: count3
   
@@ -44,7 +44,7 @@ process TMB_SCORE_PREPROCESS {
 
   header="chr\\tstart\\tend\\tCTPlength\\tHM"
 
-  cat !{sampleID}_all_genes_variants_cosmicannotation_germlineflag_oneperline_final.vcf | grep "HIGH\\|MODERATE" | awk -F '\\t' '{ if($5 !~ "rs" && ($6==""||$6=="PASS"||$6==".")) print $1,$2-1,$2 }'| sort| uniq| tr ' ' '\\t' > !{sampleID}_count2 ; echo -e ${header} > !{sampleID}_HM.tab
+  cat !{sampleID}_all_genes_variants_cosmicannotation_germlineflag_oneperline_final.vcf | grep "HIGH\\|MODERATE" | awk -F '\\t' '{ if($5 !~ "rs" && ($6==""||$6=="PASS"||$6==".")) print $1,$2-1,$2 }'| sort| uniq| tr ' ' '\\t' > !{sampleID}_count2 ; echo -e ${header} > !{sampleID}_temp_HM.tab
 
   cat !{sampleID}_count2 | tr ' ' '\\t' > !{sampleID}_count3
   '''
