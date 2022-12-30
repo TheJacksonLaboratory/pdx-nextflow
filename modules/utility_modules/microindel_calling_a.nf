@@ -3,7 +3,7 @@ process MICROINDEL_CALLING_A {
 
   cpus = 1
   memory = 35.GB
-  time = '12:00:00'
+  time = '24:00:00'
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/pindel_v0.2.5.sif'
 

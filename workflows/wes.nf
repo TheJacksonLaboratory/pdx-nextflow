@@ -127,10 +127,11 @@ workflow WES {
   GATK_INDELREALIGNER(dedup_index_and_intervals)
 
   // Step 8: Variant Pre-Processing - Part 2
-  GATK_BASERECALIBRATOR(dedup_and_index)
+  realigned_and_index = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai)
+  GATK_BASERECALIBRATOR(realigned_and_index)
 
   // Step 9: PrintReads
-  dedup_index_and_grp = PICARD_MARKDUPLICATES.out.dedup_bam.join(PICARD_MARKDUPLICATES.out.dedup_bai).join(GATK_BASERECALIBRATOR.out.grp)
+  dedup_index_and_grp = GATK_INDELREALIGNER.out.bam.join(GATK_INDELREALIGNER.out.bai).join(GATK_BASERECALIBRATOR.out.grp)
   GATK_PRINTREADS(dedup_index_and_grp)
 
   // Step 10: Calculate ehsmetrics
