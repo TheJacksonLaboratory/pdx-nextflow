@@ -21,8 +21,8 @@ include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
 include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_calculatehsmetrics"
 include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
 include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename"
-include {GATK_MUTECT2_CTP} from "${projectDir}/modules/gatk/gatk_mutect2_ctp"
-include {GATK_FILTERMUTECTCALLS_CTP} from "${projectDir}/modules/gatk/gatk_filtermutectcalls_ctp"
+include {GATK_MUTECT2} from "${projectDir}/modules/gatk/gatk_mutect2"
+include {GATK_FILTERMUTECTCALLS} from "${projectDir}/modules/gatk/gatk_filtermutectcalls"
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_MUT;
          ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
 include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
@@ -39,8 +39,9 @@ include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_anno
 include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
 include {SNPSIFT_COSMIC} from "${projectDir}/modules/snpeff_snpsift/snpsift_cosmic"
 include {EXTRACT_FIELDS} from "${projectDir}/modules/snpeff_snpsift/extract_fields"
-include {TMB_SCORE_CTP} from "${projectDir}/modules/utility_modules/tmb_score_ctp"
-include {CTP_SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_ctp"
+include {TMB_SCORE_PREPROCESS} from "${projectDir}/modules/utility_modules/tmb_score_preprocess"
+include {TMB_SCORE} from "${projectDir}/modules/utility_modules/tmb_score"
+include {SUMMARY_STATS} from "${projectDir}/modules/utility_modules/aggregate_stats_exome"
 include {GATK_DEPTHOFCOVERAGE} from "${projectDir}/modules/gatk/gatk_depthofcoverage"
 include {COVCALC_GATK} from "${projectDir}/modules/utility_modules/covcalc_gatk"
 
@@ -143,14 +144,14 @@ workflow CTP {
 
   // Step 13: Mutect2
   printreads_index_and_name = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(GATK_GETSAMPLENAME.out)
-  GATK_MUTECT2_CTP(printreads_index_and_name)
+  GATK_MUTECT2(printreads_index_and_name)
 
   // Step 14 : Filter Mutect calls
-  vcf_and_index = GATK_MUTECT2_CTP.out.vcf.join(GATK_MUTECT2_CTP.out.tbi)
-  GATK_FILTERMUTECTCALLS_CTP(vcf_and_index)
+  vcf_and_index = GATK_MUTECT2.out.vcf.join(GATK_MUTECT2.out.tbi)
+  GATK_FILTERMUTECTCALLS(vcf_and_index)
 
   // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
-  AD_MIN_AF_MUT(GATK_FILTERMUTECTCALLS_CTP.out.vcf)
+  AD_MIN_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
 
   // Step 16 : Snpsift Annotate
   ANNOTATE_AD(AD_MIN_AF_MUT.out.vcf)
@@ -193,7 +194,7 @@ workflow CTP {
   // Variant annotation
 
   // Step 27: Annotation with snpsift
-  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS_CTP.out.vcf)
+  SNPEFF_ANNOTATE(SNPSIFT_MICROINDELS.out.vcf)
   
   // Step 28: Annotation with DBNSFP
   SNPSIFT_DBNSFP(SNPEFF_ANNOTATE.out.vcf, "BOTH")
@@ -204,19 +205,23 @@ workflow CTP {
   // Step 30: Extract required annotated fields and prepare output tables
   EXTRACT_FIELDS(SNPSIFT_COSMIC.out.vcf)
 
-  // Step 31: Calculate TMB score from variants and microindels
+   // Step 31: Calculate TMB score from variants and microindels
   tmb_input = ADD_CALLER_GATK.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
-  TMB_SCORE_CTP(tmb_input)
+  TMB_SCORE_PREPROCESS(tmb_input)
+
+  tmb_input_postprocess = TMB_SCORE_PREPROCESS.out.tab.join(TMB_SCORE_PREPROCESS.out.count2).join(TMB_SCORE_PREPROCESS.out.count3)
+  TMB_SCORE(tmb_input_postprocess)
 
   // Aggregate statistcs
 
   // Step 32: 
 
   fq_alignment_metrics = QUALITY_STATISTICS.out.quality_stats.join(PICARD_MARKDUPLICATES.out.dedup_metrics).join(PICARD_CALCULATEHSMETRICS.out.hsmetrics)
-  CTP_SUMMARY_STATS(fq_alignment_metrics)
-  depth_of_coverage_ctp = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
-  GATK_DEPTHOFCOVERAGE(depth_of_coverage_ctp, params.ctp_genes)
-  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "CTP")
+  SUMMARY_STATS(fq_alignment_metrics)
+  
+  depth_of_coverage = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
+  GATK_DEPTHOFCOVERAGE(depth_of_coverage, params.ctp_genes)
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "targetinterval")
 }
 
 workflow.onComplete {

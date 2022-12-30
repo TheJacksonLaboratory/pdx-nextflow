@@ -5,6 +5,8 @@ process ADD_CALLER_GATK {
   memory 5.GB
   time '01:00:00'
 
+  container "/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
+
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*DPfiltered.vcf", mode:'copy'
 
   input:
@@ -16,6 +18,6 @@ process ADD_CALLER_GATK {
   script:
 
   """
-  ${projectDir}/bin/wes/caller_add_gatk.sh ${add_filters} ${sampleID}_variants.DPfiltered.vcf
+  bash ${projectDir}/bin/exome/caller_add_gatk.sh ${add_filters} ${sampleID}_variants.DPfiltered.vcf
   """
 }

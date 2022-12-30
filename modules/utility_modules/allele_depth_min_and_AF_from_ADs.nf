@@ -5,6 +5,7 @@ process ALLELE_DEPTH_MIN_AND_AF_FROM_ADS {
   memory 5.GB
   time '01:00:00'
 
+  container "/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
 
   input:
   tuple val(sampleID), file(mutect2_filtered)
@@ -15,6 +16,6 @@ process ALLELE_DEPTH_MIN_AND_AF_FROM_ADS {
   script:
   
   """
-  python ${projectDir}/bin/wes/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${params.minDP}
+  python ${projectDir}/bin/exome/allele_depth_min_and_AF_from_ADs.py ${mutect2_filtered} ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${params.minDP}
   """
 }

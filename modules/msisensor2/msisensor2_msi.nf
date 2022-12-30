@@ -7,13 +7,15 @@ process MSISENSOR2_MSI {
 
   container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/msisensor2_latest.sif'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'msisensor2' }", pattern: "*sensor*", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'msisensor2' }", mode:'copy'
 
   input:
   tuple val(sampleID), file(bam), file(bai)
 
   output:
   tuple val(sampleID), file("*msisensor"), emit: msisensor
+  file("${sampleID}_msisensor_dis")
+  file("${sampleID}_msisensor_somatic")
 
   script:
   

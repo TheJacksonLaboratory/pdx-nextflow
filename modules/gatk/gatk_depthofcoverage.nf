@@ -36,6 +36,7 @@ process GATK_DEPTHOFCOVERAGE {
   --omitLocusTable \
   -U ALLOW_N_CIGAR_READS
   
+  cp ${sampleID}_gatk_temp${id}.txt ${sampleID}_gatk_coverage_formatted.txt
   """
 
   else if (params.workflow == 'ctp')
@@ -51,7 +52,7 @@ process GATK_DEPTHOFCOVERAGE {
   --omitIntervalStatistics \
   --omitLocusTable
 
-  bash ${projectDir}/bin/wes/gatk_formatter.sh ${sampleID}_gatk_temp1.txt ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_temp3.txt ${L}
+  bash ${projectDir}/bin/exome/gatk_formatter.sh ${sampleID}_gatk_temp1.txt ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_temp3.txt ${L}
   cp ${sampleID}_gatk_temp3.txt ${sampleID}_gatk_coverage_formatted.txt
   """
 
@@ -68,7 +69,7 @@ process GATK_DEPTHOFCOVERAGE {
   --omitIntervalStatistics \
   --omitLocusTable
 
-  bash ${projectDir}/bin/wes/gatk_formatter.sh ${sampleID}_gatk_temp1.txt ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_temp3.txt ${L}
+  bash ${projectDir}/bin/exome/gatk_formatter.sh ${sampleID}_gatk_temp1.txt ${sampleID}_gatk_temp2.txt ${sampleID}_gatk_temp3.txt ${L}
   cp ${sampleID}_gatk_temp3.txt ${sampleID}_gatk_coverage_formatted.txt
   """
   else
