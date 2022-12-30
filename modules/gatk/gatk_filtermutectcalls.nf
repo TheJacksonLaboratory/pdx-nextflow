@@ -21,15 +21,6 @@ process GATK_FILTERMUTECTCALLS {
   String my_mem = (task.memory-1.GB).toString()
   my_mem =  my_mem[0..-4]
 
-  if (params.workflow == "wes")
-    """
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
-    FilterMutectCalls \
-    --variant ${sampleID}_intermed.vcf.gz \
-    --output ${sampleID}_final_mutect_snp_indel_filtered.vcf \
-    --unique-alt-read-count 5
-    """
-  else if (params.workflow == "ctp")
     """
     java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
     FilterMutectCalls \

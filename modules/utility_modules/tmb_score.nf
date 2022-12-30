@@ -33,6 +33,7 @@ process TMB_SCORE {
 
     bedtools coverage -a ${params.bins_hexcoverage} -b ${sampleID}_count3 | cut -f 1-5 >> ${sampleID}_HM.tab
 
-    Rscript ${projectDir}/bin/exome/TMB_final_HEX.R ${sampleID}_HM.tab ${sampleID}_TMB.score
+    Rscript ${projectDir}/bin/exome/TMB_final_WES.R ${sampleID}_HM.tab ${sampleID}_TMB.score
+
     """
 }
