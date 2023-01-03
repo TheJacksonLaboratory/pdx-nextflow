@@ -1,7 +1,7 @@
 process BWA_MEM {
   tag "$sampleID"
 
-  cpus 8
+  cpus 12
   memory {60.GB * task.attempt}
   time {30.hour * task.attempt}
   errorStrategy 'retry' 
