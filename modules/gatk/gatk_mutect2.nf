@@ -3,7 +3,7 @@ process GATK_MUTECT2 {
 
   cpus 1
   memory 15.GB
-  time '05:00:00'
+  time '24:00:00'
 
   container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
 
@@ -44,6 +44,7 @@ process GATK_MUTECT2 {
     --annotation MappingQualityRankSumTest \
     --annotation ReadPosRankSumTest \
     --min-base-quality-score 20 \
+    -L ${params.targets_gatk} \
     --standard-min-confidence-threshold-for-calling 30
 
     bgzip ${sampleID}_intermed.vcf
