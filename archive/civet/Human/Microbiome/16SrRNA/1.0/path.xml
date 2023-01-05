@@ -1,0 +1,9 @@
+  <!--prepend path with bin dirs-->
+  <dir id='weins_local' create='False' filespec='/data/weinstocklab/bin' />
+  <command program="export">PATH={weins_local}:$PATH</command>
+
+  <dir id='weins_bin' create='False' filespec='/data/weinstocklab/local' />
+  <command program="export">PATH={weins_bin}:$PATH</command>
+
+  <dir id='labscripts' create='False' filespec='/data/weinstocklab/labscripts' />
+  <command program="export">PATH={labscripts}:$PATH</command>

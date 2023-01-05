@@ -1,0 +1,26 @@
+<tool name="compare files"
+    threads="6"
+    walltime="10:00:00"
+    tool_config_prefix="blast">
+    <description>
+        Compare all contigs and find similar ones, split into bins
+    </description>
+    <!-- Files:
+        Ins:
+          1: db fasta file
+        OutS:
+	  1: output fasta file
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>blast+</module>
+    <command program="makeblastdb -dbtype nucl -title merged">
+        <version_command>makeblastdb -version</version_command>
+        -in {in_1}
+    </command> 
+     
+    <command program="blastn">
+        <version_command>blastn -version</version_command>
+        -outfmt '6 std qlen slen' -db {in_1} -query {in_1} -evalue 1e-100 -num_threads 6 -word_size 32 -perc_identity 95 -out {out_1}
+    </command>
+</tool>

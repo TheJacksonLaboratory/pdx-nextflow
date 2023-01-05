@@ -1,0 +1,46 @@
+<tool name="MRPE_MREMASE_RunEMASE"
+    threads="12"
+    tool_config_prefix="MRPE_MREMASE_RunEMASE"
+    walltime="47:59:00"
+    >
+    <description>
+     This is the runEmase step
+    </description>
+
+    <!-- Files:
+        Ins:
+    -->
+	
+	<module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/cga</module>
+    <module>samtools/0.1.18</module>
+	
+    <option name="Model" display_name="EMASE Model" command_text="-M" type="select"
+     description="Multiread mode ID: 1 - Gene-&gt;Allele-&gt;Isoform, 2 - Gene-&gt;Isoform-&gt;Allele, 3 - Gene-&gt;(Isoform*Allele), 4 - Gene*Isoform*Allele" >
+        <select>1</select>
+        <select>2</select>
+        <select>3</select>
+        <select default="true">4</select>
+    </option>
+   
+    <option name="EMiteration"  display_name="EM iterations"  command_text="-m"
+      type="numeric"  value="999"  description="maximum number of EM iterations" />
+    <option name="tolerance"  command_text="-t" type="numeric"  value="0.0001"
+      description="EM convergence tolerance" />
+      
+	<option name="pseudoCount"  display_name="PseudoCount"  command_text="-p"
+      type="numeric"  value="0.0"  description="" />
+    <command program="">
+       source activate gbrs
+    </command>
+
+
+	<command program="">
+     gbrs intersect -i {in_1},{in_4} -o {out_1};
+	 gbrs compress -i {out_1} -o {out_3};
+	 gbrs quantify -i {out_3} -g {in_2} -L {in_3}  {Model} -o {out_2} {pseudoCount} {EMiteration} {tolerance} --report-alignment-counts
+    </command>
+
+</tool>
+

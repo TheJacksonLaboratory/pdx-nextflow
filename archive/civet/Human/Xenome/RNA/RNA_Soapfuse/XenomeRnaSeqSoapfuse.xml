@@ -1,0 +1,100 @@
+<pipeline name="XenomeRnaSeqSoapfuse.xml">
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <filelist id="fastqs" input="True" parameter="1" />
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+
+        We now remove the Lane information, if present, from the sample name
+    -->
+    <file id="sample_name" based_on="fastqs"
+          pattern="(.*?)(_L(00\d|aneALL))?(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- Step 1 -->
+    <!-- Quality, stats and trimming -->
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="fusion" based_on="sample_name" create="False"
+         pattern="^(.*)_(st|)RNA(.*)$" replace="\1_\2RNAfusion\3" />
+    <dir id="outdir" based_on="fusion" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+
+
+
+    <file id="human_1"     in_dir="outdir" temp="True"    filespec="human_1.fastq" />
+    <file id="human_2"     in_dir="outdir" temp="True"    filespec="human_2.fastq" />
+    <file id="xenome_classification"           in_dir="outdir"     based_on="sample_name"    append="_xenome_stats.txt"   />
+
+    <dir id="filter" filespec="filter" in_dir="outdir" />
+
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+    <file id="e1_trimmed" temp="True" in_dir="filter"
+        based_on="fastqs" append="_filtered_trimmed" />
+    <file id="e2_trimmed" temp="True" in_dir="filter"
+        based_on="e1_trimmed" pattern="(.*?)(_|\.)R1(.*)"
+        replace="\1\2R2\3"/>
+
+   <file id="stats" in_dir="filter" based_on="fastqs" pattern="(.*)(_|\.)R1(.*)"
+                  replace="\1\2R1\3_\1\2R2\3_stat" />
+   
+    <step name="Qual_Stat">
+        <tool name="QnS"
+              input="fastqs, filter"
+              output="e1_trimmed, e2_trimmed, stats"
+              description="qual_statistics_new_xenome.xml" />
+    </step>
+
+    <!-- Step 2 -->
+    <!-- Xenome -->
+
+    <step name="Classification">
+        <tool name="XENOME" input="e1_trimmed, e2_trimmed"
+              output="human_1, human_2, xenome_classification"
+              description="xenome_classification_RNA.xml" />
+    </step>
+
+    
+    <!-- Step 3 -->
+    <!-- Prepare files for soapfuse -->
+
+    <file id="samplelist" in_dir="outdir" filespec="samplelist.txt" />
+
+    <!-- data_dir1 is marked as temp, so it will get deleted at the end of the pipeline -->
+    <dir id="data_dir1" filespec="Data" in_dir="outdir" temp="True" />
+
+    <!-- all of these are contained in data_dir1, so they will get deleted too
+         we don't need to decare them as temp -->
+    <dir id="data_dir2" based_on="sample_name" in_dir="data_dir1" />
+    <dir id="data_dir3" filespec="Lib" in_dir="data_dir2" />
+    <file id="fastq_1" in_dir="data_dir3" filespec="human_1.fastq.gz" />
+    <file id="fastq_2" in_dir="data_dir3" filespec="human_2.fastq.gz" />
+    
+    <step name="Prepare_files">
+        <tool name="Preparation" input="human_1, human_2, sample_name, stats"
+              output="samplelist, fastq_1, fastq_2"
+              description="preparation_file.xml" />
+    </step>
+
+    <!-- Step 4 -->
+    <!-- Run soapfuse -->
+
+    <!-- Soapfuse database and config file -->
+    <dir id="database" filespec="/data/shared/research_pipelines_reference_data/human/SOAPfuse/hg38/20160525" input="True" />
+    <file id="config" filespec="/data/shared/research_pipelines_reference_data/human/SOAPfuse/hg38/config.txt" input="True" />
+
+    <step name="Fusion_gene">
+        <tool name="Run_soapfuse"
+              input="config, data_dir1, samplelist, database" output="outdir"
+              description="soapfuse_run_fusiongene.xml" />
+    </step>
+
+
+</pipeline>

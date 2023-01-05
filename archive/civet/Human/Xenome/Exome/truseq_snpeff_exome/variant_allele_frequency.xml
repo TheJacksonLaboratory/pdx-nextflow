@@ -1,0 +1,18 @@
+<tool name="Variant_Allele_Frequency" walltime="0:10:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Compute allele frequency from vcf and reformat as tab file
+    </description>
+    <!--
+        Ins:
+	  1: variants_filtered
+	  2: microIndels_filtered
+        Outs:
+	  1: variants_microIndels_filtered_AFgt0.05
+    -->
+    
+    <command program="allele_frequency_from_vcf">
+        <version_command>allele_frequency_from_vcf --version</version_command>
+        --keep 140 5 5 {in_1} {in_2} {out_1}
+    </command>
+</tool>

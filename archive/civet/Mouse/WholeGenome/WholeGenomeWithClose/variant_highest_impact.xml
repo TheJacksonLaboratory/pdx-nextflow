@@ -1,0 +1,37 @@
+<tool name="Variant_Highest_Impact"  tool_config_prefix="GATK_High_Impact_Variant" walltime="08:00:00"
+   error_strings="'##### ERROR MESSAGE:'"> 
+   <description>
+        report highest impact snpEff annotations
+    </description>
+    <!--
+        Ins:
+          1: ref
+          2: variants_filtered_dbSNP
+	  3: variants_filtered_dbSNP_snpEff
+	  4: variants_filtered
+	Outs:
+	  1: variants_filtered_highestsnpEff
+    -->
+    
+    
+
+    <!-- Step 5.1: Variant Annoataion -->
+
+    <module>java/1.7.0</module>
+
+    <file id="gatk" input="True"
+              filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+
+
+    <command program="java">
+    <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+    -Xmx8g -jar {gatk} 
+    -R {in_1} -T VariantAnnotator
+    -A SnpEff
+    --variant {in_2}
+    --snpEffFile {in_3}
+    -L {in_4}
+    -o {out_1}
+    </command>
+
+</tool>

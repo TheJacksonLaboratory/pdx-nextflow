@@ -1,0 +1,27 @@
+<tool name="bamtools " walltime="06:00:00">
+    <!-- What does this tool do? -->
+    <description>
+        Filters uniquely mapped reads 
+    </description>
+
+
+    <!-- Specify any modules needed for this tool -->
+    <module>bamtools</module>  
+
+     <command program="bamtools">
+
+  <version_command> bamtools  -v</version_command>
+
+    split -in {in_1} -stub {in_2}  -reference
+
+</command>
+
+
+
+
+
+
+
+
+
+</tool>

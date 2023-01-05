@@ -1,0 +1,3 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted.bed
+HSmetrics.TARGET_INTERVALS=/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted_picard.bed
+HSmetrics.BAIT_INTERVALS=/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted_picard.bed

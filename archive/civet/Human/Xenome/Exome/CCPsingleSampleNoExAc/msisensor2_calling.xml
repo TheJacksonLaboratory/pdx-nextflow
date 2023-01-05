@@ -1,0 +1,28 @@
+<tool name="MSIsensor2" tool_config_prefix="MSIsensor2"  threads="1"
+      walltime="24:00:00" mem="8">
+    <description>
+      Call MSI status using the tool MSIsensor2
+    </description>
+
+    <!-- Files:
+         Ins:t_final_bam
+         Out:
+    -->
+
+    <module>/opt/software/cadillac/modulefiles/gcc/4.9.2</module>
+	<module>/opt/software/cadillac/modulefiles/zlib/1.2.8</module>
+	<module>/opt/software/cadillac/modulefiles/glibc/2.14.1</module>
+
+	<option name="MSIsensor_models" command_text="" value="/opt/compsci/msisensor2/models_hg38" />
+
+	<dir id="models"  create="False" temp="True" filespec="models_hg38" />
+
+	<command program="cp">
+		-r {MSIsensor_models} {models}
+	</command>
+
+    <command program="/opt/compsci/msisensor2/msisensor2">
+		msi -M {models} -t {in_1} -o {out_1}
+    </command>
+
+</tool>

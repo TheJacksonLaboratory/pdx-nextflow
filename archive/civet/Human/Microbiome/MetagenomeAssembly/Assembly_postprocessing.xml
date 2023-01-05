@@ -1,0 +1,213 @@
+<pipeline name="Assembly_binning.xml">
+
+<!-- Input should include:
+         * A dir with clean cutadapt files
+         * An assembly fasta file
+         * gff annotation of the above assembly
+-->
+    <description>
+        This pipeline get an assembly fasta file and the input and use metabat to generate bins.
+    </description>
+    <dir id="filter" description="A clean fastq.gz files containing dir" display_name="Input dir" input="True" parameter="1" />
+    <file id="asmfile" description="Assembled genome" display_name="Assembled genome fsata" input="True" parameter="2" />
+    <file id="refgff" description="Assembly annotation gff file with KO mapping" display_name="gff file" input="True" parameter="3" />
+    <string id="pname" description="A string added to the directory name" display_name="Run name" parameter="4" />
+ 
+	<!--*************************** define and create directories ******************************* -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <dir id="metabat" filespec="metabat" in_dir="outdir" />
+    <file id="metabat2" filespec="metabat" in_dir="metabat" /> 
+    <dir id="remapd" filespec="remap" in_dir="outdir" />
+    <dir id="countd" filespec="KO_counts" in_dir="outdir" />
+    <dir id="summd" filespec="summary" in_dir="outdir" />
+    <dir id="bseq" filespec="metabat_fasta_files" in_dir="outdir" />
+    <dir id="checkm" filespec="checkm_dir" in_dir="outdir" create="False"/>
+    <dir id="krdb" filespec="krakenDB" in_dir="outdir"/>
+    <file id="taxfa" filespec="taxonomy_filtered_seqs.fa" in_dir="outdir" />
+    <file id="krout" filespec="contigs_kraken_output.txt" in_dir="summd" />
+    <file id="krreport" filespec="bins_taxonomy_output_report.txt" in_dir="summd" />
+    <file id="krrep" filespec="contigs_kraken_report.txt" in_dir="summd" />
+    <file id="outallKO" filespec="all_reads_KO_counts.txt" in_dir="summd" />
+    <file id="directallKO" filespec="direct_reads_KO_counts.txt" in_dir="summd" />
+    <file id="directall" filespec="direct_reads_all_features_counts.txt" in_dir="summd" />
+    <file id="checkmqa" filespec="checkm_results.txt" in_dir="summd" />
+    <file id="checkmqa2" filespec="checkm_results_with_tax.txt" in_dir="summd" />
+    <file id="checkmtreeqa" filespec="checkm_tree_results.txt" in_dir="summd" />
+    <file id="mbatstat" filespec="metabat_summary.txt" in_dir="summd"/>
+    <file id="covs" filespec="contig_coverage.txt" in_dir="summd"/>
+    <file id="indremap" filespec="remapping_stats.txt" in_dir="summd"/>
+    <file id="bwindex" filespec="input_fasta_bwa_index" in_dir="outdir"/>
+    <!-- reference KO mapping -->
+    <dir id="uniprot" filespec="/projects/mbiomecore/external_databases/Bacteria_Uniprot/181107/" create="False"/>
+    <file input="True" id="uniprot_dmnd" filespec="uniprot_all_bacteria_mapped_to_KO" in_dir="uniprot"/>
+    <file input="True" id="uniprot_KO" filespec="uniprot_all_to_KO_list.txt" in_dir="uniprot"/>
+
+    <step name="bwindex">
+        <tool name="bi"
+         input="asmfile"
+         output="bwindex"
+         description="bwa_index_fasta.xml"/>
+    </step>
+    <foreach id="infile" dir="filter">
+        <file id="ocr1" pattern=".*R1_filtered.fastq.gz"/>
+        <related id="ocr2" input="True" pattern="(.*)R1(_filtered\.fastq\.gz)$" replace="\1R2\2"/>
+        <related id="mout" input="False" in_dir="outdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1"/>
+        <related id="remapsai1" input="False" temp="True" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.sai1"/>
+        <related id="remapsai2" input="False" temp="True" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.sai2"/>
+        <related id="remap" input="False" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.bam"/>
+        <related id="countp" input="False" in_dir="countd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs_prot_counts.txt"/>
+        <related id="countko" input="False" in_dir="countd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs_KO_counts.txt"/>
+        <related id="countkounmap" input="False" in_dir="countd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_all_reads_KO_counts.txt"/>
+        <related id="unmapq1" input="False" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.bam.R1.fastq.gz"/>
+        <related id="unmapq2" input="False" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.bam.R2.fastq.gz"/>
+        <related id="unmapdmnd1" input="False" in_dir="countd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.bam.R1.fastq.gz.diamondx.tsv.gz"/>
+        <related id="unmapdmnd2" input="False" in_dir="countd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs.bam.R2.fastq.gz.diamondx.tsv.gz"/>
+        <related id="remapstats" input="False" in_dir="remapd" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_map_to_final_contigs_stats.txt"/>
+
+        <step name="map_to_assembly">
+            <tool name="bwamap"
+             input="ocr1,ocr2,bwindex"
+             output="remapsai1,remapsai2,remap,remapstats"
+             description="map_paired_end_with_bwa_aln_noidx.xml" />
+        </step>
+
+<!-- count mapping to ORFs, get unmapped reads, map to KO reference and add the counts to the KO counts -->
+        <step name="count_proteins">
+            <tool name="count"
+             input="refgff, remap"
+             output="countp, countko, unmapq1, unmapq2"
+             description="count_protein_mapping_bam.xml" />
+            <tool name="diamond1"
+             input="uniprot_dmnd, unmapq1"
+             output="unmapdmnd1"
+             description="run_diamond_blastx.xml"/>
+            <tool name="diamond2"
+             input="uniprot_dmnd, unmapq2"
+             output="unmapdmnd2"
+             description="run_diamond_blastx.xml"/>
+            <tool name="count_matches"
+             input="uniprot_KO, unmapdmnd1, unmapdmnd2, countko"
+             output="countkounmap"
+             description="update_protein_match.xml" />
+        </step>
+    </foreach>
+    <filelist id="bams" in_dir="remapd" pattern=".*_map_to_final_contigs.bam$" foreach_id="infile"/>
+    
+    <step name="metabat_binning">
+        <tool name="metabat"
+         input="asmfile, bams"
+         output="metabat2, mbatstat, covs"	
+         description="metabat_complete_binning.xml" />
+    </step>
+
+
+    <step name="checkms">
+        <tool name="checkm"
+         input="asmfile, metabat2"
+         output="bseq, checkm, checkmqa, checkmtreeqa"
+         description="run_checkm.xml" />
+    </step>
+         
+<file id="shead" in_dir="outdir" temp="True" filespec="sheader.txt" />
+<filelist id="astats" in_dir="remapd" pattern=".*_map_to_final_contigs_stats.txt" foreach_id="infile" />
+<filelist id="allKO" in_dir="countd" pattern=".*all_reads_KO_counts.txt$" foreach_id="infile" />
+<filelist id="dirKO" in_dir="countd" pattern=".*map_to_final_contigs_KO_counts.txt$" foreach_id="infile" />
+<filelist id="dirprot" in_dir="countd" pattern=".*map_to_final_contigs_prot_counts.txt$" foreach_id="infile" />
+<step name="get_stats1">
+    <tool name="sheader"
+     output="shead"
+     description="print_stats_header.xml" />
+    <tool name="merge_stats_1"
+     input="shead, astats"
+     output="indremap"
+     description="merge_stats.xml" />
+   <tool name="join_KO_stats"
+     input="allKO"
+     output="outallKO"
+     description="join_files_first_col.xml"/>
+   <tool name="join_KO_stats"
+     input="dirKO"
+     output="directallKO"
+     description="join_files_first_col.xml"/>
+   <tool name="join_prot_stats"
+     input="dirprot"
+     output="directall"
+     description="join_files_first_col.xml"/>
+
+</step>
+
+<step name="contigs_kraken">
+    <tool name="ckraken"
+     output="krout, krrep"
+     input="asmfile"
+     description="run_kraken_on_fasta.xml" />
+    <tool name="taxout"
+     output="taxfa, krdb, krreport, checkmqa2"
+     input="krout, metabat, checkmqa, asmfile, checkmtreeqa"
+     description="update_kraken_db.xml" />
+</step>
+
+
+<!--  This part of the pipeline takes a dir with paired reads and map them to a protein database and kraken database. The kraken DB is the default standard one but can be changed in the options file using kraken.db to a custom one,
+  for instance a DB that will include contigs from the current assembly. The protein database is given as a multi-fasta file, indexed by diamond v 0.9 and a translation file from each name to its group (e.g. KO)
+  Input includes:
+         * A dir with clean, paired cutadapt fastq.gz files (*_R1_filtered.fastq.gz and *_R2_filtered.fastq.gz)
+         * A protein DB indexed with diamond 0.9 (e.g: /projects/mbiomecore/external_databases/Bacteria_Uniprot/180718/uniprot_trembl_bacteria_mapped_to_KO.dmdb9)
+         * Mapping of the proteins to KO or any other groups (e.g: /projects/mbiomecore/external_databases/Bacteria_Uniprot/180718/uniprot_to_KO_mapping)
+         * Analysis name
+-->
+    <dir id="krdir" filespec="kraken_reads" in_dir="outdir" />
+    <file id="outmapkg" in_dir="summd" filespec="kraken_summary_genus.txt" input="False"/>
+    <file id="outmapko" in_dir="summd" filespec="kraken_summary_order.txt" input="False"/>
+    <file id="outmapkc" in_dir="summd" filespec="kraken_summary_class.txt" input="False"/>
+    <file id="outmapkp" in_dir="summd" filespec="kraken_summary_phylum.txt" input="False"/>
+    <file id="outmapkf" in_dir="summd" filespec="kraken_summary_family.txt" input="False"/>
+    <foreach id="infilek" dir="filter">
+        <file id="ocr1" pattern=".*R1_filtered.fastq.gz$"/>
+        <related id="ocr2" input="True" pattern="(.*)R1(_filtered\.fastq\.gz)$" replace="\1R2\2"/>
+        <related id="krkn1" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_classification.txt"/>
+        <related id="krkn2" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report.txt"/>
+        <related id="krkn2g" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report_genus.txt"/>
+        <related id="krkn2o" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report_order.txt"/>
+        <related id="krkn2c" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report_class.txt"/>
+        <related id="krkn2p" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report_phylum.txt"/>
+        <related id="krkn2f" input="False" in_dir="krdir" pattern="(.*)_R1_filtered.fastq.gz" replace="\1_kraken_report_family.txt"/>
+
+        <step name="kraken">
+           <tool name="kraken1"
+            input="ocr1, ocr2, krdb"
+            output="krkn1, krkn2, krkn2g, krkn2f, krkn2o, krkn2c, krkn2p"
+            description="run_kraken.xml" />
+        </step>
+    </foreach>
+<filelist id="krkngstats" in_dir="krdir" pattern=".*genus.txt$" foreach_id="infilek" />
+<filelist id="krknostats" in_dir="krdir" pattern=".*order.txt$" foreach_id="infilek" />
+<filelist id="krkncstats" in_dir="krdir" pattern=".*class.txt$" foreach_id="infilek" />
+<filelist id="krknpstats" in_dir="krdir" pattern=".*phylum.txt$" foreach_id="infilek" />
+<filelist id="krknfstats" in_dir="krdir" pattern=".*family.txt$" foreach_id="infilek" />
+
+<step name="join_stats">
+    <tool name="join_stats_kg"
+     input="krkngstats"
+     output="outmapkg"
+     description="join_files_first_col.xml"/>
+    <tool name="join_stats_kf"
+     input="krknfstats"
+     output="outmapkf"
+     description="join_files_first_col.xml"/>
+    <tool name="join_stats_ko"
+     input="krknostats"
+     output="outmapko"
+     description="join_files_first_col.xml"/>
+    <tool name="join_stats_kc"
+     input="krkncstats"
+     output="outmapkc"
+     description="join_files_first_col.xml"/>
+    <tool name="join_stats_kp"
+     input="krknpstats"
+     output="outmapkp"
+     description="join_files_first_col.xml"/>
+   
+</step>
+        
+</pipeline>

@@ -1,0 +1,11 @@
+Run_EMASE.Model=4   ####Pipeline default is 2 but tool default is  3; for total expression use 4 and for allele specifc use 2    -M <multiread_model> : Multiread model ID
+                           #1: Gene->Isoform->Allele,
+                           #2: Gene->Allele->Isoform,
+                           #3: Gene->(Isoform*Allele), (default model)
+                           #4: Gene*Isoform*Allele
+Run_EMASE.readLength=100   #  : Read length (default: 100)
+Run_EMASE.pseudocount=0.0  # -p <pseudocount>     : Pseudocount for allele specificity (default: 0.0)
+Run_EMASE.EMiteration=999  # -m <max_iters>       : The number of maximum iterations for EM (default: 999)
+Run_EMASE.tolerance=0.0001 # -t <tolerance>       : Tolerance for the termination of EM. (default: 0.0001)
+Run_EMASE.deleteBam= TRUE ####TRUE or FALSE  ; whether user wants to keep bam file or delete it; default delete
+Run_EMASE.deleteh5= FALSE #### TRUE or FALSE; whether user wants to keep h5 file or delete it; default keep

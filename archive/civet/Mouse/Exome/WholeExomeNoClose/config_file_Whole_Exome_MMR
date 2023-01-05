@@ -1,0 +1,4 @@
+VaPrePro_2.targetfilegatk=/data/shared/mmr/mm10Exome_v4_12-19.1.mm10.baits_merged.bed
+HSmetrics.TARGET_INTERVALS=/data/shared/mmr/mm10Exome_v4_12-19.1.mm10.baits_merged_picard.bed
+HSmetrics.BAIT_INTERVALS=/data/shared/mmr/mm10Exome_v4_12-19.1.mm10.baits_merged_picard.bed
+HaplotypeGenotyper.targetfilegatk=/data/shared/mmr/mm10Exome_v4_12-19.1.mm10.baits_merged.bed

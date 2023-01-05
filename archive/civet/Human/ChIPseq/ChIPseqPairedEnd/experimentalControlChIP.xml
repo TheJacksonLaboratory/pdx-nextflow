@@ -1,0 +1,218 @@
+<pipeline name="experimentalcontrolChIP.xml">
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        At first, these will all be real files.  Over time we may
+        make some of them tempfiles, to get cleaned up at the end.
+    -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <file id="e1_fastq" input="True" parameter="1" />
+    <file id="e2_fastq" input="True" parameter="2" />
+    <file id="c1_fastq" input="True" parameter="3" />
+    <file id="c2_fastq" input="True" parameter="4" />
+
+
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="e_sample_name" based_on="e1_fastq" pattern="(.*?)_R1.*"
+          replace="\1" />
+    <file id="c_sample_name" based_on="c1_fastq" pattern="(.*?)_.R1.*"
+          replace="\1" />          
+
+    <string id="e_name" based_on="e1_fastq" pattern="(.*?)_|\.R1.*" replace="\1"  />
+    <string id="c_name" based_on="c1_fastq" pattern="(.*?)_|\.R1.*" replace="\1"  />    
+
+    <!-- The pipeline's default output directory. ()
+  -->
+    <dir id="outdir" based_on="e_sample_name" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />​
+
+
+    <dir id="e_outdir" in_dir="outdir" filespec="e_out" />
+    <dir id="c_outdir" in_dir="outdir" filespec="c_out" />
+    <dir id="e_filter" in_dir="e_outdir"    filespec="e_filter" />
+    <dir id="c_filter" in_dir="c_outdir"    filespec="c_filter" />
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+
+    <!-- experimental filtered files -->
+    <file id="e1_trimmed" temp="True"  in_dir="e_filter" based_on="e1_fastq" append="_filtered_trimmed" />
+    <file id="e2_trimmed" temp="True"  in_dir="e_filter" based_on="e2_fastq" append="_filtered_trimmed" />
+
+    <!-- control filtered files -->
+    <file id="c1_trimmed" temp="True"  in_dir="c_filter" based_on="c1_fastq" append="_filtered_trimmed" />
+    <file id="c2_trimmed" temp="True"  in_dir="c_filter" based_on="c2_fastq" append="_filtered_trimmed" />
+
+
+<!-- 
+    genome reference 
+  -->
+    <file id="ref" input="True"
+          filespec="/data/shared/cga_reference_data/hg38_201601/Homo_sapiens_assembly38.fasta"/>
+
+    <file id="bwa7_idx_pfx" 
+          filespec="/data/shared/cga_reference_data/hg38_201601/bwa_hg38/"/>
+  
+    <file id="experimental" temp="True"  in_dir="e_outdir" filespec="experimental"/>
+    <file id="control" temp="True"  in_dir="c_outdir" filespec="control" />
+
+    <file id="experimental_split" temp="True"  in_dir="e_outdir" based_on="e_sample_name" append="_experimental"/>
+    <file id="control_split" temp="True"  in_dir="c_outdir" based_on="e_sample_name" append="_control"/>
+
+
+
+
+
+
+<!-- 
+    Pre-alignment QC
+  -->
+    <step name="E_Qual_Stat">
+        <tool name="QnS"
+            input="e1_fastq, e2_fastq, e_filter"
+            output="e1_trimmed, e2_trimmed"
+            description="qual_statistics_new.xml" />
+    </step>
+            
+    <step name="C_Qual_Stat">
+        <tool name="QnS"
+            input="c1_fastq, c2_fastq, c_filter"
+            output="c1_trimmed, c2_trimmed"
+            description="qual_statistics_new.xml" />
+      
+    </step>
+    <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="e_sam"  temp="True" in_dir="e_outdir" based_on="e_sample_name" append="_experimental.sam" />
+    <file id="c_sam"  temp="True" in_dir="c_outdir" based_on="c_sample_name" append="_control.sam" />
+    <file id="e_read_group" temp="True" in_dir="outdir" filespec="e_read_group.txt" />
+    <file id="c_read_group" temp="True" in_dir="outdir" filespec="c_read_group.txt" />
+
+<!-- 
+    Align both samples with BWA
+-->
+ 
+    <step name="E_Alignment">
+        <tool name="read_group"
+            input="e1_fastq"
+            output="e_read_group"
+            description="read_group.xml" />
+        <tool name="BWA_MEM_Alignment"
+            input="e1_trimmed,e2_trimmed,bwa7_idx_pfx,e_read_group"
+            output="e_sam"
+            description="bwa_mem.xml" />
+
+    </step>
+
+    <step name="C_Alignment">
+        <tool name="read_group"
+            input="c1_fastq"
+            output="c_read_group"
+            description="read_group.xml" />
+        <tool name="BWA_MEM_Alignment"
+            input="c1_trimmed,c2_trimmed,bwa7_idx_pfx,c_read_group"
+            output="c_sam"
+            description="bwa_mem.xml" />
+    </step>
+
+<!-- 
+    Post-align QC
+-->
+
+    <file id="e_sort" based_on="e_sample_name" temp="True" in_dir="e_outdir"  append="_e_sort.bam" />
+    <file id="c_sort" based_on="c_sample_name" temp="True" in_dir="c_outdir"  append="_c_sort.bam" />
+
+    <file id="e_aln_summary" based_on="e_sample_name" in_dir="e_outdir"  append="_e_aln_sum.txt" />
+    <file id="c_aln_summary" based_on="c_sample_name" in_dir="c_outdir"  append="_c_aln_sum.txt" />
+
+    <file id="e_trim_bam" based_on="e_sample_name" in_dir="e_outdir"  append="_trim.bam" />
+    <file id="c_trim_bam" based_on="c_sample_name" in_dir="c_outdir"  append="_trim.bam" />
+
+    <file id="e_metrics" based_on="e_sample_name" in_dir="e_outdir"  append="_e_summary_stats.txt" />
+    <file id="c_metrics" based_on="c_sample_name" in_dir="c_outdir"  append="_c_summary_stats.txt" />
+
+    <step name="E_Post_Align_QC">
+       <tool name="postQns"
+            input="e_sam, ref, e_filter" 
+            output="e_sort, e_aln_summary, e_trim_bam, e_metrics"
+            description="post_align_qc.xml" />       
+    </step>
+
+    <step name="C_Post_Align_QC">
+       <tool name="postQns"
+            input="c_sam, ref, c_filter" 
+            output="c_sort, c_aln_summary, c_trim_bam, c_metrics"
+            description="post_align_qc.xml" />       
+    </step>
+
+<!--
+Inset size estimation
+-->
+
+   <file id="e_InsertPDF" based_on="e_sample_name" in_dir="e_outdir"  append="_e_hist.pdf" />
+   <file id="c_InsertPDF" based_on="c_sample_name" in_dir="c_outdir"  append="_c_hist.pdf" />
+
+   <file id="e_Insert_out" based_on="e_sample_name" in_dir="e_outdir"  append="_e_out.txt" />
+   <file id="c_Insert_out" based_on="c_sample_name" in_dir="c_outdir"  append="_c_out.txt" />
+
+
+
+    <step name="T_InsertSize">
+        <tool name="IS_estimation"
+            input="e_trim_bam" 
+            output="e_InsertPDF, e_Insert_out"
+            description="insertSize.xml" />
+    </step>
+    <step name="N_InsertSize">
+        <tool name="IS_estimation"
+            input="c_trim_bam"
+            output="c_InsertPDF, c_Insert_out"
+            description="insertSize.xml" />
+    </step>
+
+
+
+
+
+  <!--
+        macs2 callpeok is called, using the two trimmed bams as file inputs, the experiment name as a basename for output files, and places them in the macs_out directory. It silently creates four output files, including {e_name}_summits.bed 
+  -->
+    
+    <dir id="macs_out"  filespec="macs_out" in_dir="outdir"/>
+    <file id="macs_dummy" temp="True" filespec="dummy.txt"/>
+    <step name="ChIP_Anno" >
+      <tool name="peakCall"
+        input="e_trim_bam, c_trim_bam, e_name, macs_out"
+        output="macs_dummy"
+        description="peak_call.xml" />
+    </step>
+
+<!-- {e_name}_summits.bed is defined for the pipeline, as is the output file for the next step --> 
+
+    <string id="macs_summits" based_on="e_name"   append="_summits.bed"   />
+    <file id="summits_bed" in_dir="macs_out"   based_on="macs_summits"/>
+
+    <string id="anno_name" based_on="e_name" append="_annotations.txt" />
+    <file id="anno" in_dir="macs_out"   based_on="anno_name"/>
+    <file id="anno_dummy" temp="True" filespec="anno_dummy.txt" />
+
+
+<!-- An R script is called, which  takes the input *_summits.bed file and will write the file annotations.txt -->
+
+
+
+    <step name="ChIP_Anno">
+        <tool name="chip_peak_anno"
+            input="summits_bed,macs_dummy"
+            output="anno"
+            description="chip_peak_anno.xml" />
+    </step>
+
+
+</pipeline>

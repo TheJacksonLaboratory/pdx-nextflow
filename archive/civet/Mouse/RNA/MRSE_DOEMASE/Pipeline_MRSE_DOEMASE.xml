@@ -1,0 +1,77 @@
+<pipeline name="MRSE_DOEMASE" display_name="Diversity Outbred Mouse RNAseq Single End  EMASE based Pipeline">
+
+	<!--
+	civet_run -.xml inputfasta  
+	-->
+
+    <!--
+     INPUT FILES TO THE PIPELINE [Single end fastq file ]   
+    -->
+
+    <file id="e1_fastq" display_name="Single end fastq file" input="True" parameter="1" />
+   
+	
+	
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+
+    <file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+		
+    
+
+    <!-- The pipeline's default output directory. -->
+
+ <dir id="outdir"    based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_"/>
+      
+
+    <!-- Step 1 -->
+   <file id="DOref_name"  filespec="/hpcdata/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/8Way_Ref/8Way.pooled.transcripts" />
+   
+   <file id="R1transcriptome" based_on="sample_name" append="bowtie.R1.transcriptome.bam" />
+ 
+  
+	
+    <step name="Step1">
+	
+	
+        <tool name="MRSE_DOEMASE_Alignment"
+         input="e1_fastq, DOref_name "
+		 output ="R1transcriptome"
+         description="tool-MRSE_DOEMASE_Alignment.xml" />          
+    </step>
+	
+	 <!--- Pbais - Changed the reference file to look like Vishal's reference as compared to KB's -->
+	<file id="TIDref"  filespec="/hpcdata/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/B6/B6.emase.transcriptome.info" />
+	<file id="R1transcriptomeH5" based_on="sample_name" append=".bowtie.R1.transcriptome.h5" />
+
+  
+	
+   
+	<step name="Step2">
+        <tool name="MRSE_DOEMASE_Convert_BAM"
+         input="R1transcriptome, TIDref"
+		 output="R1transcriptomeH5"
+         description="tool-MRSE_DOEMASE_ConvertBAM.xml" />          
+    </step>
+	 
+	
+	<file id="gene2transcript"  filespec="/hpcdata/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/8Way_Ref/B6.emase.gene2transcript.tsv" />
+	<file id="pooledtranscriptsinfo"  filespec="/hpcdata/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/8Way_Ref/8Way.pooled.transcripts.info" />
+	
+   
+
+	<file id = "outstring" in_dir = "outdir"  based_on ="sample_name" append = ""/>
+
+	<step name="Step3">
+        <tool name="MRSE_DOEMASE_RunEMASE"
+         input="R1transcriptomeH5, gene2transcript ,pooledtranscriptsinfo "
+		 output ="outstring"
+         description="tool-MRSE_DOEMASE_RunEMASE.xml" />          
+    </step>
+
+
+</pipeline>

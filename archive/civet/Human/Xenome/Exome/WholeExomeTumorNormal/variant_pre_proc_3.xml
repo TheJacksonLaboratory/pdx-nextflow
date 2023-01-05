@@ -1,0 +1,38 @@
+<tool name="Variant_Pre_Processing_3" tool_config_prefix="HSmetrics"   walltime="06:00:00">
+    <description>
+        Last step of preprocessing for Exome variant calling. Not used
+        in whole genome DNA processing.
+    </description>
+    <!-- Files used:
+        Ins:
+          1: realigned_BQSR_bam
+          2: outdir
+	  3: ref, the genome reference
+        Outs:
+          coverage_metrics.  
+    -->
+
+    <module>java/1.7.0</module>
+<file id="picard" input="True"
+           filespec="/opt/compsci/picard/1.95/CalculateHsMetrics.jar" />
+
+    <validate id="picard" />
+
+      <option name="TARGET_INTERVALS"   command_text="TARGET_INTERVALS=" value="/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted_picard.bed" />
+
+      <option name="BAIT_INTERVALS"     command_text="BAIT_INTERVALS="   value="/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted_picard.bed" />
+       
+    
+    <!--Step 3.6: Picard CalculateHsMetrics (generating target enrichment
+        information)-->
+    <command program="java">
+        <version_command>echo -n "Picard CalculateHsMetrics "; java -jar {picard} --version</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -jar -Xmx2g  {picard}
+        {TARGET_INTERVALS}
+        {BAIT_INTERVALS}
+	REFERENCE_SEQUENCE={in_2}
+        INPUT={in_1} OUTPUT={out_1}
+        VALIDATION_STRINGENCY=LENIENT
+    </command>
+</tool>

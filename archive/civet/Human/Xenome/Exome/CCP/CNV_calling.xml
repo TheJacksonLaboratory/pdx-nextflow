@@ -1,0 +1,91 @@
+<tool name="CNV_Caller" tool_config_prefix="CONTRA" 
+      threads="20"
+      walltime="1:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+
+    <!--
+    NOTE ABOUT THREADS:
+    Although none of the commands below have what appears to be a
+    'threads' option, the contra.py script creates as many new processes
+    as there are bins (numBin).  The number of bins affects the accuracy
+    of the analysis, so we don't want to arbitrarily reduce their
+    number.  The data require that we use 20 for acceptable results.
+
+    Tests on real data show that this whole tool executes quickly (on
+    the order of 10 minutes), so consuming a complete node is not a
+    big problem for overall throughput.
+    -->
+
+
+    <description>
+        Call CNVs from the pre-processed BAM file using CONTRA.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: baseline
+	  3: target_bed_geneNames (with gene names)
+	  4: ref
+	  5: CNV_output(directory)
+	  6: sample_name
+    -->
+    
+    <!-- Step 6: CNV Calling -->
+    <module>python/civet</module>
+    <module>samtools/0.1.19</module>
+    <module>bedtools/2.17.0</module>
+    <module>R/3.0.2</module>
+
+    <file id="contra" input="True"
+          filespec="/opt/compsci/contra/2.0.4/contra.py" />
+
+    <dir id="buf" filespec="buf" in_dir="in_5" create="False" />
+    <dir id="plot" filespec="plot" in_dir="in_5" create="False" />
+    <dir id="table" filespec="table" in_dir="in_5" create="False" />
+
+    <option name="numBin" command_text="--numBin" value="20" />
+    <option name="minReadDepth" command_text="--minReadDepth" value="50" />
+    <option name="minNBases" command_text="--minNBases" value="20" />
+    <option name="minExon" command_text="--minExon" value="5" />
+    <option name="pval" command_text="--pval" value="0.05" />
+
+    <!-- Create an environment variable -->
+    <command program="">
+	sn=`basename {in_6}`
+    </command>
+
+    <command program="">
+        bindir=$(dirname $(which convert_CNV_exon2gene.R)); echo $bindir
+    </command>
+
+    <!-- Contra will fail if its output directory exists.  Since we
+    only get a new output directory when the date changes, we'll
+    blow away an existing one from a previous run, to allow rerunning
+    on the same day.-->
+    <command program="rm">
+        -rf {in_5}
+    </command>
+
+    <command program="python">
+        <version_command>echo "CONTRA.v2.0.4"</version_command>
+        /opt/compsci/contra/2.0.4/contra.py
+        --test {in_1} --control {in_2} --bed
+        --target {in_3} --fasta {in_4}
+        --outFolder {in_5} --sampleName $sn
+        {numBin} {minReadDepth} {minNBases} {minExon} {pval}
+    </command>
+
+    <command program="convert_CNV_exon2gene.R" delimiters="||">
+        |in_5|/table/${sn}.CNATable.50rd.20bases.20bins.txt
+            ${bindir}/ConReg_funs.R
+    </command>
+
+    <command program="mv">
+    	{in_5}/table/$sn.CNATable.50rd.20bases.20bins.txt* {in_5}
+    </command>
+
+    <command program="rm">
+    	-r {buf} {plot} {table}
+    </command>
+
+</tool>

@@ -1,0 +1,62 @@
+<tool name="Annotation_segments" tool_config_prefix="ANNOTATE"
+      threads="1"
+      walltime="4:00:00"
+      error_strings="'##### ERROR MESSAGE:'"
+      exit_if_exists="in_3">
+
+    <description>
+        Annotate ASCAT segments with LOH, chromosome arm fraction, ploidy.
+        Annotate esemble genes with CN.
+        Rename relevant files with sample name.
+        Plot CN segments
+    </description>
+    
+    <!--
+     Ins:
+        1: segments
+        2: ploidy
+        3: failed_sample
+        4: ensemble_gene
+        5: chr_arm
+        6: outdir
+        7: gender
+    Outs:
+        1: segments_cn
+        2: genes_cn
+        3: plotseg_logratio
+        4: plotseg_cn
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>R/3.1.1</module>
+    <module>python/2.7.11</module>
+
+    <file id="segment_ploidy" input="True"
+        filespec="scripts/segment_raw_extend.pl" in_dir="PIPELINE_ROOT" />
+    
+    <file id="segment_gene" input="True"
+        filespec="scripts/ensemblegenes_cnv_break.pl" in_dir="PIPELINE_ROOT" />
+        
+    <file id="plot_cnseg" input="True"
+        filespec="scripts/seg_plot.R" in_dir="PIPELINE_ROOT" />
+
+    <file id="get_msp" input="True"
+        filespec="scripts/get_msp.py" in_dir="PIPELINE_ROOT" />
+    
+    <file id="tmp" temp="True" filespec="tmp.txt" in_dir="in_6" />
+    
+    <command program="perl" >
+        {segment_ploidy} {in_1} {in_2} {in_5} {in_7}
+    </command>
+    
+    <command program="perl" >
+        {segment_gene} {out_1} {in_4}
+    </command>
+    
+    <!-- run XingYi's plot with improved labelling ... get_msp gets a few tidbits from pdx database... -->
+    <command program="">
+        (msp=`{get_msp} {out_1}`; Rscript  {plot_cnseg}  {out_1}   $msp  ./ )
+    </command>
+        
+
+</tool>

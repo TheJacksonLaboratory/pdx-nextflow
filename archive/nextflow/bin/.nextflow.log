@@ -1,0 +1,67 @@
+Jan-20 19:26:33.648 [main] DEBUG nextflow.cli.Launcher - $> nextflow run hello
+Jan-20 19:26:33.819 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 20.10.0
+Jan-20 19:26:33.868 [main] DEBUG nextflow.scm.AssetManager - Listing projects in folder: /home/paisic/.nextflow/assets
+Jan-20 19:26:35.259 [main] DEBUG nextflow.scm.AssetManager - Git config: /home/paisic/.nextflow/assets/nextflow-io/hello/.git/config; branch: master; remote: origin; url: https://github.com/nextflow-io/hello.git
+Jan-20 19:26:35.277 [main] DEBUG nextflow.scm.AssetManager - Git config: /home/paisic/.nextflow/assets/nextflow-io/hello/.git/config; branch: master; remote: origin; url: https://github.com/nextflow-io/hello.git
+Jan-20 19:26:35.479 [main] INFO  nextflow.cli.CmdRun - Launching `nextflow-io/hello` [festering_turing] - revision: e6d9427e5b [master]
+Jan-20 19:26:36.220 [main] DEBUG nextflow.config.ConfigBuilder - Found config base: /home/paisic/.nextflow/assets/nextflow-io/hello/nextflow.config
+Jan-20 19:26:36.223 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/paisic/.nextflow/assets/nextflow-io/hello/nextflow.config
+Jan-20 19:26:36.241 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Jan-20 19:26:36.375 [main] DEBUG nextflow.Session - Session uuid: 7cfc32cd-15e4-4bec-b77b-bff7dd475de3
+Jan-20 19:26:36.375 [main] DEBUG nextflow.Session - Run name: festering_turing
+Jan-20 19:26:36.376 [main] DEBUG nextflow.Session - Executor pool size: 2
+Jan-20 19:26:36.418 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 20.10.0 build 5430
+  Created: 01-11-2020 15:14 UTC (10:14 EDT)
+  System: Linux 3.10.0-1062.12.1.el7.x86_64
+  Runtime: Groovy 3.0.5 on OpenJDK 64-Bit Server VM 1.8.0_272-b10
+  Encoding: UTF-8 (UTF-8)
+  Process: 190077@elion027 [10.5.66.27]
+  CPUs: 1 - Mem: 0 (212.1 GB) - Swap: 0 (63.9 GB)
+Jan-20 19:26:36.458 [main] DEBUG nextflow.Session - Work-dir: /pdx_resource_service/elion/pipelines/bin/work [nfs]
+Jan-20 19:26:36.458 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /home/paisic/.nextflow/assets/nextflow-io/hello/bin
+Jan-20 19:26:36.574 [main] DEBUG nextflow.Session - Observer factory: TowerFactory
+Jan-20 19:26:36.578 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Jan-20 19:26:36.853 [main] DEBUG nextflow.Session - Session start invoked
+Jan-20 19:26:37.524 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Jan-20 19:26:37.536 [main] DEBUG nextflow.Session - Workflow process names [dsl1]: sayHello
+Jan-20 19:26:37.671 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
+Jan-20 19:26:37.671 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Jan-20 19:26:37.676 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Jan-20 19:26:37.680 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=1; memory=0; capacity=1; pollInterval=100ms; dumpInterval=5m
+Jan-20 19:26:37.695 [main] DEBUG nextflow.Session - Session aborted -- Cause: Local avail `memory` attribute cannot zero. Expression: (availMemory > 0). Values: availMemory = 0
+Jan-20 19:26:37.707 [main] ERROR nextflow.cli.Launcher - @unknown
+java.lang.AssertionError: Local avail `memory` attribute cannot zero. Expression: (availMemory > 0). Values: availMemory = 0
+	at org.codehaus.groovy.runtime.InvokerHelper.assertFailed(InvokerHelper.java:438)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.assertFailed(ScriptBytecodeAdapter.java:670)
+	at nextflow.processor.LocalPollingMonitor.<init>(LocalPollingMonitor.groovy:79)
+	at nextflow.processor.LocalPollingMonitor.create(LocalPollingMonitor.groovy:106)
+	at nextflow.executor.LocalExecutor.createTaskMonitor(LocalExecutor.groovy:50)
+	at nextflow.executor.Executor.init(Executor.groovy:65)
+	at nextflow.executor.ExecutorFactory.createExecutor(ExecutorFactory.groovy:190)
+	at nextflow.executor.ExecutorFactory.getExecutor(ExecutorFactory.groovy:181)
+	at nextflow.script.ProcessFactory.createProcessor(ProcessFactory.groovy:104)
+	at nextflow.script.ProcessFactory$createProcessor.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:125)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.call(AbstractCallSite.java:148)
+	at nextflow.script.BaseScript.process(BaseScript.groovy:115)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.runtime.callsite.PlainObjectMetaMethodSite.doInvoke(PlainObjectMetaMethodSite.java:43)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite$PogoCachedMethodSiteNoUnwrapNoCoerce.invoke(PogoMetaMethodSite.java:193)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite.callCurrent(PogoMetaMethodSite.java:61)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:171)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:194)
+	at Script_ecc300f2.runScript(Script_ecc300f2:5)
+	at nextflow.script.BaseScript.runDsl1(BaseScript.groovy:164)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:200)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:219)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:219)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:127)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:277)
+	at nextflow.cli.Launcher.run(Launcher.groovy:466)
+	at nextflow.cli.Launcher.main(Launcher.groovy:648)

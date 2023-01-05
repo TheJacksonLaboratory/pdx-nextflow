@@ -1,0 +1,26 @@
+<tool name="Variant_Pre_Processing_3" tool_config_prefix="CollectAlignmentSummaryMetrics" walltime="05:00:00">
+    <description>
+        Last step of preprocessing for whole genome DNA processing.
+    </description>
+    <!-- Files used:
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: reference sequence
+        Outs:
+          1: Aln metrics
+    -->
+
+    <module>java/1.7.0</module>
+
+    <validate>/opt/compsci/picard/1.95/CollectAlignmentSummaryMetrics.jar</validate>
+
+    <!--Step 3.6: Picard CollectAlignmentSummaryMetrics (generating alignment statistics)-->
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx4g  -jar /opt/compsci/picard/1.95/CollectAlignmentSummaryMetrics.jar
+        INPUT={in_1} OUTPUT={out_1}
+        REFERENCE_SEQUENCE={in_2}
+        METRIC_ACCUMULATION_LEVEL=ALL_READS
+        VALIDATION_STRINGENCY=LENIENT
+    </command>
+</tool>

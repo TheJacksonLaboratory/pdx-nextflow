@@ -1,0 +1,32 @@
+<tool name="prokka_assembly"
+    threads="20"
+    walltime="72:00:00"
+    mem="120"
+    tool_config_prefix="prokka">
+    <description>
+Run prokka on an entire assembly
+    </description>
+    <!-- Files:
+        Ins:
+          1: assembly fasta
+        OutS:
+	  1: output directory
+          2: gff file without fasta or comments
+          3: A copy of faa file
+    -->
+    <module>hmmer</module>
+    <module>gcc</module>
+    <module>bedtools</module>
+    <module>prokka/1.13h</module>
+    <option name="threads" command_text="--cpus" type="threads" description="Number of threads to use" display_name="threads" />
+    <command program="prokka">
+         <version_command>prokka --listdb</version_command>
+         {threads} --outdir {out_1} --metagenome  --cdsrnaolap --prefix prokka {in_1} 
+    </command>
+    <command program="grep">
+         "ID=" {out_1}/prokka.gff > {out_2}
+    </command>
+    <command program="cp">
+         {out_1}/prokka.faa {out_3}
+    </command>
+</tool>

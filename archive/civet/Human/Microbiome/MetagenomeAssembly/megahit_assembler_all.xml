@@ -1,0 +1,40 @@
+<tool name="run_megahit"
+    threads="16"
+    mem="240"
+    walltime="72:00:00"
+    tool_config_prefix="megahit">
+    <description>
+	Use megahit to assemble two fastq files (R1, R2)
+    </description>
+    <!-- Files:
+        Ins:
+          1: R1.fastq.gz
+          2: R2.fastq.gz
+          3: The library name
+        OutS:
+	  1: The assembly directory
+          2: output file name
+          3: copy to this file name
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>megahit</module>
+ 
+    <!--
+        Files we have to verify as unchanged, in addition to the commands.
+        (Command program names are automatically added to the validate list,
+        so they don't need to be added here. (Here, the reference sequence.)
+    -->
+    <string id="lname" based_on="out_1" pattern=".*/(.*)/$" replace="\1"/>
+    <option name="threads" command_text="-t" type="threads" description="Number of threads to use" display_name="threads" />
+    <command program="megahit --k-list 21,29,39,59,79,99,119,141,165,191,215,235,255 -m 240000000000 ">
+        <version_command>megahit --version</version_command>
+        {threads} -1 {in_1} -2 {in_2} -o {out_1} 
+    </command>
+    <command program="sed -i ">
+        's/>/>{lname}_/' {out_1}/final.contigs.fa
+    </command>
+    <command program="cp">
+        {out_2} {out_3}
+    </command>
+</tool>

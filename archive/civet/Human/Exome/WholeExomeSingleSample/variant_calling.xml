@@ -1,0 +1,58 @@
+<!--
+Caution: This file has a clone, variant_calling_diploid.xml. Any change made
+here must be evaluated, to see whether it should be made there, as
+well!
+
+The only intended difference between this file and variant_calling_diploid.xml
+is that this file has the UnifiedGenotyper option
+dash-dash sample_ploidy 4 specified. (Can't use a dash-dash sequence
+within an html comment, sorry...)
+
+YOU HAVE BEEN WARNED!!!
+-->
+
+<tool name="Variant_Caller" walltime="10:00:00" tool_config_prefix="UnifiedGenotyper" threads="8"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: output(directory)
+	  3: ref
+        Outs:
+	  1: variants_raw
+    -->
+    
+    <!-- Step 4: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.1-1</module>
+
+    <file id="dbsnp_137" input="True"
+	  filespec="/data/shared/cga_reference_data/dbsnp_137.hg19.vcf" />
+ 
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.1-1/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+    <validate id="dbsnp_137" />
+
+    <!--
+	Run without threads and without downsampling to get consistent
+	results.
+    -->
+
+    <option name="sample_ploidy"              command_text="--sample_ploidy" value="4" />
+    <option name="targetfilegatk"             command_text="-L" value="/data/shared/cga_reference_data/agilent_SureSelect_V4_pChrM_probes.bed" />
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx2g -jar {gatk} -R {in_3}
+        -T UnifiedGenotyper -I {in_1}
+        --dbsnp {dbsnp_137} -glm BOTH -o {out_1} -stand_call_conf 50.0
+        -stand_emit_conf 30.0 -dcov 200 {targetfilegatk} {sample_ploidy} -nt 8 --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+
+</tool>

@@ -1,0 +1,23 @@
+<tool name="pcounts"
+    threads="1"
+    walltime="12:00:00"
+    tool_config_prefix="pcount">
+    <description>
+       count number of reads mapped to ORFs and their corresponding KOs
+    </description>
+    <!-- Files:
+        Ins:
+          1: gff file
+          2: bam file
+        OutS:
+	  1: count table
+          2: KO count table
+    -->
+    <option name="mincontig" command_text="--mincontig" value="1000" type="numeric" description="Minimal contig length to consider" display_name="Minimal contig length"/>
+    <option name="minoverlap" command_text="--minoverlap" value="10" type="numeric" description="Minimal overlap between read and gene" display_name="Minimal overlap"/>
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <command program="count_PE_fragments.py">
+            {mincontig} {minoverlap} --outputfastq -1 {out_1} -2 {out_2} {in_1} {in_2} 
+    </command>
+
+</tool>

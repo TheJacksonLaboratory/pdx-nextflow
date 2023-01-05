@@ -1,0 +1,54 @@
+<tool name="Run_soapfuse" walltime="72:00:00" error_strings="open failed:">
+    <description>
+        Run soapfuse to detect fusion gene
+    </description>
+    <!--
+        Ins:
+	  1: config
+	  2: data_dir
+      3: samplelist
+      4. database
+        Outs:
+	  1: out_dir
+	  
+    -->
+
+
+    <!--
+        These directories are all created by soapfuse, but we don't need them
+        so they are declared as temp. Civet will delete them after this tool
+        is finished executing.
+    -->
+    <dir id="tmp1" filespec="align_trim_unmap_Tran" temp="True" create="False" />
+    <dir id="tmp2" filespec="align_unmap_Tran" temp="True" create="False" />
+    <dir id="tmp3" filespec="alignWG" temp="True" create="False" />
+    <dir id="tmp4" filespec="candidate" temp="True" create="False" />
+    <dir id="tmp5" filespec="change_SE" temp="True" create="False" />
+    <dir id="tmp6" filespec="denovo_unmap" temp="True" create="False" />
+    <dir id="tmp7" filespec="junction_seq" temp="True" create="False" />
+    <dir id="tmp8" filespec="TEMP" temp="True" create="False" />
+
+
+    
+    <command program="soapfuse_wrapper.sh" >
+       -c {in_1} -fd {in_2} -l {in_3} -o {out_1} -es 8
+    </command>
+
+    <!--
+        The soapfuse_wrapper.sh gracefully handles the case where there are not
+        fusions found.  However, in that case, there won't be any output files
+        to copy. Check before trying, to avoid an error / pipeline termination.
+    -->
+    <command program="">
+        (ls {out_1}/final_fusion_genes/*/*.genes >/dev/null 2>&amp;1 &amp;&amp;
+        cp {out_1}/final_fusion_genes/*/*.genes {out_1}) || true
+    </command>
+    
+    <command program="" >
+        (ls {out_1}/final_fusion_genes/*/*.trans >/dev/null 2>&amp;1 &amp;&amp;
+        cp {out_1}/final_fusion_genes/*/*.trans {out_1}) || true
+    </command>
+
+
+
+</tool>

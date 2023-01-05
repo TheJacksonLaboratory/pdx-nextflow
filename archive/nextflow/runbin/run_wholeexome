@@ -1,0 +1,9 @@
+
+
+# the following Baylor samples' fastq files were tagged as Whole_Exome_BAYLOR.
+# On cadillac these used a special civet pipeline that used Baylor-specific reference files,
+# (./pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/Baylor_config_file_Whole_Exome_Single_Sample)
+# Therefore these should be EXCLUDED from the plain-vanilla whole exome pipeline.
+#
+# BCM-3204 BCM-3469 BCM-3561 BCM-3613 BCM-3963 BCM-5097 (also quarantined sample BCM-3107)
+# 

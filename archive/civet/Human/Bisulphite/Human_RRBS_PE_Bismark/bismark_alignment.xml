@@ -1,0 +1,42 @@
+<tool name="Bismark_Alignment"
+    threads="12"
+    tool_config_prefix="Bismark_Aln"
+    walltime="48:00:00"
+    error_strings="'Abort!'">
+    <description>
+        Align a pair of fastq files.  Any quality checking and trimming
+        should be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: fastq1
+          2: fastq1
+          3: reference dir
+          4: outdir
+        Outs:
+          1: sam
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>samtools</module>
+    <module>bowtie2/2.2.3</module> 
+    <module>bismark/0.13.0</module>
+    <module>perl/cga</module>
+    
+    <option name="threads" command_text="-p" type="threads" />
+    <option name="non_directional" display_name="Non-Directional" command_text="--non_directional" type="boolean" value="true" description="The sequencing library was constructed in a non strand-specific manner, alignments to all four bisulfite strands will be reported" />
+    <option name="seedlength"     display_name="Seed Length"   command_text="-L"  type="numeric"  value="20" description="the number of bases of the high quality end of the read to which the -n ceiling applies." />
+    <option name="seed_mismatch"  display_name="Seed Mismatch" command_text="-N"  type="select"  description="The maximum number of mismatches permitted in the 'seed', i.e. the first base pairs of the read">
+      <select default="true">0</select>
+      <select>1</select>
+      <select>2</select>
+      <select>3</select>
+    </option>
+    <option name="MinInsert"      display_name="Minimum Insert Size" command_text="--minins"  type="numeric"   value="0" description="The minimum insert size for valid paired-end alignments. E.g. if -I 60 is specified and a paired-end alignment consists of two 20-bp alignments in the appropriate orientation with a 20-bp gap between them, that alignment is considered valid (as long as -X is also satisfied). A 19-bp gap would not be valid in that case." />
+    <option name="MaxInsert"      display_name="Maximum Insert Size" command_text="--maxins"  type="numeric"   value="1000" description="The maximum insert size for valid paired-end alignments. E.g. if -X 100 is specified and a paired-end alignment consists of two 20-bp alignments in the proper orientation with a 60-bp gap between them, that alignment is considered valid (as long as -I is also satisfied). A 61-bp gap would not be valid in that case." />
+
+
+    <command program="bismark">
+        --bowtie2 {threads} {non_directional} {seedlength} {seed_mismatch} {MinInsert}  {MaxInsert}  --output_dir {in_4}   --unmapped --ambiguous  {in_3} -1  {in_1} -2  {in_2}
+    </command>
+</tool>

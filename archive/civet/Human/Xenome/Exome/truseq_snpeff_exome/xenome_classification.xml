@@ -1,0 +1,44 @@
+<tool name="Xenome_Classification" tool_config_prefix="XENOME" walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: fastq_file1
+	  2: fastq_file2
+	  3: outdir
+        Outs:
+	  1: human_1.fastq
+	  2: human_2.fastq
+      3: classification (_xenome_stats.txt)
+
+      The following files are produced implicitly:
+          1: mouse_1.fastq, mouse_2.fastq
+          2. both_1.fastq,  both_2.fastq
+          3. ambiguous_1.fastq, ambiguous_2.fastq
+          4. neither_1.fastq, neither_2.fastq
+	  We don't care about any of them.
+    -->
+    
+    <!-- Step 1: Xenome Classification -->
+    <module>xenome/1.0.0</module>
+
+    <!-- Create temp file definitions for the ones we don't care about
+         so they will be deleted. -->
+    <file id="m1" in_dir="in_3" temp="True" filespec="mouse_1.fastq" />
+    <file id="m2" in_dir="in_3" temp="True" filespec="mouse_2.fastq" />
+    <file id="b1" in_dir="in_3" temp="True" filespec="both_1.fastq" />
+    <file id="b2" in_dir="in_3" temp="True" filespec="both_2.fastq" />
+    <file id="a1" in_dir="in_3" temp="True" filespec="ambiguous_1.fastq" />
+    <file id="a2" in_dir="in_3" temp="True" filespec="ambiguous_2.fastq" />
+    <file id="n1" in_dir="in_3" temp="True" filespec="neither_1.fastq" />
+    <file id="n2" in_dir="in_3" temp="True" filespec="neither_2.fastq" />
+
+   <command program="xenome" stdout_id="out_3">
+       classify -T 12 -P   /data/shared/cga_reference_data/hg38_201601/Xenome_broad_Index_Files/hg38_broad_NOD_based_on_mm10_k25
+
+       --pairs --host-name  mouse  --graft-name human  -i {in_1} -i {in_2}
+   </command>
+
+</tool>

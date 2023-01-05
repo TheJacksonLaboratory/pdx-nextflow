@@ -1,0 +1,17 @@
+<tool name="MRPE_SREMASE_SymbLnk"
+    threads="1"
+    tool_config_prefix="MRPE_SREMASE_SymbLnk"
+    walltime="0:59:00"
+    mem="1">
+    <description>
+     This is before the  the first step to create a symbolic link
+    </description>
+
+ 	 
+
+   <command program="">
+	 ln -s {in_1}  {out_1};
+   </command>
+
+</tool>
+

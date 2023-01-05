@@ -1,0 +1,45 @@
+This pipeline is generally archived, but was updated in November 2015
+to bring it in line with the other pipelines being used in the PDX
+project, in terms of the data reported.  Specifically, it is updated
+to
+ - report microIndels (already being called, but not included in the
+   output), and
+ - compute and report alternate allele frequencies, to enable the
+   database to easily filter
+   - low AF variants (AF < 5%), and
+   - germline variants (40% < AF < 60% OR 90% < AF)
+
+We are no longer running the TruSeq panel, so after all samples are
+rerun, this pipeline will be re-archived.
+
+Changes:
+(Move this to the git commit)
+
+- Change from old filtering IlluQC_PRLL.pl to filter_trim.py, like
+  all of out current pipelines.
+- Move xenome processing after filtering.
+- Change snpEff to V4.0e.
+- Update GATK to 3.4-0
+- Update dbsnp to 9606_b144_hg19/All_20150605_chr.vcf
+- add -canon option to snpEff, for canonical transcript reporting.
+- Report microIndels (previously called, but not reported
+- Calculate AF on all variants
+- Change main output file (for DB upload) to *Annotated.tab, the same
+  as the Xenome CTP pipeline.
+
+-Al Simons
+2015-11-18
+
+====
+
+Earlier comments:
+
+This is the TruSeq snpEff_exome pipeline created by Anuj to process
+PDX sample data that had been generated using the Illumina TruSeq
+cancer panel.
+
+This pipeline is archived for safekeeping, but is no longer in use,
+as we are no longer using the TruSeq panel.
+
+-Al Simons
+2015-07-08

@@ -1,0 +1,11 @@
+<tool name="remove"  tool_config_prefix="removeFiles" walltime="00:15:00">
+  <description>
+    Remove Files
+  </description>
+
+
+
+  <command program="">
+    rm mouse_1.fastq mouse_2.fastq ambiguous_1.fastq ambiguous_2.fastq both_1.fastq both_2.fastq neither_1.fastq neither_2.fastq
+  </command>
+</tool>

@@ -1,0 +1,195 @@
+<pipeline name="Metagenome_AssemblyI.xml">
+
+<!-- ********************************* Input should be prepared with a dedicated python script ************** -->
+<!-- Input should include:
+         * input files list
+         * mash output files
+         * Analysis name
+-->
+    <description>
+        This pipeline is used for cleaning the raw input, assembling each sample separately, clustering the contigs and separating the reads into bins. The output bins should
+        resemble genomes or a group of genomes from different samples which are highly similar.
+        The package assembly_tools should be installed and activated https://bitbucket.jax.org/projects/PP/repos/assembly_tools/browse 
+        The input requires the mash output files list as a file. A companion script which is a part of the assembly_tools package generates this file, it also generates the
+        input fasta files so the name of the sample will be used in the pipeline. To run the script simply generate a metadata file in which the first column is the sample name,
+        the second is the R1 fastq.gz file and third R2 fastq.gz file and run: 
+        $ prepare_assemblyI_lists.py [-b base_dir] table
+        The input_files dir will contain the fastq.gz files (first input parameter) and the second is input_data which will contain the file mash_files.txt file (input 2)
+        input 3 is the name of the run
+        Important output:
+        * Clean input read files: outdir/cutadapt
+        * Reclustered reads in fastq.gz files: outdir/merged/all.contigs.clustering_reads - should be carried on to Metagenome_AssemblyII_refine.xml tool
+        * Remapping statistics file: outdir/stats/remap_to_individual_megahit_stats.txt
+        * Individual samples assemblies: outdir/megahit/*.final.contigs.fa
+    </description>
+    <dir id="cain" input="True" description="A directory with _R1.fastq.gz and paired _R2.fastq.gz input files" display_name="input files directory" parameter="1" />
+    <file id="mashfile" input="True" description="A list of mash output files expected in the execution" display_name="mash output files list" parameter="2" />
+    <string id="pname" parameter="3" description="A string that will be added to directory name" display_name="Run name"/>
+ 
+	<!--*************************** define and create directories ******************************* -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <dir id="filter" filespec="cutadapt" in_dir="outdir" />
+    <dir id="taxout" filespec="taxout" in_dir="outdir" />
+    <dir id="megahit" filespec="megahit_assembly" in_dir="outdir" />
+    <dir id="merged" filespec="merged" in_dir="outdir" />
+    <dir id="stats" filespec="stats" in_dir="outdir" />
+    <dir id="mergmega" filespec="combined_input_megahit" in_dir="outdir" create="False"/>
+    <file id="mergmegaf" input="False" in_dir="mergmega" filespec="final.contigs.fa" />
+    <file id="mergmegacp" input="False" in_dir="mergmega" filespec="combined.assembly.final.contigs.fa" />
+    <file id="mergmetabat" input="False" in_dir="mergmega" filespec="metabat/initial_bins" />
+    <file id="mergmetabats" input="False" in_dir="mergmega" filespec="metabat_summary.txt" />
+    <file id="allmerg" input="False" in_dir="merged" filespec="all.contigs.fa" />
+    <file id="mashpp" input="False" in_dir="merged" filespec="all.contigs.fa" />
+    <file id="mashp" input="False" in_dir="merged" filespec="all.contigs.fa.msh" />
+    <file id="allcomp" input="False" in_dir="merged" filespec="all.contigs.mash.out" />
+    <file id="allclust" input="False" in_dir="merged" filespec="all.contigs.clustering" />
+    <file id="indremap" input="False" in_dir="stats" filespec="remap_to_individual_megahit_stats.txt" />
+    <file id="comremap" input="False" in_dir="stats" filespec="remap_to_combined_megahit_stats.txt" />
+    <file id="allfaa" input="False" in_dir="merged" filespec="all_faa_files.faa" />
+
+    <foreach id="infile" dir="cain">
+        <file id="cr1" pattern=".*R1.fastq.gz"/>
+        <related id="cr2" input="True" pattern="(.*)R1(\.fastq\.gz)$" replace="\1R2\2"/>
+        <related id="ocr1" input="True" in_dir="filter" pattern="(.*)R1(\.fastq\.gz)$" replace="\1R1_cutadapt\2"/>
+        <related id="ocr2" input="True" in_dir="filter" pattern="(.*)R1(\.fastq\.gz)$" replace="\1R2_cutadapt\2"/>
+        <related id="cstats" input="False" in_dir="filter" pattern="(.*)R1(\.fastq\.gz)$" replace="\1cutadapt_stats.out"/>
+
+        <step name="run_cutadapt">
+            <tool name="cutadapt"
+             input="cr1, cr2"
+             output="ocr1, ocr2, cstats"
+             description="trimming.xml" />
+        </step>
+
+        <related id="krout" input="False" in_dir="taxout" pattern="(.*)_R1.fastq.gz" replace="\1.kraken_out.txt"/>
+        <related id="krrep" input="False" in_dir="taxout" pattern="(.*)_R1.fastq.gz" replace="\1.kraken_report.txt"/>
+        <related id="filtr1" input="False" in_dir="taxout" pattern="(.*)_R1(\.fastq\.gz)" replace="\1_R1_filtered\2"/>
+        <related id="filtr2" input="False" in_dir="taxout" pattern="(.*)_R1(\.fastq\.gz)" replace="\1_R2_filtered\2"/>
+
+        <step name="run_taxout">
+            <tool name="taxout"
+             input="ocr1, ocr2"
+             output="krout, krrep, filtr1, filtr2"
+             description="filter_reads_with_kraken.xml" />
+        </step>
+
+        <related id="mout" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1"/>
+        <related id="mfinal" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/final.contigs.fa"/>
+        <related id="remapidx" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/final_contigs"/>
+        <related id="remapsai1" input="False" in_dir="megahit"  pattern="(.*)_R1.fastq.gz" replace="\1/map_to_final_contigs.sai1" temp="True"/>
+        <related id="remapsai2" input="False" in_dir="megahit"  pattern="(.*)_R1.fastq.gz" replace="\1/map_to_final_contigs.sai2" temp="True"/>
+        <related id="remap" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/map_to_final_contigs.bam" />
+        <related id="remapstats" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1_map_to_final_contigs_stats.txt"/>
+        <related id="mfinalcp" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.final.contigs.fa"/>
+        <related id="mfinalfaa" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.final.contigs.translate.faa" />
+        <related id="mfinallong" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.final.contigs.long.fa" temp="True"/>
+        <related id="mfinalmsh" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.final.contigs.long.fa.msh"/>
+        <related id="mbat" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/metabat/\1_bin"/>
+        <related id="mclust" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.clusters"/>
+        <related id="mclustwr" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1.clusters_reads"/>
+        <related id="mbatstat" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/metabat_summary.txt"/>
+        <related id="krknout" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/kraken_output.txt"/>
+        <related id="krknrep" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.gz" replace="\1/kraken_report.txt"/>
+        
+
+        <step name="megahit_assembly">
+            <tool name="megahit"
+             input="filtr1,filtr2"
+             output="mout,mfinal,mfinalcp"
+             description="megahit_assembler.xml" />
+            <tool name="trans"
+             input="mfinalcp"
+             output="mfinalfaa"
+             description="run_prodigal_on_fa.xml" />
+            <tool name="filterl"
+             input="mfinalcp"
+             output="mfinallong"
+             description="select_long_contigs.xml" />
+            <tool name="mashs"
+             input="mfinallong"
+             output="mfinalmsh"
+             description="mash_sketch_fasta.xml" />
+            <tool name="bwamap"
+             input="filtr1, filtr2, mfinal"
+             output="remapsai1,remapsai2,remap,remapstats,remapidx"
+             description="map_paired_end_with_bwa_aln.xml" />
+        </step>
+        <step name="run_kraken">
+            <tool name="kraken"
+             input="mfinal"
+             output="krknout, krknrep"
+             description="run_kraken_on_fasta.xml" />
+        </step>
+        <step name="metabat_binning">
+            <tool name="metabat"
+             input="mfinal"
+             output="mbat,mbatstat"	
+             description="metabat_initial_binning.xml" />
+        </step>
+        <step name="recluster_one">
+             <tool name="cluster1"
+              input="mout,filtr1,filtr2,mbatstat,remap"
+              output="mclust,mclustwr"
+              description="cluster_one_sample.xml"/>
+        </step>
+<!--        <step name="phylaamp">
+            <tool name="pa"
+             input="mfinal, mbat"
+             output="mphyla"
+             description="run_pa.xml" />
+        </step> -->
+    </foreach>
+<filelist id="r1ca" in_dir="taxout" pattern=".*R1_taxout.fastq.gz" foreach_id="infile" />
+<filelist id="r2ca" in_dir="taxout" pattern=".*R2_taxout.fastq.gz" foreach_id="infile" />
+<!-- cat all the stats -->
+<file id="shead" in_dir="stats" temp="True" filespec="sheader.txt" />
+<filelist id="astats" in_dir="megahit" pattern=".*_map_to_final_contigs_stats.txt" foreach_id="infile" />
+<step name="get_stats1">
+    <tool name="sheader"
+     output="shead"
+     description="print_stats_header.xml" />
+    <tool name="merge_stats_1"
+     input="shead, astats"
+     output="indremap"
+     description="merge_stats.xml" />
+</step>
+
+
+<!-- Merge all the contigs to one file, run blast all against all -->
+<filelist id="allasm" in_dir="megahit" pattern=".*.final.contigs.fa$" foreach_id="infile" />
+<filelist id="allmsh" in_dir="megahit" pattern=".*.final.contigs.long.fa.msh$" foreach_id="infile" />
+<filelist id="faas" in_dir="megahit" pattern=".*.final.contigs.translate.faa$" foreach_id="infile" />
+
+<foreach id="mashes" dir="outdir">
+    <file id="msin" from_file="mashfile"/>
+    <related id="msout" input="False" in_dir="outdir" pattern="(.*)" replace="\1.cmp"/>
+    <step name="mash_one">
+         <tool name="mashit"
+          output="msout"
+          input="msin,allmsh"
+          description="find_similar_contigs_with_mash.xml" />
+    </step>
+</foreach>
+
+<filelist id="allmshout" in_dir="megahit" pattern=".*.final.contigs.long.fa.msh.cmp$" foreach_id="mashes" />
+<filelist id="allclusts" in_dir="megahit" pattern=".*.clusters_clusters.out$" foreach_id="infile" />
+
+<step name="blastall">
+    <tool name="merge"
+     input="allasm"
+     output="allmerg"
+     description="merge_all_contigs.xml"/>
+    <tool name="mergeres"
+     input="allmshout"
+     output="allcomp"
+     description="merge_all_contigs.xml"/>
+    <tool name="mergefaa"
+     input="faas"
+     output="allfaa"
+     description="merge_all_contigs.xml"/>
+    <tool name="cluster"
+     input="allcomp, megahit, allfaa"
+     output="allclust, allclusts"
+     description="cluster_contigs.xml" />
+</step>    
+</pipeline>

@@ -1,0 +1,14 @@
+<tool name="run_PA"
+ threads="1"
+ walltime="12:00:00"
+ tool_config_prefix="runpa">
+<description>
+A simple wrapper to run phyla AMPHORA python wrapper. Use only fasta file
+</description>
+<module>python</module>
+<module>perl/5.24.1</module>
+<module>Phyla_AMPHORA</module>
+<command program="run_phyla_amphora.py">
+-b {out_1} -t 1 -a {in_1} 
+</command>
+</tool>

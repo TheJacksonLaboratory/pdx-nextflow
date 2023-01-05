@@ -1,0 +1,41 @@
+<tool name="dehost"
+      threads="4"
+      walltime="30:00:00"
+      exit_if_exists="out_1"
+      tool_config_prefix="tool-dehost">
+      <module>ncbi-blast</module>      
+      <module>bmfilter</module>      
+      <module>python</module>      
+      <module>fastx</module>
+   
+      <option name="bitmask" command_text="-b" value="/data/shared/Microbiome/16srRNA/1.0/hs38.fa.bitmask" />
+      <option name="srprism" command_text="-x" value="/data/shared/Microbiome/16srRNA/1.0/hs38.fa.srprism" />
+      <file id="prefix" based_on="in_1" pattern="(.*).clean.fastq" replace="\1" />
+      <file id="fa" based_on="prefix" append=".clean.fasta" temp="True"/>
+      <file id="bmo" based_on="prefix" append=".host.txt" temp="True" />
+      
+      <dir id="tmpdir" based_on="prefix" append="_TEMP" />
+      
+      <command program="fastq_to_fasta">
+        -Q33 -i {in_1} -o {fa}
+      </command>
+
+      <command program="bmtagger_se.sh">
+        {bitmask} {srprism} -T {tmpdir} -q 0 -1 {fa} -o {bmo}
+      </command>
+
+      <command program="python /opt/compsci/Microbiome/16srRNA/1.0/Scripts/extract_seq_il_16s.pyc">
+        {in_1} {bmo} {out_1} 
+      </command>
+
+      <command program="">
+        <version_command> echo Dehost: ncbi-blast/2.4.0,bmfilter/0.0.0 ,fastx/0.14 </version_command>
+        myprefix=` basename {prefix} `;
+        echo "QC_nonhost" $myprefix $(echo $(wc -l {out_1} |cut -d" " -f1 )/4|bc) | tee -a $myprefix.QC.log
+      </command>
+
+      <command program="rm -rfv">
+        {tmpdir}
+      </command>
+
+</tool>

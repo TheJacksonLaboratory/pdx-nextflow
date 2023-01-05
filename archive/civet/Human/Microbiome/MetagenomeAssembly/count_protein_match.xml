@@ -1,0 +1,22 @@
+<tool name="count_proteins"
+    threads="1"
+    walltime="12:00:00"
+    tool_config_prefix="countp">
+    <description>
+       Count number of reads mapped to each protein group
+    </description>
+    <!-- Files:
+        Ins:
+          1: Mapping file (protein -> group)
+          2: blastx output list R1(*.tsv.gz paired in order)
+          3: blastx output list R2(*.tsv.gz paired in order)
+
+        OutS:
+	  1: output table
+    -->
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <command program="count_protein_mapping.py">
+          -m {in_1} -o {out_1} {in_2} {in_3}
+    </command>
+
+</tool>

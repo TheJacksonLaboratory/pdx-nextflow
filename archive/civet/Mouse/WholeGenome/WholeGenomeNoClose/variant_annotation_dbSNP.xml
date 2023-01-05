@@ -1,0 +1,22 @@
+<tool name="Variant_Annotation_dbSNP"  tool_config_prefix="VCF_Annotate" walltime="08:00:00">
+    <description>
+        annotate variants using dbSNP
+    </description>
+    <!--
+        Ins:
+          1: variants_filtered
+	  2: dbSNP
+        Outs:
+	  1: variants_filtered_dbSNP
+    -->
+    
+    <!-- Step 5.1: Variant Annoataion -->
+
+    <module>vcf-tools/0.1.12a</module>
+    <module>tabix/0.2.6</module>
+
+    <command program="cat">
+    {in_1} | vcf-annotate -a {in_2} -c CHROM,FROM,TO,ID &gt; {out_1}
+    </command>
+
+</tool>

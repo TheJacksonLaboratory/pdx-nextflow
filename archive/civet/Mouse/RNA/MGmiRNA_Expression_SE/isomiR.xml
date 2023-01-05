@@ -1,0 +1,36 @@
+<!-- =================================== -->
+<!-- step 6 miRNA variants/seed-isomiRs  -->
+<!-- =================================== -->
+
+<tool name="mapping" walltime="02:00:00">
+<!-- What does this tool do? -->
+<description>
+        Find miRNA variants/seed-isomiRs in a sample.
+</description>
+
+<!--
+     Files passed to this tool, ins and outs:
+     Ins:
+     1: miRBase annotation
+     2: mapped_reads
+     Outs:
+     1: MappingStatistics.html
+-->
+
+<!-- Specify any modules needed for this tool -->
+<module>samtools/1.3.1</module>
+<module>perl/cga</module>
+
+<!-- call tool for operation -->
+<!-- bam to intermediate -->
+<command program="BAM_to_Intermediate.pl">
+	-ml 0 -s hsa -flank 35 -pre {in_1} -gff {in_2} -mat {in_3} -bam {in_4} -ref 0 -out {out_1}
+</command>
+
+<!-- intermediate to miRSpring -->
+<command program="Intermediate_to_miRspring.pl">
+	-flank 35 -in {out_1} -s hsa -out {out_2}
+</command>
+
+</tool>
+

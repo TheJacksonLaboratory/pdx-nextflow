@@ -1,0 +1,94 @@
+<pipeline name="MRSE_DOGBRS" display_name="Diversity Outbred Mouse RNAseq Single End GBRS algorithm based Pipeline">
+
+	<!--
+	civet_run -.xml inputfasta  
+	-->
+
+    <!--
+     INPUT FILES TO THE PIPELINE [Single end fastq file ]   
+    -->
+
+    <file id="e1_fastq" display_name="Single End Fastq" input="True" parameter="1" />
+	<string id="GenSx"   display_name="Generation and Sex"
+	  description="Generation and Sex separated by a dot for example G23.F for Generation 23, Females."
+	  parameter="2" />
+  
+	
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+
+    <file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+		
+    <string id="tranprob1" based_on="GenSx"  append=".npz.myextrastring"/>
+	
+	<file id="tranprob"  based_on="tranprob1" pattern="(.*?).myextrastring" replace="/hpcdata/shared/gbrs_data/1.0/tranprob.DO.\1"/>
+	
+	
+
+    <!-- The pipeline's default output directory. -->
+
+   <dir id="outdir"    based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_"/>
+      
+
+    <!-- Step 1 -->
+   <file id="DOref_name"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts" />
+   
+   <file id="R1transcriptome" based_on="sample_name" append="bowtie.R1.transcriptome.bam" />
+   
+	
+    <step name="Step1">
+	
+	
+        <tool name="MRSE_DOGBRS_Alignment"
+         input="e1_fastq, DOref_name "
+		 output ="R1transcriptome"
+         description="tool-MRSE_DOGBRS_Alignment.xml" />          
+    </step>
+	
+	 
+	<file id="TIDref"  filespec="/hpcdata/shared/gbrs_data/1.0/ref.transcripts.info" />
+	<file id="R1transcriptomeH5" based_on="sample_name" append=".bowtie.R1.transcriptome.h5" />
+   
+	
+   
+	<step name="Step2">
+        <tool name="MRSE_DOGBRS_Convert_BAM"
+         input="R1transcriptome, TIDref"
+		 output="R1transcriptomeH5"
+         description="tool-MRSE_DOGBRS_ConvertBAM.xml" />          
+    </step>
+	 
+	
+	<file id="gene2transcript"  filespec="/hpcdata/shared/gbrs_data/1.0/ref.gene2transcripts.tsv" />
+	<file id="hybridizedtargetsinfo"  filespec="/hpcdata/shared/gbrs_data/1.0/gbrs.hybridized.targets.info" />
+
+	<file id="avecs" filespec= "/hpcdata/shared/gbrs_data/1.0/avecs.npz" />
+	<file id="refgeneposordered" filespec= "/hpcdata/shared/gbrs_data/1.0/ref.gene_pos.ordered.npz" />
+	<file id="refgenomegrid" filespec= "/hpcdata/shared/gbrs_data/1.0/ref.genome_grid.69k.txt" />
+	<file id="noYnoMT" filespec= "/hpcdata/shared/gbrs_data/1.0/ref.genome_grid.69k.noYnoMT.txt" />
+	
+	
+	<file id="R1transcriptomeH5compressed" based_on="sample_name" append=".R1.compressed.h5" />
+	<file id="gbrsinterpolatedgenoprobs" based_on="sample_name" append=".gbrs.interpolated.genoprobs.npz" />
+	<file id="multiwaygenes" based_on="sample_name" append=".multiway.genes.tpm" />
+	<file id="reconstructedgeno" based_on="sample_name" append=".genotypes.tsv" />
+	<file id="reconstructednpz" based_on="sample_name" append=".genoprobs.npz" />
+
+
+	<file id="plottedgenomepdf" based_on="sample_name" append=".gbrs.plotted.genome.pdf" />
+
+	<file id = "outstring" in_dir = "outdir"  based_on ="sample_name" append = ""/>
+
+	<step name="Step3">
+        <tool name="MRSE_DOGBRS_RunGBRS"
+         input="R1transcriptomeH5, gene2transcript ,hybridizedtargetsinfo,tranprob,avecs,refgeneposordered ,refgenomegrid  ,noYnoMT, outstring"
+		 output ="R1transcriptomeH5compressed, gbrsinterpolatedgenoprobs, multiwaygenes,reconstructedgeno, reconstructednpz,plottedgenomepdf "
+         description="tool-MRSE_DOGBRS_RunGBRS.xml" />          
+    </step>
+
+
+</pipeline>

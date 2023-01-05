@@ -1,0 +1,9 @@
+<tool name="remove"  tool_config_prefix="removeFiles" walltime="00:15:00">
+  <description>
+    Remove unused Files
+  </description>
+
+  <command program="">
+  rm *.bai out.hla.top out.log.bwamem out.log.hla out.hla.all *_fixAdjSNP.vcf.gz *.noIds.vcf.gz *_fixAdjSNP.vcf.gz.tbi all_genes* nofalsePositives.tmp2.vcf count2
+  </command>
+</tool>

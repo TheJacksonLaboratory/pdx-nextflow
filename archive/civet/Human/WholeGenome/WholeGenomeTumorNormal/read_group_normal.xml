@@ -1,0 +1,17 @@
+<tool name="Read_group_normal"  tool_config_prefix="readgroupnormal">
+  <description>
+    Process a fastq file to extract read group information.
+  </description>
+
+  <!--
+      Files:
+      Ins: fastq
+      Outs: read_group_data
+  -->
+
+  <module>python/2.7.3</module>
+  <command program="read_group_from_fastq.py">
+    <version_command>read_group_from_fastq.py --version</version_command>
+    --normal -o {out_1} {in_1}
+  </command>
+</tool>

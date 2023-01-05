@@ -1,0 +1,58 @@
+<!--
+    path attribute allows us to access the civet_research_pipelines-wide bin directory.
+-->
+<tool name="Variant_Pre_Processing_3" tool_config_prefix="HSmetrics"  walltime="1:00:00" mem="6"
+      path="../../../../bin">
+    <description>
+        Last step of preprocessing for Exome variant calling. Not used
+        in whole genome DNA processing.
+    </description>
+    <!-- Files used:
+        Ins:
+          1: realigned_BQSR_bam
+          2: outdir
+	  3: ref, the genome reference
+        Outs:
+           1: coverage_metrics (not named in command line, implicit out.)
+    -->
+
+    <module>java/1.7.0</module>
+    <module>python/2.7.3</module>
+
+    <file id="picard" input="True"
+           filespec="/opt/compsci/picard/1.95/CalculateHsMetrics.jar" />
+
+    <validate id="picard" />
+
+<option name="targetfilepicard"   command_text="" value="/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38_picard.bed"/>
+<option name="baitfilepicard"   command_text="" value="/data/shared/cga_reference_data/hg38_201601/CGA_exon_list_371_genes_targets_gatk_hg38_picard.bed"/>
+
+
+
+
+    <!--Step 3.6: Picard CalculateHsMetrics (generating target enrichment
+        information)-->
+    <file id="coverage_metrics" in_dir="in_2" filespec="CoverageMetrics.txt" />
+    <command program="java">
+        <version_command>
+            echo -n "Picard CalculateHsMetrics "; java -jar {picard} --version
+        </version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -jar -Xmx2g  {picard}
+        TARGET_INTERVALS={targetfilepicard}
+        BAIT_INTERVALS={baitfilepicard}
+        REFERENCE_SEQUENCE={in_3}
+        INPUT={in_1} OUTPUT={out_1}
+        VALIDATION_STRINGENCY=LENIENT
+    </command>
+
+    <command program="filter_dna_coverage.py">
+
+       <!--There is no version command for this program.--> 
+
+       <!-- Using default requirements to pass: 75% at 100X-->
+ 
+        {out_1}
+    </command>
+
+</tool>

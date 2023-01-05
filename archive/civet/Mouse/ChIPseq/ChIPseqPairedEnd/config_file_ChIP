@@ -1,0 +1,12 @@
+aligned_qc.WGSmetricsMapQuality=30 ###Phred scale mapping quality; only alignment above will be used in coverage estimation
+aligned_qc.mapQuality=30 ###Phred scale mapping quality; alignment below this mapquality will be filtered out prior to peak calling
+callpeaks.broadpeak=  ##### Put --broad if want braod peaks to be called, default is off
+callpeaks.qvalue=0.01 
+callpeaks.outdir=macs_out
+callpeaks.summit=  ####Put --call-summits to call summit from peak; default off
+####Uncomment bellow to let MACS bypass building the shifting model.
+#callpeaks.nomodel=--nomodel
+####unsure if this one will work, here as a test
+#callpeaks.extsize=--extsize 200
+callpeaks.shift=0 ###recommended to be zero for BAM paired end data
+peakanno.maxgap=100 ###+/- peak summit width (bp)

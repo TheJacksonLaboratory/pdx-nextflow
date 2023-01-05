@@ -1,0 +1,5 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_trusight-myeloid-amplicon-track.bed
+HSmetrics.targetfilepicard=/data/shared/cga_reference_data/hg38_201601/hg38_trusight-myeloid-amplicon-picard.bed
+HSmetrics.baitfilepicard=/data/shared/cga_reference_data/hg38_201601/hg38_trusight-myeloid-amplicon-bait-picard.bed 
+UnifiedGenotyper.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_trusight-myeloid-amplicon-track.bed
+pindel.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_trusight-myeloid-amplicon-track.bed

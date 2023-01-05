@@ -1,0 +1,30 @@
+<tool name="MRPE_SREMASE_ConvertBAM"
+    tool_config_prefix="MRPE_SREMASE_ConvertBAM"
+    walltime="47:59:00"
+    mem="32">
+    <description>
+     This is the third step
+    </description>
+
+    <!-- Files:
+        Ins:
+
+    -->
+	
+    <module>Anaconda</module>
+    <module>perl/cga</module>
+  
+	 
+    <command program="">
+        source activate gbrs
+    </command>
+
+    <command program="bam-to-emase">
+        -a {in_1} -i {in_2} -o {out_1}
+    </command>
+    <command program="bam-to-emase">
+        -a {in_3} -i {in_2} -o {out_2}
+    </command>
+
+</tool>
+

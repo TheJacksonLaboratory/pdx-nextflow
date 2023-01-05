@@ -1,0 +1,72 @@
+<tool name="BWA_MEM_Alignment"
+    threads="7"
+    walltime="8:00:00"
+    tool_config_prefix="bwa_mem_align">
+    <description>
+        Align a pair of fastq files.  Any quality checking and trimming
+        must be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: fastq_e1
+          2: fastq_e2
+         3: 
+        Outs:
+          1: sam
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>bwa/0.7.9a</module>
+    
+   <module>python/2.7.3</module>
+ 
+    <!-- will be written to the default output dir -->
+    <file id="read_group" temp="True" filespec="read_group.txt" />
+    <!--
+        Files:
+        Ins: fastq
+        Outs: read_group_data
+    -->
+
+    <!-- No special modules needed
+
+     -->
+    <command program="read_group_from_fastq.py">
+      <version_command>read_group_from_fastq.py --version</version_command>
+      -o {read_group} {in_1} 
+    </command>
+
+    <file id="bwa7_idx_pfx" filespec="Homo_sapiens_assembly38.fasta" in_dir="in_3" />
+
+    <!--
+        Create file entries for all the bwa index files purely for the
+        ability to validate them. We actually just pass the index
+        prefix into bwa; it knows about all the extensions.
+    -->
+    <file id="idx_1" in_dir="in_3" based_on="bwa7_idx_pfx"
+          append=".amb" />
+    <file id="idx_2" in_dir="in_3" based_on="bwa7_idx_pfx"
+          append=".ann" />
+    <file id="idx_3" in_dir="in_3" based_on="bwa7_idx_pfx"
+          append=".bwt" />
+    <file id="idx_4" in_dir="in_3" based_on="bwa7_idx_pfx"
+          append=".pac" />
+    <file id="idx_5" in_dir="in_3" based_on="bwa7_idx_pfx"
+          append=".sa" />
+    <validate id="idx_1" />
+    <validate id="idx_2" />
+    <validate id="idx_3" />
+    <validate id="idx_4" />
+    <validate id="idx_5" />
+
+    <!-- Create an option for the read group, from the contents of rg_info -->
+    <option name="rg" command_text="-R" from_file="read_group" />
+
+    <option name="threads" command_text="-t" type="threads" />
+
+    <command program="bwa" stdout_id="out_1">
+        <version_command>echo -n "BWA "; bwa 2>&amp;1 | grep Version</version_command>
+        mem -M -B 8 {threads} {rg} {bwa7_idx_pfx} {in_1}
+        {in_2}
+    </command>
+</tool>

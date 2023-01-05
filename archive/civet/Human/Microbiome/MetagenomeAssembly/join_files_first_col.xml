@@ -1,0 +1,18 @@
+<tool name="join_files"
+    threads="1"
+    walltime="12:00:00"
+    tool_config_prefix="joinfc">
+    <description>
+        Use join.py to join all files in the input list
+    </description>
+    <!-- Files:
+        Ins:
+          1: Stat files
+        OutS:
+	  1: joined file
+    -->
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <command program="join.py">
+           {in_1} > {out_1} 
+    </command>
+</tool>

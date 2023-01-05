@@ -1,0 +1,31 @@
+<tool name="pear"
+      threads="1"
+      walltime="10:00:00"
+      exit_if_exists="out_1"
+      exit_test_logic="and"
+      tool_config_prefix="tool-pear">
+  <description>
+    pear assembly of R1 and R2
+  </description>
+  <option name="minoverlap" command_text="-v" value="30"/>
+  <option name="maxoverlap" command_text="-m" value="150"/>
+  <option name="mismatch" command_text="-u" value="0.1"/>
+
+   <file id="prefix" based_on="in_1" pattern="(.*)_R1.*" replace="\1" />
+  <command program="">
+    myX=`basename {prefix} `
+    myY=$myX.assembled.fastq
+  </command>
+    
+   <module>pear/0.9.10</module>
+
+  <command program="pear">
+        -f {in_1} -r {in_2} {minoverlap} {mismatch} -o $myX
+  </command>
+  <command program="">
+    <version_command> echo Assembly: pear 0.9.10</version_command>
+    myprefix=` basename {prefix} `;
+    echo "QC_combined" $myprefix $(echo $(wc -l $myY |cut -d" " -f1 )/4|bc) | tee -a $myprefix.QC.log
+  </command>
+  
+ </tool>

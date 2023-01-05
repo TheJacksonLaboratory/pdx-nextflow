@@ -1,0 +1,19 @@
+<tool name="Merge_SNP_INDEL" tool_config_prefix="Merge" walltime="05:00:00">
+    <description>
+        Merge SNP and Indel file
+    </description>
+    <!-- Files used:
+        Ins:  SNP, INDEL, REF, OUTFILENAME
+        Outs: MergedFile
+    -->
+
+    <module>GATK/3.1-1</module>
+    <module>java/1.7.0</module>
+    <module>perl/cga</module>  
+
+    
+    <command program="make_one_combined_vcf.pl">
+        {in_1} {in_2} {in_3} {out_1}
+    </command>
+
+</tool>

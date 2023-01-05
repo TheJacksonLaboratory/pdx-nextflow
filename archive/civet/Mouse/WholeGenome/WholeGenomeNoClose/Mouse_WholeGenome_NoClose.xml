@@ -1,0 +1,396 @@
+<pipeline name="Mouse_WholeGenome_NoClose.xml">
+
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+
+    <filelist id="fastqs" input="True" parameter="1" />
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+
+    <file id="sample_name" based_on="fastqs" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" datestamp_prepend="%y%m%d-%H%M%S_"
+         default_output="True"/>
+
+    <dir id="mmr_data" filespec="/data/shared/mmr" create="False" /> 
+    <dir id="chrName_Mouse" filespec="chrName" in_dir="mmr_data" create="False" /> 
+
+    <file id="dbsnp" filespec="dbSNP.mm10.tab.gz" in_dir="mmr_data" input="True" />
+    <dir id="filter" filespec="filter" in_dir="outdir" />
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+    <file id="e1_trimmed"  temp="True" in_dir="filter"
+        based_on="fastqs" pattern="(.*)" replace="\1_filtered_trimmed" />
+    <file id="e2_trimmed" temp="True" in_dir="filter"
+        based_on="e1_trimmed" pattern="(.*?)(_|\.)R1(.*)"
+        replace="\1\2R2\3"/>
+
+    <file id="bwa_ref" input="True" in_dir="mmr_data" 
+          filespec="BWA_Index" />
+
+    <file id="ref" input ="True"
+          filespec="/data/shared/mmr/BWA_Index/genome.fa" />
+
+    <file id="read_group" temp="True" in_dir="outdir" filespec="read_group.txt" />
+
+
+    <step name="Qual_Stat">
+        <tool name="QnS"
+            input="fastqs, filter"
+            output="e1_trimmed, e2_trimmed"
+            description="qual_statistics_new.xml" />
+    </step>
+
+   <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="sam" in_dir="outdir" temp="True"
+            based_on="sample_name" append=".sam" />
+
+    <step name="Alignment">
+      <tool name="read_group"
+        input="fastqs"
+        output="read_group"
+        description="read_group.xml" />
+
+      <tool name="BWA_MEM_Alignment"
+        input="e1_trimmed,e2_trimmed,bwa_ref,read_group"
+        output="sam"
+        description="bwa_mem.xml" />
+    </step>
+
+
+     <file id="bam" in_dir="outdir" 
+                 based_on="sample_name" temp="True"  append="_aln.bam" />
+ 
+     <file id="bam_bai" in_dir="outdir"
+                 based_on="sample_name" temp="True"  append="_aln.bai" />
+
+
+    <file id="bam_dedupe" temp="True"  based_on="sample_name"
+          append="_dedupe.bam" />
+    <!--
+	Not referenced in the pipeline; implicitly created.
+	Just an entry to mark it as temp. More like this below.
+    -->
+    <file id="bam_dedupe_bai" temp="True"  based_on="sample_name"
+          append="_dedupe.bai" />
+
+    <file id="dedup_metrics" in_dir="outdir" based_on="sample_name"
+          append="_dup_metrics.dat" />
+
+    <file id="final_bam" in_dir="outdir" based_on="sample_name"
+              append="_realigned_dedup.bam" />
+
+    
+    <file id="AlnMetrics" in_dir="outdir" based_on="sample_name"  append="_AlnMetrics.txt" />
+    
+    <step name="Variant_Preprocessing">
+
+        <tool name="Variant_Preproc_1"
+            input="sam, outdir"
+            output="bam,bam_dedupe,dedup_metrics"
+            description="variant_pre_proc_1.xml" />
+
+
+        <tool name="Variant_Preproc_2"
+            input="bam_dedupe, outdir, ref"
+            output="final_bam" 
+            description="variant_pre_proc_2.xml" />
+
+
+        <tool name="Variant_Preproc_3"
+            input="final_bam,ref"
+            output="AlnMetrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+
+
+    <file id="variants_raw_chr1" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr1_variants_raw.vcf" />
+
+    <file id="variants_raw_chr2" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr2_variants_raw.vcf" />
+
+    <file id="variants_raw_chr3" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr3_variants_raw.vcf" />
+
+    <file id="variants_raw_chr4" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr4_variants_raw.vcf" />
+
+    <file id="variants_raw_chr5" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr5_variants_raw.vcf" />
+
+    <file id="variants_raw_chr6" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr6_variants_raw.vcf" />
+
+    <file id="variants_raw_chr7" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr7_variants_raw.vcf" />
+
+    <file id="variants_raw_chr8" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr8_variants_raw.vcf" />
+
+    <file id="variants_raw_chr9" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr9_variants_raw.vcf" />
+
+    <file id="variants_raw_chr10" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr10_variants_raw.vcf" />
+
+    <file id="variants_raw_chr11" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr11_variants_raw.vcf" />
+
+    <file id="variants_raw_chr12" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr12_variants_raw.vcf" />
+
+    <file id="variants_raw_chr13" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr13_variants_raw.vcf" />
+
+    <file id="variants_raw_chr14" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr14_variants_raw.vcf" />
+
+    <file id="variants_raw_chr15" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr15_variants_raw.vcf" />
+
+    <file id="variants_raw_chr16" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr16_variants_raw.vcf" />
+
+    <file id="variants_raw_chr17" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr17_variants_raw.vcf" />
+
+    <file id="variants_raw_chr18" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chr18_variants_raw.vcf" />
+
+    <file id="variants_raw_chr19" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chr19_variants_raw.vcf" />
+ 
+    <file id="variants_raw_chrX" in_dir="outdir" temp="True"  based_on="sample_name" 
+          append="_chrX_variants_raw.vcf" />
+    
+    <file id="variants_raw_chrY" in_dir="outdir" temp="True"  based_on="sample_name"
+          append="_chrY_variants_raw.vcf" />
+ 
+    <file id="variants_raw_chrM" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_chrM_variants_raw.vcf" />
+
+
+    <file id="chr1"  in_dir="chrName_Mouse" input="True"  filespec="chr1"  />
+    <file id="chr2"  in_dir="chrName_Mouse" input="True"  filespec="chr2"  />
+    <file id="chr3"  in_dir="chrName_Mouse" input="True"  filespec="chr3"  />
+    <file id="chr4"  in_dir="chrName_Mouse" input="True"  filespec="chr4"  />
+    <file id="chr5"  in_dir="chrName_Mouse" input="True"  filespec="chr5"  />
+    <file id="chr6"  in_dir="chrName_Mouse" input="True"  filespec="chr6"  />
+    <file id="chr7"  in_dir="chrName_Mouse" input="True"  filespec="chr7"  />
+    <file id="chr8"  in_dir="chrName_Mouse" input="True"  filespec="chr8"  />
+    <file id="chr9"  in_dir="chrName_Mouse" input="True"  filespec="chr9"  />
+    <file id="chr10" in_dir="chrName_Mouse" input="True"  filespec="chr10" />
+    <file id="chr11" in_dir="chrName_Mouse" input="True"  filespec="chr11" />
+    <file id="chr12" in_dir="chrName_Mouse" input="True"  filespec="chr12" />
+    <file id="chr13" in_dir="chrName_Mouse" input="True"  filespec="chr13" />
+    <file id="chr14" in_dir="chrName_Mouse" input="True"  filespec="chr14" />
+    <file id="chr15" in_dir="chrName_Mouse" input="True"  filespec="chr15" />
+    <file id="chr16" in_dir="chrName_Mouse" input="True"  filespec="chr16" />
+    <file id="chr17" in_dir="chrName_Mouse" input="True"  filespec="chr17" />
+    <file id="chr18" in_dir="chrName_Mouse" input="True"  filespec="chr18" />
+    <file id="chr19" in_dir="chrName_Mouse" input="True"  filespec="chr19" />
+    <file id="chrX"  in_dir="chrName_Mouse" input="True"  filespec="chrX"  />
+    <file id="chrY"  in_dir="chrName_Mouse" input="True"  filespec="chrY"  />
+    <file id="chrM"  in_dir="chrName_Mouse" input="True"  filespec="chrM"  />
+
+
+    <step name="Variant_Calling">
+
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr1"
+            output="variants_raw_chr1"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr2"
+            output="variants_raw_chr2"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr3"
+            output="variants_raw_chr3"
+            description="variant_calling.xml" />
+
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr4"
+            output="variants_raw_chr4"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr5"
+            output="variants_raw_chr5"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr6"
+            output="variants_raw_chr6"
+            description="variant_calling.xml" />
+
+  	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr7"
+            output="variants_raw_chr7"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr8"
+            output="variants_raw_chr8"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr9"
+            output="variants_raw_chr9"
+            description="variant_calling.xml" />
+
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr10"
+            output="variants_raw_chr10"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr11"
+            output="variants_raw_chr11"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr12"
+            output="variants_raw_chr12"
+            description="variant_calling.xml" />
+    
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr13"
+            output="variants_raw_chr13"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr14"
+            output="variants_raw_chr14"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr15"
+            output="variants_raw_chr15"
+            description="variant_calling.xml" />
+ 
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr16"
+            output="variants_raw_chr16"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr17"
+            output="variants_raw_chr17"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr18"
+            output="variants_raw_chr18"
+            description="variant_calling.xml" />
+ 
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chr19"
+            output="variants_raw_chr19"
+            description="variant_calling.xml" />
+
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chrX"
+            output="variants_raw_chrX"
+            description="variant_calling.xml" />
+
+	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chrY"
+            output="variants_raw_chrY"
+            description="variant_calling.xml" />
+
+    	<tool name="Variant_Caller"
+            input="final_bam, outdir, ref, chrM"
+            output="variants_raw_chrM"
+            description="variant_calling.xml" />
+
+    </step>
+
+
+
+    <file id="variants_raw_merge" in_dir="outdir" based_on="sample_name"
+                append="_variants_raw_merge.vcf" />
+
+    <step name="Variant_Merging">
+      
+     <tool name="Variant_merge_raw"
+            input="ref, variants_raw_chr10, variants_raw_chr11, variants_raw_chr12, variants_raw_chr13, variants_raw_chr14, variants_raw_chr15, variants_raw_chr16, variants_raw_chr17, variants_raw_chr18, variants_raw_chr19, variants_raw_chr1, variants_raw_chr2, variants_raw_chr3, variants_raw_chr4, variants_raw_chr5, variants_raw_chr6, variants_raw_chr7, variants_raw_chr8, variants_raw_chr9, variants_raw_chrM, variants_raw_chrX, variants_raw_chrY"
+            output="variants_raw_merge"
+            description="variant_merging.xml" />
+
+    </step>
+
+
+     <file id="variants_filtered" in_dir="outdir" based_on="sample_name"
+             append="_variants_filtered.vcf" />
+     <file id="variants_filtered_dbsnp" in_dir="outdir" based_on="sample_name"
+             append="_variants_filtered_dbsnp.vcf" />
+     <file id="variants_filtered_dbsnp_snpEff" in_dir="outdir" based_on="sample_name"
+             append="_variants_filtered_dbsnp_snpEff.vcf" />
+     <file id="variants_filtered_highestsnpEff" in_dir="outdir" based_on="sample_name"
+             append="_variants_filtered_highestsnpEff.vcf" />
+     <file id="snpeff_snp_all_summary"   in_dir="outdir" based_on="sample_name"
+             append="_snpeff_summary.html" />
+
+     <step name="Filtration_Annotation">
+
+         <tool name="Variant_Filtration"
+           input="ref, variants_raw_merge"
+           output="variants_filtered"
+           description="variant_filtration.xml" />
+
+         <tool name="Variant_Annotation_dbSNP"
+           input="variants_filtered, dbsnp"
+           output="variants_filtered_dbsnp"
+           description="variant_annotation_dbSNP.xml" />
+
+         <tool name="Variant_Annotation_snpEff"
+           input="variants_filtered_dbsnp"
+           output="variants_filtered_dbsnp_snpEff,snpeff_snp_all_summary"
+           description="variant_annotation_snpEff.xml" />
+
+         <tool name="Variant_Highest_Impact"
+           input="ref,variants_filtered_dbsnp,variants_filtered_dbsnp_snpEff,variants_filtered_dbsnp"
+           output="variants_filtered_highestsnpEff"
+           description="variant_highest_impact.xml" />
+
+     </step>
+
+
+    <file id="summary_stats" in_dir="outdir" based_on="sample_name" append="_summary_stats.txt" />
+    <file id="stats" in_dir="filter" based_on="fastqs"
+          pattern="(.*)(_|\.)R1(.*)" replace="\1\2R1\3_\1\2R2\3_stat" />
+
+    
+    <step name="Summarize">
+
+         <tool name="Aggregate_stats"
+           input="stats, AlnMetrics"
+           output="summary_stats"
+           description="aggregate_stats.xml" />
+    </step>
+
+
+    <step name="RemovingvcfIDX">
+
+       <tool name="remove_VCF"
+          input="variants_filtered_highestsnpEff" 
+          description="remove_vcf.xml" />
+
+   </step>
+
+</pipeline>

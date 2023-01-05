@@ -1,0 +1,63 @@
+<tool name="Sex_Determination" walltime="00:20:00">
+    <description>
+        Determine the sample's sex by examining exons unique to the
+        Y chromosome.
+    </description>
+    <!--
+        Ins:
+          1: aln.bam
+          2: out_dir
+        Outs:
+          1: sex_determination.txt
+    -->
+    
+    <module>samtools/0.1.19</module>
+    <module>cga</module>
+
+   <!--
+        Note: The samtools commands in this tool have an unusual formation.
+        They have a null program.  This is because the command we want to 
+        execute is capturing the standard output to an environment
+        variable.
+        
+        Since "samtools" is not specified in a program="" attribure, it will
+        not be automatically validated.  Therefore we have to manually
+        list it for validation.
+    -->
+    <validate>samtools</validate>
+    
+    <!--
+        Note: DO NOT try to optimize this by first capturing the gene's extent to 
+        a temp file and then doing counts within that smaller file.  If the sample
+        is female, that smaller file will probably be empty, which is not a valid
+        bam file, and the following commands will fail.  Hmmm.  How does Al know that?
+    -->
+    
+    <!--
+        Only capture the version in the first samtools invocation to avoid clutter.
+    -->
+    <command program="">
+        <version_command>echo -n "samtools: "; samtools 2>&amp;1 | grep Version</version_command>
+        TOT_READS=$( samtools view -c -F 4 {in_1} )
+    </command>
+
+    <command program="">
+        <!--<version_command>echo -n "samtools: "; samtools 2>&amp;1 | grep Version</version_command>-->
+        EXON_1=$( samtools view -c {in_1} chrY:21867870-21868241 )
+    </command>
+
+    <command program="">
+        <!--<version_command>echo -n "samtools: "; samtools 2>&amp;1 | grep Version</version_command>-->
+        EXON_2=$( samtools view -c {in_1} chrY:21869809-21869967 )
+    </command>
+
+    <command program="">
+        <!--<version_command>echo -n "samtools: "; samtools 2>&amp;1 | grep Version</version_command>-->
+        WHOLE_GENE=$( samtools view -c {in_1} chrY:21867870-21906430 )
+    </command>
+
+    <command program="determine_sex.py" delimiters="||">
+        <version_command>determine_sex.py -v</version_command>
+        ${TOT_READS} ${EXON_1} ${EXON_2} ${WHOLE_GENE} |in_2|
+    </command>
+</tool>

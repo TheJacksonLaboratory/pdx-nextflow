@@ -1,0 +1,30 @@
+<tool name="run_megahit"
+    threads="6"
+    mem="60"
+    walltime="10:00:00"
+    tool_config_prefix="metabat">
+    <description>
+	Use metabat without coverage for initial binning
+    </description>
+    <!-- Files:
+        Ins:
+          1: final.contigs.fa
+          2: bam files (list)
+        OutS:
+	  1: The metabat prefix 
+          2: stats file
+          3: coverage file
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>python</module>
+    <module>metabat</module>   
+    <command program="jgi_summarize_bam_contig_depths --minContigLength 1000 --minContigDepth 1">
+        --outputDepth {out_3} {in_2}
+    </command>
+
+    <option name="threads" command_text="-t" type="threads" description="Number of threads to use" display_name="threads" /> 
+    <command program="metabat2 -l --seed 42 ">
+        {threads} -i {in_1} -o {out_1} -a {out_3} -v > {out_2}
+    </command>
+</tool>

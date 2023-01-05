@@ -1,0 +1,22 @@
+<tool name="filter"
+      threads="4"
+	  tool_config_prefix="tool-filter">
+  <description>
+    Removal of low quality and small reads after PEAR assembly
+  </description>
+   <file id="prefix" based_on="in_1" pattern="(.*).assembled.fastq" replace="\1" />
+   <file id="tmp1" based_on="prefix" append=".Filternotclean.fastq" temp="True"/>
+
+  <option name="minreadlength" command_text="-m" value="350"/>
+    
+  <module>cutadapt/1.2.1</module>  
+  <command program="cutadapt">
+   -o {out_1} {in_1} {minreadlength}
+ </command>
+  <command program="">
+        <version_command>echo Read Length Filter:cutadapt 1.2.1</version_command>
+        myprefix=` basename {prefix} `;
+        echo "QC_ReadLengthFilter" $myprefix $(echo $(wc -l {out_1} |cut -d" " -f1 )/4|bc) | tee -a $myprefix.QC.log
+   </command>
+  
+</tool>

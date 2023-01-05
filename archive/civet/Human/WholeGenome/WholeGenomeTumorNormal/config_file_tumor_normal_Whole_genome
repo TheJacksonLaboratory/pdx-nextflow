@@ -1,0 +1,4 @@
+T_N_callers.mapping_quality=30       
+T_N_callers.somatic_quality=20
+T_N_callers.SNP_output=vcf
+T_N_callers.Joint_Genotype=-J #### Leave it blank if don't want joint genotype mode

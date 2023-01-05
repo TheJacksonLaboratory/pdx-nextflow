@@ -1,0 +1,26 @@
+<tool name="XENOME" tool_config_prefix="XENOME_CLASS" walltime="08:00:00" threads="12" error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Separate human reads from mouse reads, and quantify the amounts of each.
+    </description>
+    <!--
+        Ins:
+	  1: fastq_file1
+	  2: fastq_file2
+        Outs:
+	  1: human_1.fastq, human_2.fastq
+	  2: mouse_1.fastq, mouse_2.fastq
+	  3. both_1.fastq,  both_2.fastq
+	  4. ambiguous_1.fastq, ambiguous_2.fastq
+	  5. neither_1.fastq, neither_2.fastq
+	  
+    -->
+    
+    <!-- Step 1: Xenome Classification -->
+    <module>xenome</module>
+
+    <option name="threads" type="threads" command_text="-T"/>
+     <command program="xenome classify" stdout_id="out_3">
+        {threads} -P   /data/shared/cga_reference_data/hg38_201601/Xenome_broad_Index_Files/hg38_broad_NOD_based_on_mm10_k25
+        --pairs --host-name  mouse  --graft-name human  -i {in_1} -i {in_2} --output-filename-prefix {in_3}
+    </command>
+</tool>

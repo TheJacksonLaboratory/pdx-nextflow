@@ -1,0 +1,67 @@
+<tool name="variant_fixAdjSNP" walltime="08:00:00">
+    <description>
+        fixing AdjSNP in any.
+    </description>
+    <!--
+        Ins:
+          1: variants_filtered
+          2: final_bam (_realigned_BQSR.bam)
+        Outs:
+          1: fixed variants
+    -->
+    
+    <!-- Step 4: Variant Calling -->
+    <module>python/2.7.3</module>
+    <module>java/1.8.0_73</module>
+    <module>perl/5.24.0</module>
+    <module>tabix/0.2.6</module>
+    <module>samtools</module>
+    <module>bcftools</module>
+    <module>htslib</module>
+
+
+    <file id="fa2bit" input="True" filespec="/data/shared/cga_reference_data/hg38_201601/Homo_sapiens_assembly38.fa.2bit"/>
+
+    <!-- index of final bam -->
+      <command program="samtools" >
+        index {in_2}
+      </command>
+
+    <file id="joinAdjacentSNPs" input="True" filespec="bin/joinAdjacentSNPs_AS.py" in_dir="PIPELINE_ROOT" />
+
+    <!-- calling joinAdjacentSNPs.py to fix Adj snp -->
+    <command program="python" >
+       {joinAdjacentSNPs} -v {in_1} -o {out_1} 1 {in_2} {fa2bit} 2>{out_2}
+    </command>
+
+    <!-- cleaning blank lines -->
+    <command program="" >
+       awk 'NF' {out_1} > temp
+    </command>
+
+    <!-- cleaning blank lines -->
+    <command program="" >
+       mv temp {out_1}
+    </command>
+
+    <!-- zip -->
+    <command program="" >
+       bgzip {out_1}
+    </command>
+
+    <!-- tabix -->
+    <command program="" >
+       tabix {out_3}
+    </command>
+
+    <!-- remove dbSNP id  -->
+    <command program="" >
+       bcftools annotate --output {out_4} --output-type z --remove ID {out_3}
+    </command>
+
+    <!-- ADD dbSNP id  -->
+    <command program="java" >
+      -jar /opt/compsci/snpEff/4.3/SnpSift.jar annotate -id /data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz {out_4} > {out_1}
+    </command>
+
+ </tool>

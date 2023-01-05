@@ -1,0 +1,50 @@
+<tool name="Assembly_Abundance_Estimation"  tool_config_prefix="cufflinks_v2"
+    threads="12"
+    walltime="23:00:00">
+    <description>
+        Transcripts assembly and abundance estimation.
+    </description>
+    <!-- Files:
+        Ins:
+          1: ref_GTF
+          2: ref
+          3: cufflinks_out
+          4: accepted_hits_with_read_group.bam
+        Outs:
+ 			?
+
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>cufflinks/2.2.1</module>
+    <module>samtools/0.1.19</module> 
+
+    <!--
+        Files we have to verify as unchanged, in addition to the commands.
+        (Command program names are automatically added to the validate list,
+        so they don't need to be added here. (Here, the reference sequence.)
+    -->
+    <validate id="in_1" />
+    <validate id="in_2" />
+    
+    <!-- Need to create these file elements? They are outputs of the command, 
+    	 but are not used anywhere : not in the command or later in the pipeline.
+    	
+    <file id="genes"           in_dir="in_4"       filespec="genes.fpkm_tracking" />
+    <file id="isoforms"        in_dir="in_4"       filespec="isoforms.fpkm_tracking " />
+    <file id="skipped"         in_dir="in_4"       filespec="skipped.gtf" />
+    <file id="transcripts"     in_dir="in_4"       filespec="transcripts.gtf" />
+
+    -->
+    <option name="lib_type"              command_text="--library-type"            value="fr-unstranded"       />
+    <option name="upper-quartile-norm"   command_text=""   value="-N" />
+    <option name="multi-read-correct"    command_text=""   value="-u" />
+    <option name="novel_transcripts"     command_text=""   value="-g" />
+    
+    <command program="cufflinks">
+        {novel_transcripts} {in_1} {lib_type}
+        {multi-read-correct} {upper-quartile-norm}  -p 12 -o {in_3}
+        -b {in_2} 
+        {in_4}
+    </command>
+</tool>

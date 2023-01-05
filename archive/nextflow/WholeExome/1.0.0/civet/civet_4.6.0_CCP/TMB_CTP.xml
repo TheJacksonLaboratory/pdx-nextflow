@@ -1,0 +1,36 @@
+<tool name="TumorMutationBurden" tool_config_prefix="TMB" walltime="01:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Estimates TMB from the UnifiedGenotyper and Pindel output
+    </description>
+    <!--
+        Ins:
+	  1: UnifiedGenotyper DPfiltered vcf
+	  2: Pindel DPfilterted vcf
+	  3: hg38_recurring_variants_ctp
+	  4: 1MB_bins_ctpcoverage_hg38.bed 
+        Outs:
+          1: annotated.tab for Tumor Mutation Burden
+	  2: TMB score
+    -->
+    
+    <module>compsci</module>
+    <module>java/1.7.0</module>
+    <module>vcf-tools/0.1.12a</module>
+    <module>tabix/0.2.6</module>
+    <module>bedtools/2.22.0</module>
+    <module>R/3.3.1</module>
+
+    <command program="updated_TMB.sh">
+     {in_1} {in_2} {out_1} {in_3} {in_4}  
+    </command>
+    
+    <command program="TMB_final.R">      
+     {out_1}.HM.tab {out_2}
+    </command> 
+
+    <command program="">      
+     rm  all_genes* nofalsePositives.tmp2.vcf count2 
+    </command>
+
+</tool>

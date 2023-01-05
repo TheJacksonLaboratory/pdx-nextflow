@@ -1,0 +1,60 @@
+<tool name="Bismark_Extraction"
+    threads="12"
+    tool_config_prefix="Bismark_Ext"
+    walltime="48:00:00"
+    error_strings="'Abort!'">
+
+    <description>
+        Extraction methylation calls from bismark alignment file.
+    </description>
+
+    <!-- Files:
+        Ins:
+          1: bismark sam file
+          2: outdir
+        Outs:
+          1: Methylation output
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>samtools</module>
+    <module>bowtie2/2.2.3</module> 
+    <module>bismark/0.13.0</module>
+    <module>perl/cga</module>
+    
+    
+    <option name="threads" type="threads" command_text="--multicore"/>
+    
+    <option name="overlap" display_name="Overlap" type="select" command_text=""
+     description="For paired-end reads it is theoretically possible that Read 1 and Read 2 overlap. This option avoids scoring overlapping methylation calls twice (only methylation calls of read 1 are used for in the process since read 1 has historically higher quality basecalls than read 2)">
+      <select default="true">--no_overlap</select>
+      <select>--include_overlap</select>
+    </option>
+     
+    <option name="ignore_forward" display_name="Ignore Forward" type="numeric" command_text="--ignore" value="0"
+      description="Ignore the first INT bp from the 5' end of Read 1 (or single-end alignment files) when processing the methylation call string." />
+    
+    <option name="ignore_reverse" display_name="Ignore Reverse" type="numeric" command_text="--ignore_r2" value="0"
+      description="Ignore the first INT bp from the 5' end of Read 2 of paired-end sequencing results only."/>
+      
+    <option name="ignore_3prime_forward" display_name="Ignore 3' Forward" type="numeric" command_text="--ignore_3prime"  value="0" 
+      description="Ignore the last INT bp from the 3' end of Read 1 (or single-end alignment files) when processing the methylation call string."/>
+    
+    <option name="ignore_3prime_reverse" display_name="Ignore 3' Reverse" type="numeric" command_text="--ignore_3prime_r2" value="0"
+      description="Ignore the last INT bp from the 3' end of Read 2 when processing the methylation call string." />
+      
+    <option name="BedGraph"  display_name="Bed Graph" type="boolean" command_text="--bedgraph" value="true"
+      description="After finishing the methylation extraction, the methylation output is written into a sorted bedGraph file that reports the position of a given cytosine and its methylation state (in %, see details below) using 0-based genomic start and 1-based end coordinates" />
+    
+    <option name="Comprehensive" type="boolean" command_text="--comprehensive" value="true" 
+      description="Specifying this option will merge all four possible strand-specific methylation info into context-dependent output files." />
+
+
+    <command program="force_gd_graph.pl" />
+
+    <command program="bismark_methylation_extractor">
+     --paired-end  --output  {in_2}  {threads} {Comprehensive} {overlap} {ignore_forward} {ignore_reverse} {ignore_3prime_forward} {ignore_3prime_reverse} {BedGraph}    --report  {in_1}
+    </command>
+
+
+</tool>

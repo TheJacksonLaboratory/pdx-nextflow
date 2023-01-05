@@ -1,0 +1,20 @@
+trim_gal.trimLength=30    #### filtering length (if sequence get shorter than 30 bp after trimming then it would be removed)
+trim_gal.qualThreshold=30 ####(The base quality threshold for trimming)
+trim_gal.adapOverlap=1    #####(Overlap of adaptor sequence at 3 prime for clipping)
+trim_gal.adaptorSeq=GATCGGAAGAGCACACG #### Adaptor Sequence for clipping
+trim_gal..non_directional=true #### set to false if your sequenced library is  directional
+trim_gal.rrbs_option=true #### set to false if your sequencing library is whole genome bisulphite
+Bismark_Aln.non_directional=true #### set to false if your sequenced library is  directional
+Bismark_Aln.seedlength=20
+Bismark_Aln.seed_mismatch=0
+Bismark_Aln.MinInsert=0
+Bismark_Aln.MaxInsert=1000
+Bismark_Ext.overlap=--no_overlap    ####--include_overlap  if you want to calls methylation from overlapping forward and reverse reads
+Bismark_Ext.ignore_forward=0
+Bismark_Ext.ignore_reverse=0
+Bismark_Ext.ignore_3prime_forward=0
+Bismark_Ext.ignore_3prime_reverse=0
+Bismark_Ext.BedGraph=true               #### if don't want output in bedgraph format then change to false
+Bismark_Ext.Comprehensive=true     #### Specifying this option will merge all four possible strand-specific
+                                   #### methylation info into context-dependent output files. The default contexts are:
+                                   #### - CpG context,  - CHG context,  - CHH context

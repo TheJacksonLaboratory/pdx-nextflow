@@ -1,0 +1,125 @@
+<pipeline name="Metagenome_AssemblyII_refine.xml">
+
+<!-- ********************************* Input is a directory with fastq paired files ************** -->
+<!-- Input should include:
+         * input files dir. fastq files are assumed to be clean (by cutadapt or equivalent)
+Run: ls *R1.fastq.gz | sed 's/_R1.fastq.gz/.mash_bins.msh/' |awk '{print "megahit_assembly/"$0}' > mashfiles before script
+Run: ls *R1.fastq.gz > clist before script 
+or run prepare_assemblyII_lists.py 
+-->
+    <description>
+        This script run assembly on clean input, combine it and remove redundancy.
+        Input is ususlly the output of Metagenome_AssemblyI.xml pipeline. The main output is merged/nonred.all.contigs.fa
+        Each individual assembly is also binned and the bins are compared between each other.
+    </description>
+    <dir id="cain" description="Input fastq.gz directory" display_name="Input dir" input="True" parameter="1" />
+    <file id="clist" description="Input files R1 list" display_name="R1 files list" input="True" parameter="2" />
+    <file id="mashfile" description="mash files list, *mash_bins.msh" display_name="expected mash files list" input="True" parameter="3" />
+    <string id="pname" parameter="4" description="A string to be added to dir name" display_name="Run name"/>
+ 
+	<!--*************************** define and create directories ******************************* -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <dir id="megahit" filespec="megahit_assembly" in_dir="outdir" />
+    <dir id="merged" filespec="merged" in_dir="outdir" />
+    <dir id="stats" filespec="stats" in_dir="outdir" />
+    <file id="allmerg" input="False" in_dir="merged" filespec="all.contigs.fa" />
+    <file id="allred" input="False" in_dir="merged" filespec="nonred.all.contigs.fa" />
+    <file id="allblast" input="False" in_dir="merged" filespec="all_vs_blast.out" />
+    <file id="outgff" input="False" in_dir="merged" filespec="all_features_prokka.gff" />
+    <file id="outfaared" input="False" in_dir="merged" filespec="all_features_prokka_redundant.faa" temp="True"/>
+    <file id="outfaa" input="False" in_dir="merged" filespec="all_features_prokka.faa" />
+    <!-- Uniprot reference to map to KO -->
+    <dir id="uniprot" filespec="/projects/mbiomecore/external_databases/Bacteria_Uniprot/181107/" create="False"/>
+    <file input="True" id="uniprot_dmnd" filespec="uniprot_all_bacteria_mapped_to_KO" in_dir="uniprot"/>
+    <file input="True" id="uniprot_KO" filespec="uniprot_all_to_KO_list.txt" in_dir="uniprot"/>
+
+    <!-- Run this for every input pair of fastqs (assembly, annotation...) -->
+    <foreach id="infile" dir="cain">
+        <file id="cr1" from_file="clist"/>
+        <related id="cr2" input="True" pattern="(.*)R1(\.fastq.*)$" replace="\1R2\2"/>
+        <related id="mout" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1"/>
+        <related id="mfinal" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/final.contigs.fa"/>
+        <related id="mbat" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/metabat/\1_bin"/>
+        <related id="mbatfasta" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/metabat/mbatfasta"/>
+        <related id="mbmash" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.mash_bins"/>
+        <related id="mbatstat" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/metabat_summary.txt"/>
+        <related id="mfinalcp" input="True" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.final.contigs.fa"/>
+        <related id="prkdir" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/prokka_out"/>
+        <related id="prkgff" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.prokka.gff" temp="True"/>
+        <related id="prkgffout" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.prokka.KO.gff"/>
+        <related id="mapko" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.prokka.KOs"/>
+        <related id="prkfaa" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1.prokka.faa"/>
+        <related id="prkvsKO" input="False" in_dir="megahit" pattern="(.*)_R1.fastq.*" replace="\1/prokka_out/prokka_vs_uniprotKO.blout" temp="True"/>
+
+        <step name="megahit_assembly">
+            <tool name="megahit"
+             input="cr1,cr2"
+             output="mout,mfinal,mfinalcp"
+             description="megahit_assembler.xml" />
+        </step>
+        <step name="metabat_binning">
+            <tool name="metabat"
+             input="mfinal"
+             output="mbat,mbatstat"     
+             description="metabat_initial_binning.xml" />
+            <tool name="mash"
+             input="mbat,mfinal"
+             output="mbatfasta,mbmash"
+             description="mash_bins.xml"/>
+        </step>
+        <step name="annotation">
+            <tool name="prokka"
+             input="mfinal"
+             output="prkdir,prkgff,prkfaa"
+             description="run_prokka_on_assembly.xml"/>
+            <tool name="map_KO"
+             input="uniprot_dmnd,prkfaa"
+             output="prkvsKO"
+             description="run_diamond_blastp.xml"/>
+            <tool name="map_homology"
+             input="prkvsKO, uniprot_KO, prkgff"
+             output="mapko,prkgffout"
+             description="determine_homology_group.xml"/>
+        </step>
+        
+
+    </foreach>
+
+<filelist id="allasm" in_dir="megahit" pattern=".*.final.contigs.fa$" foreach_id="infile" />
+
+<!-- Merge all the contigs to one file, run mash all against all -->
+<filelist id="allmsh" in_dir="megahit" pattern=".*mash_bins.msh$" foreach_id="infile" />
+<filelist id="gffkos" in_dir="megahit" pattern=".*prokka\.KO\.gff$" foreach_id="infile" />
+<filelist id="allfaas" in_dir="megahit" pattern=".*prokka\.faa$" foreach_id="infile" />
+<foreach id="mashes" dir="outdir">
+    <file id="msin" from_file="mashfile"/>
+    <related id="msout" input="False" in_dir="outdir" pattern="(.*)" replace="\1.cmp"/>
+    <step name="mash_one">
+         <tool name="mashit"
+          output="msout"
+          input="msin,allmsh"
+          description="find_similar_contigs_with_mash.xml" />
+    </step>
+</foreach>
+
+
+
+<step name="merge">
+    <tool name="merge"
+     input="allasm"
+     output="allmerg"
+     description="merge_all_contigs.xml"/>
+    <tool name="reduce"
+     input="allmerg"
+     output="allred,allblast"
+     description="remove_redundancy.xml"/>
+    <tool name="concatfaa"
+     input="allfaas"
+     output="outfaared"
+     description="merge_all_contigs.xml" /> 
+    <tool name="concatgff"
+     input="allred,gffkos,outfaared"
+     output="outgff, outfaa"
+     description="cut_and_concat_prokka_out.xml" /> 
+</step>    
+</pipeline>

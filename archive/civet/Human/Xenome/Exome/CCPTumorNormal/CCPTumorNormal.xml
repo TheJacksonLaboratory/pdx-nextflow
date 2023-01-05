@@ -1,0 +1,592 @@
+<pipeline name="CTPTumorNormal.xml">
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        At first, these will all be real files.  Over time we may
+        make some of them tempfiles, to get cleaned up at the end.
+    -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <file id="t_e1_fastq" input="True" parameter="1" />
+    <file id="t_e2_fastq" input="True" parameter="2" />
+    <file id="n_e1_fastq" input="True" parameter="3" />
+    <file id="n_e2_fastq" input="True" parameter="4" />
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="sample_name" based_on="t_e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+   <dir id="ctptn" based_on="sample_name" create="False"
+         pattern="^(.*)_C(C|T)P_(.*)$" replace="\1_C\2PTN_\3" />
+    <dir id="outdir" based_on="ctptn"
+         datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+
+
+
+    <dir id="t_outdir" in_dir="outdir" filespec="t_out" />
+    <dir id="n_outdir" in_dir="outdir" filespec="n_out" />
+    <dir id="t_filter" filespec="t_filter"  in_dir="t_outdir" />
+    <dir id="n_filter" filespec="n_filter"  in_dir="n_outdir" />
+   
+
+
+   <file id="t_human_1"     in_dir="t_outdir" temp="True"    filespec="tumor_human_1.fastq" />
+    <file id="t_human_2"     in_dir="t_outdir" temp="True"    filespec="tumor_human_2.fastq" />
+    <file id="t_xenome_classification"           in_dir="t_outdir"     based_on="sample_name"    append="_xenome_stats.txt"   />
+
+<file id="n_human_1"     in_dir="n_outdir" temp="True"    filespec="normal_human_1.fastq" />
+    <file id="n_human_2"     in_dir="n_outdir" temp="True"    filespec="normal_human_2.fastq" />
+    <file id="n_xenome_classification"     in_dir="n_outdir"     based_on="sample_name"    append="_xenome_stats.txt"   />
+
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+
+    <!-- Tumor filtered files -->
+    <file id="t_e1_trimmed"   temp="True"  in_dir="t_filter" 
+        based_on="t_e1_fastq" append="_filtered_trimmed" />
+    <file id="t_e2_trimmed" temp="True"  in_dir="t_filter" 
+        based_on="t_e2_fastq"  append="_filtered_trimmed" />
+
+    <!-- Normal filtered files -->
+    <file id="n_e1_trimmed" temp="True"  in_dir="n_filter" 
+        based_on="n_e1_fastq" append="_filtered_trimmed" />
+    <file id="n_e2_trimmed" temp="True"  in_dir="n_filter" 
+        based_on="n_e2_fastq" append="_filtered_trimmed" />
+
+    <!-- our genome reference -->
+  <file id="ref" input="True"
+          filespec="/data/shared/cga_reference_data/hg38_201601/Homo_sapiens_assembly38.fasta"/>
+
+
+        <file id="bwa7_idx_pfx"
+          filespec="/data/shared/research_pipelines_reference_data/human/DNA/hg38_bwa_alt_aware_indices/"/>
+  
+<file id="tumor" temp="True"  in_dir="t_outdir" 
+        filespec="tumor"/>
+        
+<file id="normal" temp="True"  in_dir="n_outdir" 
+         filespec="normal" />
+
+<file id="tumor_split" temp="True"  in_dir="t_outdir" 
+         based_on="sample_name" append="_tumor"/>
+
+<file id="normal_split" temp="True"  in_dir="n_outdir" 
+         based_on="sample_name" append="_normal"/>
+
+    <!-- Run the quality and statistics on both samples -->
+    <step name="T_Qual_Stat">
+        <tool name="QnS"
+            input="t_e1_fastq, t_e2_fastq, t_filter"
+            output="t_e1_trimmed, t_e2_trimmed"
+            description="qual_statistics_new.xml" />
+            
+            
+      <tool name="XENOME"
+       input="t_e1_trimmed, t_e2_trimmed,tumor"
+       output="t_human_1, t_human_2, t_xenome_classification"
+       description="xenome_classification_DNA.xml" />
+    </step>
+            
+            
+
+    <step name="N_Qual_Stat">
+        <tool name="QnS"
+            input="n_e1_fastq, n_e2_fastq, n_filter"
+            output="n_e1_trimmed, n_e2_trimmed"
+            description="qual_statistics_new.xml" />
+            
+        <tool name="XENOME"
+       input="n_e1_trimmed, n_e2_trimmed,normal"
+       output="n_human_1, n_human_2, n_xenome_classification"
+       description="xenome_classification_DNA.xml" />    
+            
+            
+    </step>
+
+    <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="t_bam"  temp="True" in_dir="t_outdir"
+        filespec="out.aln.bam" />
+    <file id="n_bam"  temp="True" in_dir="n_outdir"
+        filespec="out.aln.bam" />
+
+    <!-- Align both samples -->
+ 
+    <step name="T_Alignment">
+        <tool name="BWA_MEM_Alignment"
+            input="t_human_1,t_human_2,bwa7_idx_pfx,t_outdir"
+            output="t_bam"
+            description="bwa_mem.xml" />
+
+    </step>
+
+    <step name="N_Alignment">
+        
+
+        <tool name="BWA_MEM_Alignment"
+            input="n_human_1,n_human_2,bwa7_idx_pfx,n_outdir"
+            output="n_bam"
+            description="bwa_mem.xml" />
+    </step>
+
+
+    <!-- Files for variant preprocessing... -->
+
+
+    <file id="t_bam_dedupe" temp="True"  based_on="sample_name"
+          append="_tumor_dedupe.bam" in_dir="t_outdir" />
+    <file id="t_bam_dedupe_bai" temp="True"  based_on="sample_name"
+              append="_tumor_dedupe.bai" in_dir="t_outdir" />             
+    <file id="t_dedup_metrics" based_on="sample_name"
+          append="_tumor_dedup_metrics.dat" in_dir="t_outdir" />
+    <file id="t_final_bam" in_dir="t_outdir" based_on="sample_name"
+          append="_tumor_realigned_BQSR.bam" />
+    <file id="t_final_bam_bai" in_dir="t_outdir" temp="True"  based_on="sample_name" append="_tumor_realigned_BQSR.bai" />
+   
+    <file id="n_bam_dedupe" temp="True"  based_on="sample_name"
+          append="_normal_dedupe.bam" in_dir="n_outdir" />
+    <file id="n_bam_dedupe_bai" temp="True"  based_on="sample_name"
+              append="_normal_dedupe.bai" in_dir="n_outdir" />      
+    <file id="n_dedup_metrics" based_on="sample_name"
+          append="_normal_dedup_metrics.dat" in_dir="n_outdir" />
+    <file id="n_final_bam" in_dir="n_outdir" based_on="sample_name"
+          append="_normal_realigned_BQSR.bam" />
+    <file id="n_final_bam_bai" in_dir="n_outdir" temp="True"  based_on="sample_name" append="_normal_realigned_BQSR.bai" />
+
+<!--     <file id="beds"  input="True" filespec="/data/shared/cga_reference_data/hg38_201601/" />
+
+    <file id="target_bed" input="True" in_dir="beds" filespec="359genes_targets_sorted_gatk_hg38_picard.bed" />
+    
+    <file id="target_bed_gatk" input="True" in_dir="beds" filespec="359genes_targets_sorted_gatk_hg38.bed" />
+    
+    <file id="bait_bed" input="True" in_dir="beds"  filespec="CGA_exon_list_371_genes_targets_gatk_hg38_picard.bed"/>" -->
+
+    <file id="t_coverage_metrics" in_dir="t_outdir" filespec="TCoverageMetrics.txt" />
+    <file id="n_coverage_metrics" in_dir="n_outdir" filespec="NCoverageMetrics.txt" />
+
+
+<file id="t_bam_chr1" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr1.bam" />
+<file id="t_bam_chr2" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr2.bam" />
+<file id="t_bam_chr3" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr3.bam" />
+<file id="t_bam_chr4" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr4.bam" />
+<file id="t_bam_chr5" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr5.bam" />
+<file id="t_bam_chr6" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr6.bam" />
+<file id="t_bam_chr7" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr7.bam" />
+<file id="t_bam_chr8" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr8.bam" />
+<file id="t_bam_chr9" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr9.bam" />
+<file id="t_bam_chr10" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr10.bam" />
+<file id="t_bam_chr11" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr11.bam" />
+<file id="t_bam_chr12" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr12.bam" />
+<file id="t_bam_chr13" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr13.bam" />
+<file id="t_bam_chr14" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr14.bam" />
+<file id="t_bam_chr15" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr15.bam" />
+<file id="t_bam_chr16" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr16.bam" />
+<file id="t_bam_chr17" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr17.bam" />
+<file id="t_bam_chr18" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr18.bam" />
+<file id="t_bam_chr19" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr19.bam" />
+<file id="t_bam_chr20" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr20.bam" />
+<file id="t_bam_chr21" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr21.bam" />
+<file id="t_bam_chr22" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chr22.bam" />
+<file id="t_bam_chrM" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chrM.bam" />
+<file id="t_bam_chrX" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chrX.bam" />
+<file id="t_bam_chrY" in_dir="t_outdir" temp="True"  based_on="tumor_split"
+          append=".REF_chrY.bam" />
+
+<file id="n_bam_chr1" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr1.bam" />
+<file id="n_bam_chr2" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr2.bam" />
+<file id="n_bam_chr3" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr3.bam" />
+<file id="n_bam_chr4" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr4.bam" />
+<file id="n_bam_chr5" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr5.bam" />
+<file id="n_bam_chr6" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr6.bam" />
+<file id="n_bam_chr7" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr7.bam" />
+<file id="n_bam_chr8" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr8.bam" />
+<file id="n_bam_chr9" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr9.bam" />
+<file id="n_bam_chr10" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr10.bam" />
+<file id="n_bam_chr11" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr11.bam" />
+<file id="n_bam_chr12" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr12.bam" />
+<file id="n_bam_chr13" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr13.bam" />
+<file id="n_bam_chr14" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr14.bam" />
+<file id="n_bam_chr15" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr15.bam" />
+<file id="n_bam_chr16" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr16.bam" />
+<file id="n_bam_chr17" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr17.bam" />
+<file id="n_bam_chr18" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr18.bam" />
+<file id="n_bam_chr19" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr19.bam" />
+<file id="n_bam_chr20" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr20.bam" />
+<file id="n_bam_chr21" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr21.bam" />
+<file id="n_bam_chr22" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chr22.bam" />
+<file id="n_bam_chrM" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chrM.bam" />
+<file id="n_bam_chrX" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chrX.bam" />
+<file id="n_bam_chrY" in_dir="n_outdir" temp="True"  based_on="normal_split"
+          append=".REF_chrY.bam" />
+
+
+
+<file id="vcf_chr1" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr1.vcf" />
+<file id="vcf_chr2" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr2.vcf" />
+<file id="vcf_chr3" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr3.vcf" />
+<file id="vcf_chr4" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr4.vcf" />
+<file id="vcf_chr5" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr5.vcf" />
+<file id="vcf_chr6" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr6.vcf" />
+<file id="vcf_chr7" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr7.vcf" />
+<file id="vcf_chr8" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr8.vcf" />
+<file id="vcf_chr9" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr9.vcf"/>
+<file id="vcf_chr10" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr10.vcf" />
+<file id="vcf_chr11" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr11.vcf" />
+<file id="vcf_chr12" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr12.vcf" />
+<file id="vcf_chr13" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr13.vcf" />
+<file id="vcf_chr14" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr14.vcf" />
+<file id="vcf_chr15" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr15.vcf" />
+<file id="vcf_chr16" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr16.vcf" />
+<file id="vcf_chr17" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr17.vcf" />
+<file id="vcf_chr18" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr18.vcf" />
+<file id="vcf_chr19" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr19.vcf" />
+<file id="vcf_chr20" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr20.vcf" />
+<file id="vcf_chr21" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr21.vcf" />
+<file id="vcf_chr22" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chr22.vcf" />
+<file id="vcf_chrM" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chrM.vcf" />
+<file id="vcf_chrX" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chrX.vcf" />
+<file id="vcf_chrY" in_dir="outdir" temp="True"  based_on="sample_name"
+          append=".REF_chrY.vcf" />
+
+
+    <step name="T_Variant_Preproc">
+        <tool name="Variant_Preproc_1"
+            input="t_bam, t_outdir"
+            output="t_bam_dedupe,t_dedup_metrics"
+            description="variant_pre_proc_1.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="t_bam_dedupe, t_outdir, ref"
+            output="t_final_bam,t_final_bam_bai" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="t_final_bam, ref"
+            output="t_coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+    
+    <step name="N_Variant_Preproc">
+        <tool name="Variant_Preproc_1"
+            input="n_bam, n_outdir"
+            output="n_bam_dedupe,n_dedup_metrics"
+            description="variant_pre_proc_1_n.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="n_bam_dedupe, n_outdir, ref"
+            output="n_final_bam,n_final_bam_bai" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="n_final_bam,  ref"
+            output="n_coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+
+
+    <file id="tumor_split_error" temp="True" based_on="tumor_split" in_dir="outdir"
+          append="_error.txt" />
+       <file id="normal_split_error" temp="True" based_on="normal_split" in_dir="outdir"
+          append="_normal_error.txt" />
+   
+       <file id="index_error" temp="True"  in_dir="outdir"
+          filespec="index_error.txt" />
+
+
+<step name="bam_splitting">
+        <tool name="bamtools_split"
+            input="t_final_bam,tumor_split"
+            output="tumor_split_error"
+            description="bamtools_split.xml" />
+        <tool name="bamtools_split"
+            input="n_final_bam,normal_split"
+            output="normal_split_error"
+            description="bamtools_split.xml" />
+
+     <tool name="bamtools_split"
+            input="t_bam_chr1,t_bam_chr2,t_bam_chr3,t_bam_chr4,t_bam_chr5,t_bam_chr6,t_bam_chr7,t_bam_chr8,t_bam_chr9,t_bam_chr10,t_bam_chr11,t_bam_chr12,t_bam_chr13,t_bam_chr14,t_bam_chr15,t_bam_chr16,t_bam_chr17,t_bam_chr18,t_bam_chr19,t_bam_chr20,t_bam_chr21,t_bam_chr22,t_bam_chrM,t_bam_chrX,t_bam_chrY,n_bam_chr1,n_bam_chr2,n_bam_chr3,n_bam_chr4,n_bam_chr5,n_bam_chr6,n_bam_chr7,n_bam_chr8,n_bam_chr9,n_bam_chr10,n_bam_chr11,n_bam_chr12,n_bam_chr13,n_bam_chr14,n_bam_chr15,n_bam_chr16,n_bam_chr17,n_bam_chr18,n_bam_chr19,n_bam_chr20,n_bam_chr21,n_bam_chr22,n_bam_chrM,n_bam_chrX,n_bam_chrY,normal_split_error,tumor_split_error"
+            output="index_error"
+            description="samtools_index.xml" />
+    
+</step>
+    <!-- Call the snps and indels -->
+
+    <file id="snp_indel_vcf" based_on="sample_name" in_dir="outdir"
+          append="_mutect_snp_indel.vcf" />
+   
+          
+     <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+
+
+  <file id="variants_filtered" in_dir="outdir" based_on="sample_name"
+          append="_variants.DPfiltered.vcf" />
+
+     <file id="cosmic" input="True" 
+          filespec="/data/shared/cga_reference_data/hg38_201601/Sorted_Cosmicv80_Coding_Noncoding.vcf"/>
+       
+
+    <file id="variants_annotated" in_dir="outdir" based_on="sample_name"
+          append="_variants_microIndels.DPfiltered.Annotated.tab" />
+
+
+     <file id="variants_annotated_hardfiltered" in_dir="outdir" based_on="sample_name"
+          append="_variants_microIndels.Hardfiltered.Annotated.txt" />
+
+      <!-- added extra step to fix Adj SNP if any -->
+      <file id="final_bam" in_dir="outdir"  temp="False" based_on="sample_name"
+          append="_Merged_T_N.bam" />
+      <file id="final_bai" in_dir="outdir" temp="False"  based_on="sample_name"
+          append="_Merged_T_N.bai" />
+      <file id="fixAdjSNPTemp" in_dir="outdir" based_on="sample_name"
+           append="_variant_fixAdjSNP.temp.vcf" />
+      <file id="fixAdjSNPlog" in_dir="outdir" based_on="sample_name"
+          append="_AdjSNP.log.txt" />
+      <file id="noIds" in_dir="outdir" based_on="sample_name"
+           append="_variant_fixAdjSNP.noIds.vcf" />
+      <file id="fixAdjSNPOut" in_dir="outdir" based_on="sample_name"
+           append="_variant_fixAdjSNP.vcf" />
+
+
+
+    <step name="callers and variant pre_processing">
+        <tool name="Mutect2"
+            input="t_bam_chr1,n_bam_chr1,ref,dbsnp_144,index_error"
+            output="vcf_chr1"
+            description="t_n_mutect2.xml" />
+         <tool name="Mutect2"
+            input="t_bam_chr2,n_bam_chr2,ref,dbsnp_144,index_error"
+            output="vcf_chr2"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr3,n_bam_chr3,ref,dbsnp_144,index_error"
+            output="vcf_chr3"
+            description="t_n_mutect2.xml" />   
+       <tool name="Mutect2"
+            input="t_bam_chr4,n_bam_chr4,ref,dbsnp_144,index_error"
+            output="vcf_chr4"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr5,n_bam_chr5,ref,dbsnp_144,index_error"
+            output="vcf_chr5"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr6,n_bam_chr6,ref,dbsnp_144,index_error"
+            output="vcf_chr6"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr7,n_bam_chr7,ref,dbsnp_144,index_error"
+            output="vcf_chr7"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr8,n_bam_chr8,ref,dbsnp_144,index_error"
+            output="vcf_chr8"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr9,n_bam_chr9,ref,dbsnp_144,index_error"
+            output="vcf_chr9"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr10,n_bam_chr10,ref,dbsnp_144,index_error"
+            output="vcf_chr10"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr11,n_bam_chr11,ref,dbsnp_144,index_error"
+            output="vcf_chr11"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr12,n_bam_chr12,ref,dbsnp_144,index_error"
+            output="vcf_chr12"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr13,n_bam_chr13,ref,dbsnp_144,index_error"
+            output="vcf_chr13"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr14,n_bam_chr14,ref,dbsnp_144,index_error"
+            output="vcf_chr14"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr15,n_bam_chr15,ref,dbsnp_144,index_error"
+            output="vcf_chr15"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr16,n_bam_chr16,ref,dbsnp_144,index_error"
+            output="vcf_chr16"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr17,n_bam_chr17,ref,dbsnp_144,index_error"
+            output="vcf_chr17"
+            description="t_n_mutect2.xml" />
+
+        <tool name="Mutect2"
+            input="t_bam_chr18,n_bam_chr18,ref,dbsnp_144,index_error"
+            output="vcf_chr18"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr19,n_bam_chr19,ref,dbsnp_144,index_error"
+            output="vcf_chr19"
+            description="t_n_mutect2.xml" />
+
+
+         <tool name="Mutect2"
+            input="t_bam_chr20,n_bam_chr20,ref,dbsnp_144,index_error"
+            output="vcf_chr20"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr21,n_bam_chr21,ref,dbsnp_144,index_error"
+            output="vcf_chr21"
+            description="t_n_mutect2.xml" />
+        <tool name="Mutect2"
+            input="t_bam_chr22,n_bam_chr22,ref,dbsnp_144,index_error"
+            output="vcf_chr22"
+            description="t_n_mutect2.xml" />
+
+        <tool name="Mutect2"
+            input="t_bam_chrX,n_bam_chrX,ref,dbsnp_144,index_error"
+            output="vcf_chrX"
+            description="t_n_mutect2.xml" />
+            
+        <!--tool name="Mutect2"
+            input="t_bam_chrY,n_bam_chrY,ref,dbsnp_144,index_error"
+            output="vcf_chrY"
+            description="t_n_mutect2.xml" />
+
+        <tool name="Mutect2"
+            input="t_bam_chrM,n_bam_chrM,ref,dbsnp_144,index_error"
+            output="vcf_chrM"
+            description="t_n_mutect2.xml" /-->
+
+
+         <tool name="Variant_merge_raw"
+            input="ref,vcf_chr1,vcf_chr2,vcf_chr3,vcf_chr4,vcf_chr5,vcf_chr6,vcf_chr7,vcf_chr8,vcf_chr9,vcf_chr10,vcf_chr11,vcf_chr12,vcf_chr13,vcf_chr14,vcf_chr15,vcf_chr16,vcf_chr17,vcf_chr18,vcf_chr19,vcf_chr20,vcf_chr21,vcf_chr22,vcf_chrX"
+            output="snp_indel_vcf"
+            description="variant_merging.xml" />
+
+
+
+        <tool name="Variant_Filtration"
+            input="snp_indel_vcf"
+            output="variants_filtered"
+            description="variant_filtration.xml" />
+
+        <tool name="variant_fixAdjSNP"
+            input="variants_filtered,t_final_bam"
+            output="fixAdjSNPTemp,fixAdjSNPlog,noIds,fixAdjSNPOut"
+            description="variant_fixAdjSNP.xml" />
+
+        <tool name="Variant_Annotation"
+            input="fixAdjSNPOut, outdir,cosmic"
+            output="variants_annotated,variants_annotated_hardfiltered"
+            description="variant_annotation.xml" />
+
+
+    </step>
+
+ <file id="t_stats" in_dir="t_filter" filespec="*_stat" />
+                      
+<file id="n_stats" in_dir="n_filter" filespec="*_stat" />                
+
+   <file id="t_summary_stats" in_dir="outdir" based_on="sample_name" append="_tumor_summary_stats.txt" />
+   <file id="n_summary_stats" in_dir="outdir" based_on="sample_name" append="_normal_summary_stats.txt" />
+
+   <step name="Summarize">
+    <tool name="Aggregate_stats"
+     input="t_stats, t_dedup_metrics, t_coverage_metrics, variants_annotated_hardfiltered"
+     output="t_summary_stats"
+     description="aggregate_stats_updated.xml" />
+     
+      <tool name="Aggregate_stats"
+     input="n_stats, n_dedup_metrics,n_coverage_metrics, variants_annotated_hardfiltered"
+     output="n_summary_stats"
+     description="aggregate_stats_updated.xml" />
+     
+   </step>
+
+
+     <step name="REMOVEFILES">
+        <tool name="RemoveOtherFiles"
+          input="variants_annotated"
+          description="removeFiles.xml" />
+     </step>
+
+</pipeline>

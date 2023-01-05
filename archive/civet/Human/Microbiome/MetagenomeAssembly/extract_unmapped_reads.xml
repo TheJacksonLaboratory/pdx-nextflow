@@ -1,0 +1,23 @@
+<tool name="extract unmapped"
+    threads="1"
+    walltime="5:00:00"
+    tool_config_prefix="extract">
+    <description>
+        Write unmapped read pairs to fastq files using samtools
+    </description>
+    <!-- Files:
+        Ins:
+          1: A bam file
+        OutS:
+	  1: output fastq files (R1, R2)
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>samtools</module>
+
+ 
+    <command program="samtools fastq">
+        <version_command>samtools --version</version_command>
+        -G 0x2 -1 {out_1} -2 {out_2} {in_1}
+    </command>
+</tool>

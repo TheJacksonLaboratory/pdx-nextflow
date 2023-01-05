@@ -1,0 +1,5 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/agilent_SureSelect_V4_pChrM_probes.bed
+HSmetrics.TARGET_INTERVALS=/data/shared/cga_reference_data/agilent_SureSelect_V4_pChrM_probes_picard_updated.bed
+HSmetrics.BAIT_INTERVALS=/data/shared/cga_reference_data/agilent_SureSelect_V4_pChrM_probes_picard_updated.bed
+UnifiedGenotyper.sample_ploidy=4
+UnifiedGenotyper.targetfilegatk=/data/shared/cga_reference_data/agilent_SureSelect_V4_pChrM_probes.bed

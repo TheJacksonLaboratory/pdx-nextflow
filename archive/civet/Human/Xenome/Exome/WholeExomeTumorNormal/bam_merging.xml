@@ -1,0 +1,24 @@
+<tool name="bam_Merging" walltime="08:00:00" >
+    <description>
+        Merge normal and tumor bams to use in fixing the adjSNP
+    </description>
+    <!--
+        Ins:
+          1: t_final_bam
+          2: n_final_bam
+        Outs:
+	  1: final_bam
+      2: final_bai
+    -->
+    
+    <!-- Step Bam merging Calling -->
+    <module>java/1.7.0</module>
+
+<file id="picard" input="True"
+           filespec="/opt/compsci/picard/1.95/MergeSamFiles.jar" />
+
+  <command program="java">
+   -jar -Xmx12g {picard} SO=coordinate CREATE_INDEX=true I={in_1}.bam I={in_2}.bam O={out_1}
+  </command>
+
+</tool>

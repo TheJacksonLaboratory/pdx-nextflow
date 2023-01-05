@@ -1,0 +1,26 @@
+<tool name="MRPE_DOEMASE_Alignment"
+    threads="12"
+    tool_config_prefix="MRPE_DOEMASE_Alignment"
+    walltime="47:59:00"
+    mem="32">
+    <description>
+     This is the first step
+    </description>
+
+
+    <!-- Modules needed to run on the cluster -->
+
+   <module>Anaconda</module>
+   <module>bowtie/1.0.0</module>
+   <module>perl/cga</module>
+   <module>samtools/0.1.18</module>
+ 
+   <option name="threads" command_text="--threads" type="threads" />
+
+   <command program="">
+    zcat {in_1} | bowtie {threads} -q -a --best --strata --sam -v 3 {in_2} - | samtools view -bS - > {out_1} ;
+    zcat {in_3} | bowtie {threads} -q -a --best --strata --sam -v 3 {in_2} - | samtools view -bS - > {out_2}
+   </command>
+
+</tool>
+
