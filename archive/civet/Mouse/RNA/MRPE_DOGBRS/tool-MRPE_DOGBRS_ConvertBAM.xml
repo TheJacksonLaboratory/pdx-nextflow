@@ -1,0 +1,27 @@
+<tool name="MRPE_DOGBRS_ConvertBAM"
+    threads="1"
+    tool_config_prefix="MRPE_DOGBRS_ConvertBAM"
+    walltime="10:00:00"
+    mem="32">
+    <description>
+     This is the second step
+    </description>
+
+	<module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/5.26.0</module>
+    <module>samtools/0.1.18</module>
+	 
+	<command program="">
+        source activate gbrs	
+    </command>
+
+    <command program="gbrs">
+      bam2emase  -i {in_1} -m {in_2} -s A,B,C,D,E,F,G,H    -o {out_1}
+    </command>
+    <command program="gbrs">
+	  bam2emase   -i {in_3} -m {in_2} -s A,B,C,D,E,F,G,H   -o {out_2}
+    </command>
+
+</tool>
+

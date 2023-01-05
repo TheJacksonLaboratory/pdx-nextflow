@@ -1,0 +1,42 @@
+<tool name="Variant_Caller"  tool_config_prefix="HaplotypeGenotyper" threads="8"  walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: output(directory)
+	  3: ref
+	  4: target_bed
+        Outs:
+	  1: variants_raw
+    -->
+    
+    <!-- Step 4.1: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+
+    <!--
+	Run without threads and without downsampling to get consistent
+	results.
+    -->
+
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx8g -jar {gatk} -R {in_3}
+        -T HaplotypeCaller -I {in_1}
+         -dontUseSoftClippedBases
+        -o {out_1} -stand_call_conf 20.0 -nct 8
+        -stand_emit_conf 20.0 --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+
+
+</tool>

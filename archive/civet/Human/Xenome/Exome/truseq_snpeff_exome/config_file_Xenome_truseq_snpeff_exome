@@ -1,0 +1,5 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_TruSeq_Amplicon_targets_gatk_sorted.bed
+HSmetrics.targetfilepicard=/data/shared/cga_reference_data/hg38_201601/hg38_TruSeq_Amplicon_targets_gatk_sorted_picard.bed
+HSmetrics.baitfilepicard=/data/shared/cga_reference_data/hg38_201601/hg38_TruSeq_Amplicon_baits_sorted_picard.bed 
+UnifiedGenotyper.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_TruSeq_Amplicon_targets_gatk_sorted.bed
+pindel.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/hg38_TruSeq_Amplicon_targets_gatk_sorted.bed

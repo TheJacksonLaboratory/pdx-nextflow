@@ -1,0 +1,51 @@
+<tool name="MRPE_DOGBRS_Alignment"
+    threads="12"
+    tool_config_prefix="MRPE_DOGBRS_Alignment"
+    walltime="24:00:00"
+    mem="32">
+    <description>
+     This is the first step
+    </description>
+
+    <!-- Files:
+        Ins:
+          1: e1_trimmed
+          2: dataDir
+          3: outdir
+		  4: samplename
+		  5: dorefdir
+
+    -->
+    <!-- Modules needed to run on the cluster -->
+
+    <module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/5.26.0</module>
+    <module>samtools/0.1.18</module>
+ 
+	<option name="threads" type="threads" command_text="--threads" /> 
+	
+   	<dir id="reference_dir" input="False" filespec="reference_files" create="True" temp="True" />
+	
+	<file id="reference_1"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.1.ebwt" />
+	<file id="reference_2"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.2.ebwt" />
+	<file id="reference_3"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.3.ebwt" />
+	<file id="reference_4"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.4.ebwt" />
+	<file id="reference_5"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.rev.1.ebwt" />
+	<file id="reference_6"  filespec="/hpcdata/shared/gbrs_data/1.0/transcripts.rev.2.ebwt" />
+   
+	<file id="bwa_reference"  filespec="transcripts" in_dir="reference_dir" />
+
+   
+	<command program="cp">
+		{reference_1} {reference_2} {reference_3} {reference_4} {reference_5} {reference_6} {reference_dir}
+	</command> 
+	 
+	 
+    <command program="">
+      zcat {in_1}| bowtie {threads} -q -a --best --strata --sam -v 3 {bwa_reference} - | samtools view -bS - > {out_1} ;
+      zcat {in_3}| bowtie {threads} -q -a --best --strata --sam -v 3 {bwa_reference} - | samtools view -bS - > {out_2}
+    </command>
+
+</tool>
+

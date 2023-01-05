@@ -1,0 +1,117 @@
+<tool name="Variant_Caller"  tool_config_prefix="UnifiedGenotyper"  threads="8"  walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'"
+      exit_if_exists="in_5">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: output(directory)
+	  3: ref
+	  4: target_bed
+        Outs:
+	  1: variants_raw
+	  2: variants_filtered
+    -->
+    
+    <!-- Step 4.1: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+    <module>perl/cga</module>
+    <module>python/2.7.3</module>
+    <module>vcf-tools/0.1.12a</module>
+
+    
+        
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+   
+   <file id="dbsnp" input="True"
+        filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+
+   <file id="snpSift" input="True"
+        filespec="/opt/compsci/snpEff/4.1g/SnpSift.jar" />
+
+ <file id="vcf1" temp="True"
+        based_on="in_1" append=".DPfiltered.tmp.vcf" />
+<file id="vcf2" temp="True"
+        based_on="in_1" append=".additionalfilters.tmp.vcf" />
+<file id="vcf3" temp="True"
+        based_on="in_1" append=".additionalfilters1.tmp.vcf" />
+ <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+    <validate id="gatk" />
+    <validate id="dbsnp_144" />
+
+<file id="vcfbreakmulti" input="True"
+        filespec="/opt/compsci/vcflib/bin/vcfbreakmulti" />
+    
+<option name="targetgatk"   command_text="" value="/data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/hg38_agilent_SureSelect_V4_pChrM_probes_genename.bed"/>
+
+
+
+
+
+
+
+
+
+    <validate id="gatk" />
+   <validate id="snpSift" />
+
+
+
+<command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx2g -jar {gatk} -R {in_3}
+        -T UnifiedGenotyper -I {in_1}
+        --dbsnp {dbsnp_144} -glm BOTH -o {out_1} -stand_call_conf 50.0
+        -stand_emit_conf 30.0 -dt NONE -L {targetgatk} --sample_ploidy 4 --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+
+
+    
+ <command program="allele_depth_min_and_AF_from_ADs.py">
+        <!-- Compute coverage depth by adding allele counts.
+             Compute allele frequencies from allele counts.
+             Filter out any reads that don't have a minimum coverage
+             of 140.
+        -->
+        <version_command>allele_depth_min_and_AF_from_ADs.py -v</version_command>
+        {out_1} {vcf1} 5
+    </command>
+
+
+
+ <command program="java">
+        <version_command>java -jar {snpSift} 2>&amp;1 | grep version</version_command>
+        -jar {snpSift} annotate -id {dbsnp} {vcf1} > {vcf2}
+    </command>
+
+
+
+    <command program="java">
+         <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+         -Djava.io.tmpdir=$TMPDIR
+         -Xmx8g -jar {gatk} -T VariantFiltration -R {in_3}
+         -V {vcf2} -window 35 -cluster 3 -filterName FS -filter "FS &gt; 30.0" -filterName QD -filter "QD &lt; 2.0" -o {vcf3}
+    </command>
+
+
+<command program="cat">
+        <!-- This version command looks strange, but is correct. The
+        cat command has no versioning, but the vcfbreakmulti is
+        a script in the vcflib, so here we're getting its
+        version-->
+    	<version_command>java -jar {snpSift} 2>&amp;1 | grep version</version_command>
+        {vcf3} | {vcfbreakmulti} > {out_2}
+    </command>
+
+
+
+
+
+
+</tool>

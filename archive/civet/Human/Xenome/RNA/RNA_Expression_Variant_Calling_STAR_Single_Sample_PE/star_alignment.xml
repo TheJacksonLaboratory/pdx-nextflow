@@ -1,0 +1,31 @@
+<tool name="STAR_aln"
+    threads="12"
+    tool_config_prefix="STAR_aln"
+    walltime="23:00:00">
+    <description>
+        Align a pair of (filtered, trimmed) fastq files.  Any quality checking and trimming
+        should be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: end1.fastq
+          2: end2.fastq 
+          3: reference indices dir          
+        OutS:
+          1. genome.bam (based on sample name)
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+       <module>STAR/2.5.3</module>
+
+ 
+    <command program="">
+        base=`basename {out_1} Aligned.sortedByCoord.out.bam`
+    </command>
+
+    <command program="STAR">
+    --runThreadN 12 --genomeDir {in_3}  --readFilesIn  {in_1} {in_2}  --sjdbGTFfile  {in_4}  --outSAMtype BAM SortedByCoordinate  --twopassMode Basic --quantMode GeneCounts  --outFileNamePrefix $base --outFilterMultimapNmax  5 
+    </command>
+
+
+</tool>

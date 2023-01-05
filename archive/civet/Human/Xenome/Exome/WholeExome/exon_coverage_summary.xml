@@ -1,0 +1,51 @@
+
+
+<tool name="exon_coverage_summary"    threads="8" walltime="11:59:00" tool_config_prefix="exoncoverage"
+      error_strings="'##### ERROR MESSAGE:'">
+    
+  
+<!-- Inputs and Description:
+
+
+This series of scripts will help to calculate coverage per interval of bam file
+    in_1 : Realigned bam file
+    in_2: target file
+    Outputs:
+    out_1: The tab file with coverage .
+-->
+
+
+
+
+<module>bedtools/2.17.0</module>
+
+
+<option name="targetfile"   command_text="" value="/data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/hg38_agilent_SureSelect_V4_pChrM_probes_genename.bed"/>
+
+
+    <file id="tmp_bed"  temp="true" in_dir="in_3" filespec="tmp_genome_cov.bed" />
+
+
+
+
+
+<command program="bedtools">
+
+  <version_command> bedtools  -v</version_command>
+
+    bamtobed -i {in_1} > {tmp_bed}
+</command>
+
+
+
+ <command program="bedtools">
+
+  <version_command> bedtools -v</version_command>
+
+   coverage -a {targetfile} -b {tmp_bed}  > {out_1}
+
+</command>
+
+  
+ 
+</tool>

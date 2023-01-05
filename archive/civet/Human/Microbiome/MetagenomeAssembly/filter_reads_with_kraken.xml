@@ -1,0 +1,43 @@
+<tool name="kraken" mem="160" threads="10" walltime="05:00:00" tool_config_prefix="krakenf" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+   Run Kraken on paired reads, re-writes the reads not mapping to chrodata to output files
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: R1.fastq.gz
+    2: R2.fastq.gz
+    Outs:
+    1: kraken output 
+    2: kraken report
+    3: output R1.fastq.gz
+    4: output R2.fastq.gz
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<module>gcc</module>
+<module>blast+</module>
+<module>kraken2</module>
+
+<option name="db" command_text="" value="/projects/compsci/kraken2db/Oct18/" type="string" description="Kraken DB directory" display_name="kraken DB"/>
+<option name="confidence" command_text="--confidence" value="0.5" type="numeric" description="Confidence level to filter" display_name="confidence level"/>
+<option name="threads" command_text="--threads" type="threads" description="Number of threads to use" display_name="threads"/>
+<!-- call tool for operation -->
+<command program="kraken2">
+  {threads} {confidence} --db {db} --report {out_2} --paired --use-mpa-style --output {out_1} {in_1} {in_2} 
+</command>
+
+<!-- filter the input fastq files default is mammals -->
+<option name="taxonomy" command_text="--taxonomy" value="40674" type="string" description="TAXID to remove" display_name="filter TAXID"/>
+<command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+<command program="fasta_tools.py taxout">
+  --taxbase {db}/taxonomy {taxonomy} {in_1} {out_1} | gzip -c > {out_3}
+</command>
+<command program="fasta_tools.py taxout">
+  --taxbase {db}/taxonomy {taxonomy} {in_2} {out_1} | gzip -c > {out_4}
+</command>
+
+</tool>

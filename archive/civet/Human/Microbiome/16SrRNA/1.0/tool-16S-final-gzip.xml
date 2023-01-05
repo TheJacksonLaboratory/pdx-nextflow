@@ -1,0 +1,23 @@
+<tool name="16S-gzip"
+      threads="2"
+      walltime="4:00:00"
+      mem="8"
+      >
+  <description>
+    gzip all resulting large files 
+  </description>
+
+
+  <command program="gzip -q" delimiters='%%'>
+    fasta/*.fasta 2>&amp;1
+  </command>
+  <command program="gzip -q" delimiters='%%'>
+    *.fastq 2>&amp;1
+  </command>
+  <command program=""> rm -f *.fq </command>
+  <command program="">rm -r ref</command>
+ 
+
+  <command program="">touch {out_1}</command>
+
+</tool>

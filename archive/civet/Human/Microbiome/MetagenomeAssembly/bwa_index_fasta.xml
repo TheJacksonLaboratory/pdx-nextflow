@@ -1,0 +1,21 @@
+<tool name="index_bwa"
+    threads="12"
+    mem="60"
+    walltime="1:00:00"
+    tool_config_prefix="bwaidx">
+    <description>
+Index a fasta with BWA
+    </description>
+    <!-- Files:
+        Ins:
+          1: The assembled contigs
+        Outs:
+          1: Index prefix
+    -->
+       
+    <!-- Modules needed to run on the cluster -->
+    <module>bwa</module>
+    <command program="bwa index">
+        {in_1} -p {out_1}
+    </command>
+</tool>

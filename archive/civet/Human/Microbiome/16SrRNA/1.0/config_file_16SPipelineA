@@ -1,0 +1,16 @@
+tool-trimmomatic.minlen=MINLEN:100
+tool-trimmomatic.R1crop=HEADCROP:20
+tool-trimmomatic.R2crop=HEADCROP:17
+tool-pear.minoverlap=30
+tool-pear.maxoverlap=150
+tool-pear.mismatch=0.1
+tool-filter.minreadlength=350
+tool-PhiX.pairedinterleaved=t
+tool-PhiX.reference=/opt/compsci/Microbiome/16srRNA/1.0/Reference/NCBI_PhiX.fa
+tool-dehost.bitmask=/data/shared/Microbiome/16srRNA/1.0/hs38.fa.bitmask
+tool-dehost.srprism=/data/shared/Microbiome/16srRNA/1.0/hs38.fa.srprism
+tool-uchime.db=/data/shared/Microbiome/16srRNA/1.0/rRNA16S.gold.foruchime.fasta
+tool-RDPclassifyShscript.cutoff=0.5
+tool-RDPclassifyShscript.format=filterbyconf
+tool-16S-QCscript.scriptQC=/opt/compsci/Microbiome/16srRNA/1.0/Scripts/qc_16S_civet.pl
+tool-16S-QCscript.scriptAlert=/opt/compsci/Microbiome/16srRNA/1.0/Scripts/qc_16S_civet_alert.pl

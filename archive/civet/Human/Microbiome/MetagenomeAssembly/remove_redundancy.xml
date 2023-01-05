@@ -1,0 +1,27 @@
+<tool name="remove redundancy"
+    threads="12"
+    walltime="12:00:00"
+    tool_config_prefix="rmred">
+    <description>
+Remove redundancy in assembly files
+    </description>
+    <!-- Files:
+        Ins:
+          1: assembly fasta
+        OutS:
+	  1: output fasta
+          2: BLAST out file
+    -->
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <option name="minid" command_text="-m" value="99" type="numeric" description="Minimal identity to unite" display_name="identity"/>
+    <option name="mincov" command_text="-c" value="95" type="numeric" description="Minimal coverage" display_name="coverage"/>
+    <option name="threads" command_text="-t" type="threads" description="Number of threads to use" display_name="threads" />
+    <option name="blastev" command_text="-e" value="1e-10" type="numeric" description="BLAST evalue to include" display_name="BLAST evalue"/>
+    <command program="remove_redundancy.py">
+          {threads} {minid} {mincov} {blastev} -o {out_1} {in_1} {out_2} 
+    </command>
+    <command program="fasta_tools.py summary">
+        {out_1} > {out_1}.summary
+    </command>
+
+</tool>

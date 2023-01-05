@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#===============================================================================
+#         FILE: run_fastqc
+#        USAGE: ./run_fastqc fastq_folder_name [out_dir [gz?(0|1)]]
+#  DESCRIPTION: [z]cat all R1,R2 files, run fastqc on entire folder to out_dir
+#       AUTHOR: B. Leopold (cometsong) benjamin(dot)leopold(at)jax(dot)org
+#      CREATED: 2015-01-10 09:14:04-0500
+#      REVISED: 2015-04-20 09:48:26-0400    changed use to qc_cat_lanes_reads.py
+#===============================================================================
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~
+USAGE="Usage: $0 fastq_path [fastqc_out]"
+DEFAULT_FSQ_DIR="Need FASTQ Path!!  ${USAGE}"
+
+if [ -z ${FSQ_DIR+empty} ] ; then
+    FSQ_DIR=$( basename ${1?$DEFAULT_FSQ_DIR} )
+else
+    FSQ_DIR=${FSQ_DIR?$DEFAULT_FSQ_DIR}
+fi
+FQC_DIR=${2:-${FSQ_DIR/%_fastq/_qc}/fastqc}
+CPUS=8
+
+# test if FASTQ files already exist
+FSQ_FILE_TEST=( ${FSQ_DIR}/*.fastq* )
+
+SCRIPT_BASE="/data/weinstocklab/labscripts"
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Do it! ~~~~~
+if [ -r ${FSQ_FILE_TEST[0]} ] ; then
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ fastqc ~~~~~~
+    echo "--> Running fastqc on all fastq files in \"${FSQ_DIR}\","
+    echo "            output to ${FQC_DIR}"
+    mkdir -pv ${FQC_DIR}
+
+    module add python/2.7.8
+    # cat'ing all L1 and L2 fastq files to fastqc entire run
+    ${SCRIPT_BASE}/qc/qc_cat_lanes_reads.py -l 12 -d $FSQ_DIR
+
+    module add fastqc
+    FQC_FILES=( ${FSQ_DIR}/*.fastq* )
+    fastqc \
+        -o ${FQC_DIR} \
+        -f fastq \
+        --noextract \
+        --threads $CPUS \
+        ${FQC_FILES[@]}
+
+    # removing both cat'ed L1 and L2 fastq files
+    ${SCRIPT_BASE}/qc/qc_cat_lanes_reads.py -l 12 -d $FSQ_DIR -rm
+else
+    echo; echo "--> ERROR?? --> NO fastq files FOUND! (Looking in \"${FSQ_DIR}\")"
+fi
+

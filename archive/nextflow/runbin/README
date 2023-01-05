@@ -1,0 +1,11 @@
+
+This runbin has the bash scripts that invoke pdx nextflow pipelines.
+This runbin should be in the PATH of any user running the pipelines.
+
+Each script does some preliminaries then launches its pipeline using 'sbatch' (slurm).
+
+The automation service would utilize these scripts, as would any manual runs.
+
+
+The 'nextflow' instance here was downloaded from https://www.nextflow.io/ 
+(using the curl command in step 2)

@@ -1,0 +1,24 @@
+<tool name="refolder-16S"
+      threads="1"
+      walltime="1:00:00"
+      mem="1"
+      >
+  <description>
+    mv all processed files from Lei's single directory to the categorized folders
+  </description>
+
+  <!-- in_1 = final processed flowcell directory
+              Expecting:  /data/weinstocklab/projects/PROJ_desc/16S/processed/runs/FLOW
+  -->
+
+  <command program="" delimiters='@@'>
+    OUT_DIR="@in_1@" &amp;&amp;
+    PROJDIR=${OUT_DIR/*projects\/} &amp;&amp;
+    PROJCODE=${PROJDIR%%_*} &amp;&amp;
+    FLOWCELL=$(basename $PROJDIR) &amp;&amp;
+    /data/pbais/Microbiome/Blake/scripts/refolder_16S_batch_results.sh ${PROJCODE} ${FLOWCELL} pipeline_runs
+	
+    2>&amp;1
+  </command>
+
+</tool>

@@ -1,0 +1,181 @@
+<pipeline name="Tophat_MouseRNASeqSingleSamplePE.xml">
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        At first, these will all be real files.  Over time we may
+        make some of them tempfiles, to get cleaned up at the end.
+    -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <filelist id="fastqs" input="True" parameter="1" />
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="sample_name" based_on="fastqs" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_" />
+    <!-- Step 1 -->
+
+    <dir id="filter" filespec="filter" in_dir="outdir" />
+    <file id="e1_trimmed"  temp="True" in_dir="filter"
+                    based_on="fastqs" pattern="(.*)" replace="\1_filtered_trimmed" />
+    <file id="e2_trimmed"  temp="True" in_dir="filter"
+                    based_on="e1_trimmed" pattern="(.*)(_|\.)R1(.*)" replace="\1\2R2\3" />
+
+    <file id="ref" input="True" 
+          filespec="/hpcdata/shared/genomes/Mus_musculus/UCSC/mm10_3-18-2013/Sequence/WholeGenomeFasta/genome.fa"/>
+
+    <file id="refGTF" input="True"
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/UCSC_genes_chrM_genCode_GRCm38_p4.gtf"/>
+    <file id="refbowtie2_gene_name"
+          filespec="/hpcdata/shared/genomes/Mus_musculus/UCSC/mm10_3-18-2013/Sequence/Bowtie2Index/genome"/>
+    <file id="ref_transcriptome"
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/transcriptome_data/known_mm10" />
+          
+    
+
+    <dir id="mmr_data" filespec="/data/shared/mmr" create="False" />
+
+    <file id="dbsnp" filespec="dbSNP.mm10.tab.gz" in_dir="mmr_data" input="True" />
+
+
+
+
+   <!-- Step 1 -->
+    <step name="Qual_Stat">
+        <tool name="QnS"
+         input="fastqs, filter"
+         output="e1_trimmed, e2_trimmed"
+         description="qual_statistics_new.xml" />
+    </step>
+
+
+   <!-- Step 2 -->   
+
+    <!-- Output -->
+    <dir id="aln_paired_out" filespec="aln_paired_out" create="False" in_dir="outdir" />
+
+    <file id="accp_bam" filespec="accepted_hits.bam"  in_dir="aln_paired_out" />
+
+
+    <step name="Alignment">
+       <tool name="TopHat_Align"
+        input="e1_trimmed, e2_trimmed, refGTF, refbowtie2_gene_name,ref_transcriptome"
+        output="aln_paired_out, accp_bam"
+        description="tophat_alignment.xml" />
+    </step>
+
+          
+    <!-- Step 3 -->
+    <file id="read_group" temp="True" in_dir="outdir" filespec="read_group.txt" />
+    <file id="bam"         in_dir="outdir" temp="True" filespec="accepted_hits_with_read_group.bam" />
+    <file id="bam_index"   in_dir="outdir" temp="True" filespec="accepted_hits_with_read_group.bai" />
+    <file id="bam_reorder"  temp="True" in_dir="outdir"  based_on="sample_name" append="_final_read_group_reorder.bam"  />
+    <file id="bam_reorder_bai"  temp="True" in_dir="outdir"  based_on="sample_name" append="_final_read_group_reorder.bai"  />
+    <file id="aln_metrics" in_dir="outdir"  based_on="sample_name" append="_aln_metrics.txt" />
+
+    <step name="Alignment_Metrics">
+    <tool name="Read_group"
+     input="fastqs"
+     output="read_group"
+     description="read_group.xml" />
+
+     <tool name="Align_Metrics"
+      input="accp_bam, read_group, ref"
+      output="bam,bam_reorder,aln_metrics"
+      description="alignment_metrics.xml" />
+     </step>
+
+
+    <!-- Step 4 -->
+    <dir id="cufflinks_out" filespec="cufflinks_out" create="False" in_dir="outdir" />
+
+
+    <step name="Transcripts_Assembly_And_Abundance_Estimation">
+       <tool name="Assembly_Abundance_Est"
+          input="refGTF, ref, cufflinks_out, bam"
+          description="assembly_abundance_est.xml" />
+    </step>
+
+
+    <file id="HT_sam"       temp="True"  in_dir="outdir" based_on="sample_name" append="_HT_seq.sam"   />
+    <file id="HT_count"   in_dir="outdir" based_on="sample_name" append="_HT_seq.count" />
+
+    <!-- Step 5 -->
+    <step name="HTSeq_GeneMapped_RawCountReads">
+       <tool name="SortBamToSam_GeneMappedSamReadsCount"
+          input="bam, outdir, refGTF"
+          output="HT_sam,HT_count"
+          description="geneMapped_samReads_count.xml" />
+    </step>
+
+    <file id="bam_sort" in_dir="outdir" based_on="sample_name" temp="True"  append="_reorder_sort.bam" />
+    <file id="bam_sort_bai" in_dir="outdir" based_on="sample_name" temp="True"  append="_reorder_sort.bai" />
+    <file id="bam_dedupe" temp="True"  based_on="sample_name" append="_dedupe.bam" />                      
+    <file id="bam_dedupe_bai" temp="True"  based_on="sample_name" append="_dedupe.bai" />
+    <file id="dedup_metrics" in_dir="outdir" based_on="sample_name" append="_dup_metrics.dat" />
+    <file id="final_bam" in_dir="outdir" based_on="sample_name" append="_split.bam" />
+
+    <step name="Variant_Preprocessing">
+     <tool name="Variant_Preproc_1"
+      input="bam_reorder, outdir,ref"
+      output="bam_sort,bam_dedupe,dedup_metrics,final_bam"
+      description="variant_pre_proc_1.xml" />
+    </step>
+
+    <file id="variants_raw" in_dir="outdir" based_on="sample_name"
+                 append="_variants_raw.vcf" />
+
+    <file id="variants_filtered" in_dir="outdir" based_on="sample_name"
+              append="_variants_filtered.vcf" />
+
+    <step name="Variant_Calling">
+     <tool name="Variant_Caller"
+      input="final_bam, outdir, ref"
+      output="variants_raw"
+      description="variant_calling.xml" />
+
+
+     <tool name="Variant_Filtration"
+      input="ref, variants_raw"
+      output="variants_filtered"
+      description="variant_filtration.xml" />
+
+    </step>
+
+    <file id="variants_filtered_dbsnp" in_dir="outdir" based_on="sample_name"
+              append="_variants_filtered_dbsnp.vcf" />
+    <file id="variants_filtered_dbsnp_snpEff" in_dir="outdir" based_on="sample_name"
+              append="_variants_filtered_dbsnp_snpEff.vcf" />
+    <file id="variants_filtered_highestsnpEff" in_dir="outdir" based_on="sample_name"
+              append="_variants_filtered_highestsnpEff.vcf" />
+    <file id="snpeff_snp_all_summary"          in_dir="outdir" based_on="sample_name"
+              append="_snpeff_summary.html" />
+
+
+    <step name="Annotation">
+         <tool name="Variant_Annotation_dbSNP"
+          input="variants_filtered, dbsnp"
+          output="variants_filtered_dbsnp"
+          description="variant_annotation_dbSNP.xml" />
+
+        <tool name="Variant_Annotation_snpEff"
+          input="variants_filtered_dbsnp"
+          output="variants_filtered_dbsnp_snpEff,snpeff_snp_all_summary"
+          description="variant_annotation_snpEff.xml" />
+
+        <tool name="Variant_Highest_Impact"
+          input="ref,variants_filtered_dbsnp,variants_filtered_dbsnp_snpEff,variants_filtered_dbsnp"
+          output="variants_filtered_highestsnpEff"
+          description="variant_highest_impact.xml" />
+   </step>
+
+
+</pipeline>

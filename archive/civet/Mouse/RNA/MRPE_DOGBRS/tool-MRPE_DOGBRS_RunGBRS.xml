@@ -1,0 +1,98 @@
+<tool name="MRPE_DOGBRS_RunGBRS"
+    threads="1"
+    tool_config_prefix="MRPE_DOGBRS_RunGBRS"
+    walltime="24:00:00"
+    mem="32">
+    <description>
+     This is the third step
+    </description>
+
+    <!-- Files:
+        Ins:
+	input=
+	1. R1transcriptomeH5, 
+	2. R2transcriptomeH5, 
+	3. gene2transcript, 
+	4. hybridizedtargetsinfo, 
+	5. tranprob, 
+	6. avecs, 
+	7. refgeneposordered, 
+	8. refgenomegrid, 
+	9. noYnoMT, 
+	10. outstring
+    
+    	Outs:
+	1. R1transcriptomeH5compressed, 
+	2. R2transcriptomeH5compressed, 
+	3. gbrsinterpolatedgenoprobs, 
+	4. combinetranscriptomeh5, 
+	5. combinedcompressedh5 , 
+	6. multiwaygenes, 
+	7. reconstructedgeno, 
+	8. reconstructednpz, 
+	9. genoprobs, 
+	10. plottedgenomepdf
+    -->
+    
+    <module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/5.26.0</module>
+    <module>samtools/0.1.18</module>
+
+	
+	<option name="Model"  command_text="-M" type="select" description="Multiread mode ID: 1 - Gene-&gt;Allele-&gt;Isoform, 2 - Gene-&gt;Isoform-&gt;Allele, 3 - Gene-&gt;(Isoform*Allele), 4 - Gene*Isoform*Allele">
+        <select>1</select>
+        <select default="true">2</select>
+        <select>3</select>
+        <select>4</select>
+    </option>
+    
+    <option name="readLength"  display_name="Read Length"  command_text="-r"
+      type="numeric"  value="100"  description="Read Length" />
+    
+    <option name="EMiteration"  display_name="EM iterations"  command_text="-m"
+      type="numeric"  value="999"
+      description="maximum number of EM iterations" />
+    
+    <option name="tolerance"  command_text="-t" type="numeric"  value="0.0001"
+      description="Tolerance for the termination of EM" />
+    
+    <option name="pseudocount" command_text="-p" type="numeric" value="0.0" 
+      description="Pseudocount for allele specificity"/>
+      
+    <command program="">
+        source activate /opt/compsci/gbrs/venv
+		
+    </command>
+	 
+	<command program="">
+	  export GBRS_DATA=/hpcdata/shared/gbrs_data/1.0 
+	</command>
+
+    <command program="gbrs">
+	  compress -i {in_1}  -o {out_1}
+    </command>
+    <command program="gbrs">
+	  compress -i {in_2}  -o {out_2}
+    </command>
+    <command program="gbrs">
+      compress -i {out_1},{out_2}  -o {out_5}
+    </command>
+    <command program="gbrs">	
+	  quantify -i {out_5}  -g {in_3} -L {in_4} -o {in_10} -M 4 {EMiteration}  {pseudocount} {tolerance}  --report-alignment-counts
+    </command>
+    <command program="gbrs">
+      reconstruct -e {out_6} -t {in_5} -x {in_6} -g {in_7} -o {in_10}
+    </command>
+    <command program="gbrs">	
+      quantify -i {out_5}  -G {out_7} -g {in_3}  -L {in_4} -o {in_10}  {Model} {EMiteration}  {pseudocount} {tolerance} --report-alignment-counts
+    </command>
+    <command program="gbrs">
+      interpolate -i {out_8} -g {in_8} -p {in_7} -o {out_3}
+    </command>
+    <command program="gbrs">
+      plot -i {out_3} -o {out_10} -n {in_10}
+    </command>
+
+</tool>
+

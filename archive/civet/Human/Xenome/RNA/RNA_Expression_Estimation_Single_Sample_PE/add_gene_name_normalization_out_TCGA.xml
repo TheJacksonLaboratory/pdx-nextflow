@@ -1,0 +1,23 @@
+<tool name="AddName_and_Normalization_TCGA"  tool_config_prefix="Add_GeneName_TCGA" walltime="01:00:00">
+  <description>
+    Add geneName to RSEM isoforms.results file
+  </description>
+
+  <!--
+      Files:
+      Ins:  *.TCGA.genes.results
+      Ins:  *.TCGA.isoforms.results
+      Outs: *.TCGA.genes.results.Normalized
+      Outs: *.TCGA.isoforms.results.Normalized
+  -->
+  <!-- Modules needed to run on the cluster -->
+     
+  <module>R</module>
+  <module>perl/cga</module>
+
+  <command program="GeneName_and_Normalization_TCGA.pl">
+   -i1 {in_1} -i2 {in_2} 
+  </command>
+
+
+</tool>

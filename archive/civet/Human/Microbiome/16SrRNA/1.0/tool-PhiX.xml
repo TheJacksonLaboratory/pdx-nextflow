@@ -1,0 +1,25 @@
+<tool name="Phix"
+      threads="1"
+      tool_config_prefix="tool-PhiX">
+  <description>
+    PhiX removal
+  </description>
+   <file id="prefix" based_on="in_1" pattern="(.*).assembled.Filtered.fastq" replace="\1" />
+   <file id="tmp1" based_on="prefix" append=".outPhix.fq" temp="True"/>
+  
+   
+   <module>bbmap</module>
+  
+  <option name="pairedinterleaved" command_text="int=" value="t"/>
+  <option name="reference" command_text="ref=" value="/opt/compsci/Microbiome/16srRNA/1.0/Reference/NCBI_PhiX.fa"/>
+    
+  <command program="bbsplit.sh">
+  in={in_1} {reference} basename={out_2} outu={out_1} {pairedinterleaved}
+  </command>
+  <command program="">
+        <version_command> echo Phix Removal: bbmap 37.02</version_command>
+        myprefix=` basename {prefix} `;
+        echo "QC_Phix" $myprefix $(echo $(wc -l {out_1} |cut -d" " -f1 )/4|bc) | tee -a $myprefix.QC.log
+   </command>
+  
+</tool>

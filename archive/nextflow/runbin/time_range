@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# show the datetime range of all files in dir.
+# useful in determining elapsed time for pipeline runs... cd to result folder first.
+
+ls -l --time-style="+%Y-%m-%d--%H:%M" | awk '{ print $6 }' | sort

@@ -1,0 +1,22 @@
+<tool name="merge files"
+    threads="1"
+    walltime="5:00:00"
+    tool_config_prefix="merge">
+    <description>
+        Cat all fasta files to one file
+    </description>
+    <!-- Files:
+        Ins:
+          1: list of fasta files
+        OutS:
+	  1: output fasta file
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+   
+
+ 
+    <command program="cat">
+        {in_1} > {out_1} 
+    </command>
+</tool>

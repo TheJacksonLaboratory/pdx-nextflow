@@ -1,0 +1,20 @@
+<tool name="ChIP_Peak_Anno" tool_config_prefix="peakanno"	walltime="2:00:00">
+        <description>
+                Creates peak annotation outputs from R package ChIPpeakanno
+        </description>
+
+        <module>R/3.6.1</module>
+
+<file id="peak_anno_log"  filespec="peak_anno_log.txt" />
+
+
+		<option name="maxgap" command_text=""	value="100"	/>
+
+		<command program="bdg_final.sh">
+                {in_1}
+        </command> 
+
+        <command program="ChIPpeakAnno.R">
+                {in_1} {in_2} {maxgap} {out_1} > {peak_anno_log} 2>&amp;1
+        </command> 
+</tool> 

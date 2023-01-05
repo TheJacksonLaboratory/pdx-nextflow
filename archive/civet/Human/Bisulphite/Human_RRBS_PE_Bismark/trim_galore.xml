@@ -1,0 +1,63 @@
+<tool name="trim_galore" tool_config_prefix="trim_gal"  walltime="23:00:00" threads="4">
+    <!-- What does this tool do? -->
+    <description>
+        Checks paired end fastq files for overall quality, and performs
+        some quality control
+    </description>
+    
+    <!--
+        Files passed to this tool, ins and outs:
+        Ins: 
+          1: fastqs
+          2: outdir
+        Outs:
+    -->
+    
+    <!-- Specify any modules needed for this tool -->
+
+    <module>java</module>
+    <module>fastqc</module>
+    <module>python</module>
+    <module>perl/cga</module>
+    <module>bismark/0.13.0</module>
+
+    <command program="force_gd_graph.pl" />
+    
+
+<!--
+     Keeping this file for Incase need to use different Adaptor in future
+    <file id="adaptor" input="True"               filespec="/data/shared/research_pipelines_reference_data/human/RNA/fastqc_contaminant_list"/>
+-->
+
+
+<!-- QC before trimming to see the quality and adaptor level -->
+
+     <command program="fastqc">
+ 
+      -o {in_2} -t 4 {in_1}      
+
+     </command>
+
+
+<!-- Actual QC using trim_galore -->
+
+    <option name="trimLength"    display_name="Trim Length"        command_text="--length" type="numeric"   value="30" 
+      description="Discard reads that became shorter than this length because of either quality or adapter trimming. A value of 0 effectively disables this behavior. For paired-end files, both reads of a read-pair need to be longer than bp to be printed out to validated paired-end files" />
+    <option name="qualThreshold" display_name="Quality Threshold"  command_text="-q"             type="numeric"   value="30"
+      description="Trim low-quality ends from reads in addition to adapter removal. For RRBS samples, quality trimming will be performed first, and adapter trimming is carried in a second round. Other files are quality and adapter trimmed in a single pass. The algorithm is the same as the one used by BWA"/>
+    <option name="adapOverlap"   display_name="Adaptor Overlap"    command_text="--stringency"   type="numeric"   value="1"
+      description="Overlap with adapter sequence required to trim a sequence. Defaults to a very stringent setting of 1, i.e. even a single base pair of overlapping sequence will be trimmed of the 3' end of any read." />
+    <option name="adaptorSeq"    display_name="Adaptor Sequence"   command_text="-a"             type="string"    value="GATCGGAAGAGCACACG"
+      description="Adapter sequence to be trimmed." />
+    <option name="rrbs_option"   display_name="RRBS"               command_text="--rrbs"         type="boolean"   value="true"
+      description="Specifies that the input file was an MspI digested RRBS sample (recognition site: CCGG). Sequences which were adapter-trimmed will have a further 2 bp removed from their 3' end. This is to avoid that the filled-in C close to the second MspI site in a sequence is used for methylation calls. Sequences which were merely trimmed because of poor quality will not be shortened further." />
+    <option name="non_directional" display_name="Non-Directional"   command_text="--non_directional" type="boolean" value="true"
+      description="Selecting this option for non-directional RRBS libraries will screen quality-trimmed sequences for CAA or CGA at the start of the read and, if found, removes the first two base pairs. Like with the option --rrbs this avoids using cytosine positions that were filled-in during the end-repair step. --non_directional requires --rrbs to be specified as well" />   
+    
+    <command program="trim_galore"> 
+
+    --paired {rrbs_option}  {non_directional} {trimLength} {qualThreshold}  {adapOverlap}  {adaptorSeq}  --fastqc {in_1} 
+
+    </command>
+
+</tool>

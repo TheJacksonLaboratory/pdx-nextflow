@@ -1,0 +1,48 @@
+<tool name="update_kraken" threads="10" walltime="12:00:00" tool_config_prefix="upkraken" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+   Run get_bin_txid.py to generate a fasta file and then
+   copy standard kraken DB and add the fasta file to it
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: kraken output
+    2: metabat bins dir
+    3: checkm summary file
+    4: fasta file
+    5: checkm tree qa file
+    Outs:
+    1: new fasta file name
+    2: kraken database folder 
+    3: checkm output file with taxonomic data
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<module>gcc</module>
+<module>blast+</module>
+<module>kraken2</module>
+<command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+<option name="db" command_text="" value="/projects/compsci/kraken2db/Oct18/" type="string" description="kraken DB location" display_name="kraken DB"/>
+
+<option name="completeness" command_text="--completeness" value="60" type="numeric" description="Minimal bin completeness to include in new DB" display_name="bin minimal completeness"/>
+<option name="contamination" command_text="--contamination" value="40" type="numeric" description="Maximal contamination value of bin to be included in the new DB" display_name="bin maximal contamination"/>
+<option name="threads" command_text="--threads" type="threads" description="Number of threads to use" display_name="threads" />
+<command program="get_bin_txid.py">
+  --taxbase {db}/taxonomy --report {out_3} -o {out_4} -t {in_5} {completeness} {contamination} {in_1} {in_2} {in_3} {in_4} > {out_1}
+</command>
+
+<command program="cp">
+  -a {db}/library {db}/taxonomy {out_2}
+</command>
+
+<command program="kraken2-build">
+  --db {out_2} --add-to-library {out_1} 
+</command>
+<command program="kraken2-build">
+  --build {threads} --db {out_2} 
+</command>
+
+</tool>

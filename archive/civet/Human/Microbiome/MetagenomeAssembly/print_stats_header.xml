@@ -1,0 +1,11 @@
+<tool name="stats_header"
+    threads="1"
+    tool_config_prefix="sh">
+    <description>
+      Print the stats header
+    </description>
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <command program="remapping_stats.py">
+        -d > {out_1}
+    </command>
+</tool>

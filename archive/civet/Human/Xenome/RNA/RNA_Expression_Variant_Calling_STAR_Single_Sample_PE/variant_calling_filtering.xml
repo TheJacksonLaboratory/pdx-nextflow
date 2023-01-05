@@ -1,0 +1,85 @@
+<tool name="Variant_Caller"  tool_config_prefix="HaplotypeGenotyper" threads="8"  walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: output(directory)
+	  3: ref
+        Outs:
+	  1: variants_raw
+	  2: variants_flt
+    -->
+    
+    <!-- Step 4.1: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+
+ <file id="vcf1"  temp ="True" 
+    	filespec="gatk_filtered.vcf" />
+<file id="vcf2"  temp ="True" 
+    	filespec="gatk_filtered_DP_filtered.vcf" />
+
+    <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+ <validate id="dbsnp_144" />
+
+
+
+    <!--
+	Run without threads and without downsampling to get consistent
+	results.
+    -->
+
+java -jar GenomeAnalysisTK.jar -T HaplotypeCaller -R ref.fasta -I input.bam -dontUseSoftClippedBases -stand_call_conf 20.0 -o output.vcf
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx8g -jar {gatk} -R {in_3}
+        -T HaplotypeCaller -I {in_1} --dbsnp {dbsnp_144}
+        -dontUseSoftClippedBases
+        -o {out_1} -stand_call_conf 20.0 -nct 8
+        --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+
+     <command program="java">
+     -Djava.io.tmpdir=$TMPDIR
+     -Xmx2g -jar {gatk}  -R {in_3} -T VariantFiltration --out {vcf1}
+     --variant {out_1} 
+     -window 35 -cluster 3
+     --filterExpression "DP &lt; 5"
+     --filterName "LowCoverage"    
+     --filterExpression "QD &lt; 2.0"
+     --filterName "LowQD"
+   </command>
+
+
+   <command program="allele_depth_min_and_AF_from_ADs.py">
+        <!-- Compute coverage depth by adding allele counts.
+             Compute allele frequencies from allele counts.
+             Filter out any reads that don't have a minimum coverage
+             of 15
+        -->
+        <version_command>allele_depth_min_and_AF_from_ADs.py -v</version_command>
+        {vcf1} {vcf2} 5
+    </command>
+
+
+
+ <command program="caller_add_gatk.sh" >
+       {vcf2} {out_2}  
+    </command>
+
+
+
+
+
+</tool>

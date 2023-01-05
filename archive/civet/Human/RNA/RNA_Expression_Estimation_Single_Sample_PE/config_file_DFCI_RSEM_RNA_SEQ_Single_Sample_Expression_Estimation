@@ -1,0 +1,6 @@
+filter_trim.qual_cutoff= 50 ####At least 50 % of reads of high quality
+rsem_aln_exp.phredquals= --phred33-quals
+rsem_aln_exp.seed-length= 25
+rsem_aln_exp.strand-specific= 0.5      ####Add "0 or 1" for JAX sequenced strand specific add 0 (though confirm ith GT) ######## Probability of generating a read from the forward strand of a transcript. Set to 1 for a strand-specific protocol where all (upstream) reads are derived from the forward strand, 0 for a strand-specific protocol where all (upstream) read are derived from the reverse strand, or 0.5 for a non-strand-specific protocol. (Default: 0.5)
+gatkcoverage.targetfile= /data/shared/DFCI_reference_data/DFCI_Homoseq_hg38_targets_genename.bed  ## Replace with custom target file
+gatkcoverage.exomefile= /data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/hg38_agilent_SureSelect_V4_pChrM_probes_genename.bed ## using JAX exome as DFCI has target only 

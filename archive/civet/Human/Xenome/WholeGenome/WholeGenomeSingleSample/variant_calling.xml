@@ -1,0 +1,84 @@
+
+
+<!--
+Caution: This file has a clone, variant_calling_diploid.xml. Any change made
+here must be evaluated, to see whether it should be made there, as
+well!
+
+The only intended difference between this file and variant_calling_diploid.xml
+is that this file has the UnifiedGenotyper option
+dash-dash sample_ploidy 4 specified. (Can't use a dash-dash sequence
+within an html comment, sorry...)
+
+YOU HAVE BEEN WARNED!!!
+-->
+<tool name="Variant_Caller" walltime="23:59:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Actually call the variants from our pre-processed BAM file.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: output(directory)
+	  3: ref
+	  4: target_bed
+        Outs:
+	  1: variants_raw
+    -->
+    
+    <!-- Step 4: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+<module>perl/cga</module>
+
+<module>vcf-tools/0.1.12a</module>
+
+
+
+
+    <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+ 
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+
+
+<command program="">
+
+    ib=`basename {in_4}`
+
+    </command>
+
+
+   
+    <validate id="gatk" />
+    <validate id="dbsnp_144" />
+
+  
+
+    <!--
+	Run without threads and without downsampling to get consistent
+	results.
+    -->
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx2g -jar {gatk} -R {in_3}
+        -T UnifiedGenotyper -I {in_1}
+        --dbsnp {dbsnp_144} -glm BOTH -o {out_1} -stand_call_conf 50.0
+        -stand_emit_conf 30.0 -dt NONE  --sample_ploidy 4 --disable_auto_index_creation_and_locking_when_reading_rods -L $ib
+    </command>
+    
+
+
+  
+
+
+</tool>
+
+
+
+ 
+   
+    

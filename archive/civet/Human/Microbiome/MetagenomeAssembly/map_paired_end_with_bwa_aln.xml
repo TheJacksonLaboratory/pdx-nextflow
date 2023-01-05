@@ -1,0 +1,56 @@
+<tool name="map_with_bwa_aln"
+    threads="12"
+    mem="60"
+    walltime="24:00:00"
+    tool_config_prefix="bwaaln">
+    <description>
+        Use BWA-ALN to map paired-end reads to the reference metagenome. Alignment is relatively strict
+    </description>
+    <!-- Files:
+        Ins:
+          1: R1.fastq.gz
+          2: R2.fastq.gz
+          3: The assembled contigs
+        OutS:
+          1: sai 1
+          2: sai 2
+	  3: bam file with mapping
+          4: statistics of mapping
+          5: index
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>bwa</module>
+    <module>python</module>
+    <module>samtools</module>
+    <!--
+        Files we have to verify as unchanged, in addition to the commands.
+        (Command program names are automatically added to the validate list,
+        so they don't need to be added here. (Here, the reference sequence.)
+    -->
+    <string id="lname" based_on="out_1" pattern=".*/(.*)/$" replace="\1"/>
+    <option name="seedmm" command_text="-k" value="1" />
+    <option name="globmm" command_text="-n" value="3" />
+    <option name="seedlen" command_text="-l" value="32" />
+    <option name="maxR" command_text="-R" value="5" />
+    <option name="threads" command_text="-t" type="threads" description="Number of threads to use" display_name="threads" />
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <command program="bwa index">
+        {in_3} -p {out_5}
+    </command>
+    <command program="bwa aln">
+        {seedmm} {globmm} {seedlen} {maxR} {threads} {out_5} {in_1} > {out_1}
+    </command>
+    <command program="bwa aln">
+        {seedmm} {globmm} {seedlen} {maxR} {threads} {out_5} {in_2} > {out_2}
+    </command>
+    <command program="bwa sampe">
+        {out_5} {out_1} {out_2} {in_1} {in_2} -r $(read_group_from_fastq.py {in_1}) | samtools view -b --threads 12 - |samtools sort --threads 12 - -o {out_3}
+    </command>
+    <command program="samtools index">
+        {out_3}
+    </command>
+    <command program="remapping_stats.py">
+        {out_3} > {out_4}
+    </command>
+</tool>

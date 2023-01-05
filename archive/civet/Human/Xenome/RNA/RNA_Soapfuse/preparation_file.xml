@@ -1,0 +1,40 @@
+<tool name="Preparation" walltime="4:00:00">
+    <description>
+        Prepares files and sample list to run soapfuse.
+    </description>
+    <!--
+        Ins:
+	  1: human_1
+	  2: human_2
+      3: sample_name
+      4: stats
+        Outs:
+	  1: samplelist
+      2: fastq_1
+      3: fastq_2
+
+    -->
+
+    <!-- the effect of the following two commands are to set two env variables,
+         sn and ln -->
+    <command program="">
+        sn=`basename {in_3}`
+    </command>
+    
+    <command program=""  delimiters="##">
+        ln=`cat #in_4# | awk 'BEGIN {FS="\t"} $1=="Min Trimmed Length"' | awk 'BEGIN {FS="\t"} {if ($3 > $2) print $2; else print $3}'`
+    </command>
+    
+    <command program="echo">
+        -e "$sn\tLib\thuman\t$ln" > {out_1}
+    </command>
+
+    <command program="gzip">
+        -c {in_1} > {out_2}
+    </command>
+
+    <command program="gzip">
+        -c {in_2} > {out_3}
+    </command>
+    
+</tool>

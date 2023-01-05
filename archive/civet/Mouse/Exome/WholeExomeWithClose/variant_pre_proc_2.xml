@@ -1,0 +1,84 @@
+<tool name="Variant_Pre_Processing_2"  tool_config_prefix="VaPrePro_2"  threads="12" walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        GATK steps to get ready for variant calling. Part 2 of 3.
+	We may want to merge this back into part 1.
+    </description>
+    <!-- Files used:
+        Ins:
+          1: bam_dedupe
+          2: output(directory)
+          3: ref
+          4: target_bed (GATK version)
+          5: known_snps
+          6: known_indels
+        Outs:
+          1: realigned_BQSR_bam
+    -->
+    <module>GATK/3.4-0</module>
+    <module>java/1.7.0</module>
+
+    <file id="gatk"
+	  filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+    <validate id="gatk" />
+    <validate id="in_3" />
+    <validate id="in_4" />
+    <validate id="in_5" />
+    <validate id="in_6" />
+
+    <option name="targetfilegatk"             command_text="-L" value="/data/shared/mmr/target_gatk.bed" />
+
+    <!--
+	Step3.3: Realignment around indels Part I
+	(Target Interval Creation)
+      -->
+    <file id="aligner_intervals" temp="True" in_dir="in_2"
+          filespec="aligner.intervals" />
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx12g -jar {gatk} -I {in_1}
+        -R {in_3} -T RealignerTargetCreator -nt 12 --disable_auto_index_creation_and_locking_when_reading_rods 
+        -o {aligner_intervals}
+	{targetfilegatk}
+    </command>
+
+    <!-- Step3.4: Realignment around indels Part II (Performing the 
+        local re-alignment) -->
+    <file id="realigned_bam" temp="True" filespec="realigned.bam"
+          in_dir="in_2" />
+
+    <!-- Not referenced in any command, but defining it as a temp
+	 allows it to be cleaned up... -->
+    <file id="realigned_bai" temp="True" filespec="realigned.bai"
+          in_dir="in_2" />
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx12g -jar {gatk} -I {in_1} -R {in_3} -T IndelRealigner 
+        -targetIntervals {aligner_intervals} -o {realigned_bam} --disable_auto_index_creation_and_locking_when_reading_rods
+	{targetfilegatk}
+    </command>
+
+    <!-- Step3.5a: Base Quality Recalibration Part I-->
+    <file id="recal_data" in_dir="in_2"  temp="True"  filespec="recal_data.grp" />
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx12g -jar {gatk} 
+        -T BaseRecalibrator -I {realigned_bam} -R {in_3} 
+        -knownSites {in_5} -knownSites {in_6} -nct 8  --disable_auto_index_creation_and_locking_when_reading_rods
+        -o {recal_data} 
+    </command>
+
+    <!--
+	Step3.5c: Base Quality Recalibration Part III 
+	(printing the reads)
+      -->
+    <command program="java">
+        -Xmx12g -jar {gatk}
+        -T PrintReads -R {in_3} -I {realigned_bam}
+        -BQSR {recal_data} -o {out_1}  -nct 8 --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+</tool>

@@ -1,0 +1,111 @@
+<pipeline name="p16S">
+<!--
+civet_run -.xml input-dir  output-dir
+
+-->
+
+  <dir id="indir" parameter="1" input="True" />
+  <dir id="working-dir" parameter="2" default_output="True" />
+  <foreach id="foreach1" dir="indir">
+    <file id="r1" pattern="(?!.*ndetermined).*_R1_.*fastq" />
+    <related id="r2" input="True" pattern="(.*)_R1_(.*fastq.*)" replace="\1_R2_\2" />
+    <related id="trim1"  input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1_R1_trim.fastq" temp="True"/>
+    <related id="trim2"  input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1_R2_trim.fastq" temp="True"/>
+    <step name="">
+      <tool name="trimmomatic"
+        input="r1, r2"
+        output="trim1, trim2"
+        description="tool-trimmomatic.xml"
+        />
+    </step>
+
+    <related id="ext" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.assembled.fastq" temp="True"/>
+    <related id="not1" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.unassembled.forward.fastq" temp="True" />
+    <related id="not2" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.unassembled.reverse.fastq" temp="True" />
+    <related id="not3" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.discarded.fastq" temp="True" />
+    <step name="">
+      <tool name="pear"
+        input="trim1, trim2"
+        output="ext, not1, not2, not3"
+        description="tool-pear.xml"
+        />
+    </step>
+	
+	<related id="Filterclean" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.assembled.Filtered.fastq" temp="True" />
+    <related id="Filternotclean" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.Filternotclean.fastq" temp="True" />
+	    <step name="">
+      <tool name="filter"
+        input="ext"
+        output="Filterclean, Filternotclean"
+        description="tool-filter.xml"
+        />
+    </step>
+	
+	<related id="Phixclean" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.assembledPhixRemoved.fastq" temp="True" />
+    <related id="Phixnotclean" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.outPhix.%.fq" />
+    
+    <step name="">
+      <tool name="Phix"
+        input="Filterclean"
+        output="Phixclean, Phixnotclean"
+        description="tool-PhiX.xml"
+        />
+    </step>
+	
+	
+    <related id="log" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.log" temp="True"/>
+    <related id="aln" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.aln" temp="True"/>
+    <related id="chimera" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.chimera" temp="True" />
+    <related id="list" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.list" temp="True" />
+    <related id="clean" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.clean.fastq" temp="True"/>
+    <related id="dehost" input="False" pattern="(.*)_R1_(.*fastq.*)" replace="\1.clean.dehost.fastq" />
+	
+    <step name="">
+      <tool name="uchime"
+        input="Phixclean"
+        output="log, aln, chimera, list, clean"
+        description="tool-uchime.xml"
+        />
+      <tool name="dehost"
+        input="clean"
+        output="dehost"
+        description="tool-dehost.xml"
+        />
+		
+		
+      <tool name="RDPclassify"
+        input="working-dir, dehost"
+        description="tool-RDPclassifyShscript.xml"
+        />
+    </step>
+
+  </foreach>
+
+  <filelist id="myfilelist" in_dir="indir" pattern="*.QC.log" foreach_id="foreach1"/>
+
+  <step name="">
+    <tool name="QC"
+      input="myfilelist"
+      description="tool-16S-QCscript.xml"
+      />
+  </step>
+
+  <file id='gzip-complete' temp='False' create='false' parameter='2' append='.gzip-complete' />
+
+  <step name="">
+    <tool name="final-gzip"
+      input="myfilelist"
+      output="gzip-complete"
+      description="tool-16S-final-gzip.xml"
+      />
+  </step>
+
+<!-- Pbais - Removing this step because we do not need it
+  <step name="">
+    <tool name="refoldering"
+      input="working-dir,gzip-complete"
+      description="tool-16S-refolder.xml"
+      />
+  </step>
+  -->
+</pipeline>

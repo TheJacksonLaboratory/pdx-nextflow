@@ -1,0 +1,15 @@
+<tool name="remove"  tool_config_prefix="removeFiles" walltime="00:15:00">
+  <description>
+    Remove Files
+  </description>
+
+
+
+  <command program="">
+    rm -f *transcript.bam *transcript.sorted.bam *transcript.sorted.bam.bai  *genes.results.withGeneName *isoforms.results.withGeneName *.time *.bai
+  </command>
+
+  <command program="">
+    rm -rf *.stat
+  </command>
+</tool>

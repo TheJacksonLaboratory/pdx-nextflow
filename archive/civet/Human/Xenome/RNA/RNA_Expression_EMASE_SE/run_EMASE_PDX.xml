@@ -1,0 +1,49 @@
+<tool name="EMASE_Run"
+    threads="12"
+    tool_config_prefix="Run_EMASE"
+    walltime="47:59:00"
+    mem="32">
+    <description>
+    We are going to call perl script EMASE_Analysis which will perform all the operations.
+    </description>
+
+    <!-- Files:
+        Ins:
+          1: list_genome
+          2: e1_trimmed
+          3: dataDir
+          4: outdir
+
+        Outs:
+          1: ${SAMPLE_DIR}/bowtie.transcriptome.rev.2.ebwt
+
+    -->
+    
+   <!-- Modules needed to run on the cluster -->
+     <module>Anaconda</module>
+     <module>bowtie/1.0.0</module>
+     <module>perl/cga</module>
+     <module>samtools/0.1.18</module>
+ 
+   <command program="">
+        source activate emase
+   </command>
+
+
+    <option name="Model"              command_text="-md"          value="4"        />
+    <option name="readLength"         command_text="-rl"          value="100"      />
+    <option name="EMiteration"        command_text="-ei"          value="999"      />
+    <option name="pseudocount"        command_text="-pc"          value="0.0"      />
+    <option name="tolerance"          command_text="-te"          value="0.0001"   />
+    <option name="deleteBam"          command_text="-db"          value="TRUE"     />
+    <option name="deleteh5"           command_text="-dh"          value="TRUE"     />
+
+
+   <command program="EMASE_Analysis_PDX.pl">
+
+    -i1 {in_1}  -dd {in_2} -od {in_3} {Model} {readLength} {EMiteration} {pseudocount} {tolerance} -oa {in_4} {deleteBam} {deleteh5}
+
+   </command>
+
+</tool>
+

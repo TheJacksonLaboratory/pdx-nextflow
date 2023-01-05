@@ -1,0 +1,22 @@
+<pipeline name="determine_taxonomy.xml">
+<!-- Run the python script that runs phyla AMPHORA. Work on a dir with fasta files-->
+<!-- Parameters:
+     1. fasta files dir
+     2. output name
+-->
+    <dir id="fadir" input="True" parameter="1"/>
+    <string id="pname" parameter="2"/>
+
+<!-- run the script foreach bin file -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <foreach id="fafo" dir="fadir">
+        <file id="fastaf" pattern=".*\.fa$"/>
+        <related id="outd" pattern="(.*).fa" replace="\1.pa" in_dir="outdir" input="False"/>
+        <step name="pa">
+        <tool name="taxa"
+         input="fastaf"
+         output="outd"
+         description="run_pa_fasta.xml"/>
+        </step>
+    </foreach>
+</pipeline>

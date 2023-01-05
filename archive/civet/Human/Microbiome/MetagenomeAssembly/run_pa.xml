@@ -1,0 +1,14 @@
+<tool name="run_PA"
+ threads="20"
+ walltime="72:00:00"
+ tool_config_prefix="runpa">
+<description>
+A simple wrapper to run phyla AMPHORA python wrapper
+</description>
+<module>python</module>
+<module>perl/5.24.1</module>
+<module>Phyla_AMPHORA</module>
+<command program="run_phyla_amphora.py">
+-b {out_1} -t 20 --diamond_screen {in_1} $(ls {in_2}.*)
+</command>
+</tool>

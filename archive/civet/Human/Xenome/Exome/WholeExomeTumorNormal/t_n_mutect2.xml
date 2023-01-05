@@ -1,0 +1,33 @@
+<tool name="Mutect2" tool_config_prefix="Mutect2"  threads="2"
+      walltime="27:00:00" mem="20"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+      Call snps and indels based on tumor-normal paired samples.
+    </description>
+
+    <!-- Files:
+         Ins:t_final_bam, n_final_bam, reference,dbsnp,target file
+         Outs: snp_vcf
+    -->
+
+    
+    <module>java/1.7.0</module>
+    <module>GATK/3.5-0</module>
+
+
+    <file id="gatk" input="True" filespec="/opt/compsci/GATK/3.5-0/GenomeAnalysisTK.jar" />
+
+    <validate id="gatk" />
+
+    <option name="targetfilegatk"   command_text="" value="/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted.bed"/>
+    
+
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx48g -jar {gatk} -T MuTect2   -R {in_3}    -I:tumor {in_1}  
+        -I:normal {in_2} --dbsnp {in_4}  -L {targetfilegatk}  -o {out_1} -stand_call_conf 50.0 
+        -stand_emit_conf 30.0 -dt NONE  -nct 2 --sample_ploidy 4 --dontUseSoftClippedBases --disable_auto_index_creation_and_locking_when_reading_rods 
+    </command>
+</tool>
+

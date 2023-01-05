@@ -1,0 +1,30 @@
+<tool name="Variant_Annotation_snpEff"  tool_config_prefix="snpEff_Anno" walltime="08:00:00">
+    <description>
+        annotate variants using snpEff
+    </description>
+    <!--
+        Ins:
+	  1: variants_filtered_dbSNP
+	Outs:
+	  1: variants_filtered_dbSNP_snpEff
+    -->
+    
+    
+
+    <!-- Step 5.2: Variant Annoataion -->
+
+    <module>java/1.7.0</module>
+
+    <file id="snpEff" input="True"
+          filespec="/opt/compsci/snpEff/3.6c/snpEff.jar" />
+    <file id="snpEff_conf" input="True"
+              filespec="/opt/compsci/snpEff/3.6c/snpEff.config" />
+
+
+    <command program="java">
+    -Xmx8g -jar {snpEff} GRCm38.75
+    -c {snpEff_conf} -o gatk  -s {out_2}
+    {in_1} &gt; {out_1} 
+    </command>
+
+</tool>

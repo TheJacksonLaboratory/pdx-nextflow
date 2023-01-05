@@ -1,0 +1,177 @@
+#!/bin/bash
+#
+# Run the PDX rnafusion nextflow pipeline 
+#
+# Example:  ./run_rnaseq  TM00099  BR1367F003P6  stRNA_Fusion  --real
+# Example:  ./run_rnaseq  TM00015  BL0269F404P0  RNA_Fusion    --all_but_launch
+#
+# This script takes care of submitting a slurm job using sbatch.
+# When SA team releases a new pipeline version, CS-Ops updates VERSION here.
+#
+# If  --real  is specified, it's a real production run and the result folder 
+# will be named so that the db loader will load from it next time it runs.
+#
+# For command line options see the Usage statement and case statements below.
+
+
+VERSION="1.0.0"
+NF_SCRIPT=pipelines/rnafusion/main.nf 
+PDX=/pdx/pdx_resource_service/elion
+CMD=run_rnafusion
+
+# get mandatory first three command line args...
+if [ $# -lt 3 ]; then
+  echo "Usage: $CMD  modelname  samplename  platform  [options]"
+  echo "(platform is either stRNA_Fusion ..or.. RNA_Fusion)"
+  echo "Quitting."
+  exit 1
+fi
+
+MODEL=$1
+SAMPLE=$2
+PLATFORM=$3
+
+if [ "$PLATFORM" ==  "stRNA_Fusion" ]; then
+  st="st"
+elif [ "$PLATFORM" ==  "RNA_Fusion" ]; then
+  st=""
+else
+  echo "ERROR: $CMD quitting: invalid 3rd arg, expecting either 'stRNA_Fusion' or 'RNA_Fusion'"
+  exit 1
+fi
+
+
+# get any additional command line --options...  first set the defaults...
+real=no                  # if --real it's a real production run
+all_but_launch=no        # if --all_but_launch  do prelimaries but stop short of pipeline launch
+preserve_work=no         # if --preserve_work  don't delete nextflow's ./work dir at end
+resultloc="default"      # specify to put result folder somewhere other than ./analysis
+indir="default"          # specify to set a special dir to get fastq files from
+email="stephen.grubb@jax.org"
+
+
+shift 3
+for iarg in "$@"
+do
+  case $iarg in
+    --preserve_work)
+      preserve_work=yes
+      shift
+      ;;
+    --real)
+      real=yes
+      shift
+      ;;
+    --all_but_launch)
+      all_but_launch=yes
+      real=no
+      shift
+      ;;
+    --email=*)
+      email="${iarg#*=}"
+      shift
+      ;;
+    --resultloc=*)
+      resultloc="${iarg#*=}"
+      shift
+      ;;
+    --indir=*)
+      indir="${iarg#*=}"
+      shift
+      ;;
+    *)
+      echo "ERROR: $CMD quitting: unrecognized arg: ${iarg}"
+      exit 1
+      ;;
+  esac
+done
+
+
+if [ $real == "yes" ]; then
+  GROUP=`id -gn`
+  if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
+    echo "ERROR: you must be svc-pdx (group pdx-data) to do --real"
+    exit 1
+  fi
+fi
+
+
+# determine where the fastq files are and do sanity checks...
+if [ $indir == "default" ]; then
+  indir=$PDX/seqdata/$MODEL/$SAMPLE/${st}RNA_Seq
+fi
+if [ -d $indir ]; then
+  test
+else
+  echo "ERROR: $CMD quitting: fastq dir doesn't exist: $indir"
+  exit 1
+fi
+nfastq=`(cd $indir; ls *.fastq.gz) | wc -l`
+if [ $nfastq -lt 2 ]; then
+  echo "ERROR: $CMD quitting: 2+ fastq files not seen: $indir"
+  exit 1
+fi
+
+
+# go to the general result location...
+if [ $resultloc == "default" ]; then
+  cd $PDX/analysis/$MODEL
+else
+  cd $resultloc
+fi
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $resultloc result location (model=$MODEL)"
+  exit 1
+fi
+
+
+
+# build result folder name, derived from fastq filename... and cd into it
+outdir=`(cd $indir; ls *.fastq.gz) | head -1 | sed "s/_R[1-9]_.*$//" | sed "s/_${st}RNA/_${st}RNAfusion/"`
+if [ $real != "yes" -a $resultloc == "default" ]; then
+  outdir="test_run_$outdir"
+fi
+if [ -d $outdir ]; then
+  echo -n "ERROR: $CMD quitting: result folder already exists ($outdir). "
+  show_folder_status $outdir
+  exit 1
+fi
+
+mkdir $outdir
+cd $outdir
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $outdir"
+  exit 1
+fi
+
+
+# create a status file with version info...
+echo "$PLATFORM  $VERSION  $NF_SCRIPT" > pipeline_running.txt
+
+
+# build launch.sh and then run it ... takes care of 'module load singularity' 
+# (mystery as to why Carolyn's don't require this)
+FREF=$pdx/refdata/rnafusion
+echo "module load singularity
+nextflow run $PDX/$NF_SCRIPT --reads \"$indir/*_R{1,2}_*.fastq.gz\" -profile slurm,singularity \
+  --reference_path ${FREF}/ --star_fusion --genome GRCh38 --outdir ./   \
+  --genomes_base $FREF  --star_index $FREF/star-index-100bp_read_length \
+  --fasta $FREF/star-fusion/ctat_genome_lib_build_dir/ref_genome.fa \
+  --gtf   $FREF/star-fusion/ctat_genome_lib_build_dir/ref_annot.gtf \
+  --read_length 100  --preserve_work $preserve_work  " > launch.sh
+
+chmod +x launch.sh
+
+if [ $all_but_launch != "no" ]; then
+  echo "At user request, stopping just short of launching the pipeline..."
+  exit 1
+fi
+
+jobname="pdx_rnafusion_${MODEL}_${SAMPLE}"
+
+sbatch  --job-name=$jobname \
+  --mail-user=$email  --mail-type=END \
+  -q batch   -t 24:00:00  --mem=2000 \
+  --wrap './launch.sh'
+

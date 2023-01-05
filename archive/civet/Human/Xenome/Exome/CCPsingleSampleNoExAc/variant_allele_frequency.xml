@@ -1,0 +1,36 @@
+<tool name="Variant_Allele_Frequency" walltime="0:10:00">
+    <description>
+        Remove variants with allele frequency less than 5% from vcf and reformat 
+    </description>
+    <!--
+        Ins:
+	  1: variants_filtered
+	  2: microIndels_filtered
+        Outs:
+	  1: variants_microIndels_filtered_AFgt0.05
+	  2: contamination_detection_AFgt0.01
+    -->
+    
+    <!-- Step 4.4: -->
+
+
+    <!--
+        The main run, which produces the persistent allele frequency
+        table for report generation.
+    -->
+    <command program="allele_frequency_from_vcf">
+        <version_command>allele_frequency_from_vcf --version</version_command>
+        140 5 5 {in_1} {in_2} {out_1}
+    </command>
+
+    <!--
+        This run is to create an allele frequency table to detect possible
+        contamination.  It is only based on SNPs, not microIndels, and
+        uses a threshold of 1 instead of 5.
+    -->
+    <command program="allele_frequency_from_vcf">
+        <version_command>allele_frequency_from_vcf --version</version_command>
+        140 1 {in_1} {out_2}
+    </command>
+
+</tool>

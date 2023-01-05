@@ -1,0 +1,55 @@
+<tool name="Variant_Pre_Processing_2"  tool_config_prefix="VaPrePro_2" threads="12" walltime="23:00:00"  
+        error_strings="'##### ERROR MESSAGE:'">
+
+<description>
+
+GATK steps to get ready for variant calling. Part 2 of 3. We may want to merge this back into part 1.
+
+</description>
+
+        <!-- Files used:
+        Ins:
+          1: bam_dedupe
+          2: output(directory)
+          3: ref
+        Outs:
+          1: realigned_dedup_bam
+    -->
+
+    <module>java/1.7.0</module>
+    <file id="gatk"  filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+
+
+      <!--
+	Step3.3: Realignment around indels Part I
+	(Target Interval Creation)
+      -->
+    
+     <file id="aligner_intervals" temp="True" in_dir="in_2" filespec="aligner.intervals" />
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx24g -jar {gatk} -I {in_1}
+        -R {in_3} -T RealignerTargetCreator -nt 12 --disable_auto_index_creation_and_locking_when_reading_rods 
+        -o {aligner_intervals}
+    </command>
+
+    <!-- Step3.4: Realignment around indels Part II (Performing the 
+        local re-alignment) -->
+
+    <!-- Not referenced in any command, but defining it as a temp
+	 allows it to be cleaned up... -->
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx24g -jar {gatk} -I {in_1} -R {in_3} -T IndelRealigner --disable_auto_index_creation_and_locking_when_reading_rods
+        -targetIntervals {aligner_intervals}  -o {out_1}
+    </command>
+
+
+   
+
+</tool>
+
+

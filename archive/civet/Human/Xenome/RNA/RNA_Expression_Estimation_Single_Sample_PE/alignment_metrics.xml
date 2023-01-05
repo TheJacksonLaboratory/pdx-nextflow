@@ -1,0 +1,57 @@
+<tool name="Alignment_Metrics" tool_config_prefix="BamtoolsMetrics" walltime="12:00:00">
+    <description>
+        Collecting Alignment metrics.
+    </description>
+    <!-- Files used:
+        Ins: 
+          1. genome.bam
+          2. read_group
+          3. ref_seq   (fasta file)
+        Outs:
+          1. genome_bam_read_group.bam
+          2. genome_bam_read_group_reorder.bam
+          3. aln_metrics.txt
+
+    -->
+
+    <module>java/1.7.0</module>
+    <module>samtools</module>
+    <module>python/2.7.9</module>
+    <validate>/opt/compsci/picard/1.95/AddOrReplaceReadGroups.jar</validate>
+    <validate>/opt/compsci/picard/1.95/ReorderSam.jar</validate>
+
+    <option name="MinMapQual" command_text="-q"  value="30" /> 
+
+    <!-- Step3.1: Adding readgroup information  -->
+
+    <!-- Create an option for the read group, from the contents of rg_info -->
+      <option name="rg"  command_text=""  from_file="in_2" />
+        <command program="java">
+         -Djava.io.tmpdir=$TMPDIR
+         -Xmx4g -jar /opt/compsci/picard/1.95/AddOrReplaceReadGroups.jar
+         INPUT={in_1} OUTPUT={out_1}
+         SORT_ORDER=coordinate
+         {rg}
+         CREATE_INDEX=true
+        </command>
+
+
+   <!-- Step3.2:  Picard Reorder Bam file   -->
+   <command program="java">
+         -Djava.io.tmpdir=$TMPDIR
+         -Xmx4g -jar  /opt/compsci/picard/1.95/ReorderSam.jar 
+         INPUT={out_1}  
+         OUTPUT={out_2}
+         REFERENCE={in_3}
+         CREATE_INDEX=true
+   </command>
+
+
+
+    <command program="bam_stat.py" stderr_id="out_3">
+      -i {in_1} {MinMapQual} 
+    </command>
+    
+
+
+</tool>

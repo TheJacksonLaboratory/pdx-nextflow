@@ -1,0 +1,84 @@
+<tool name="Variant_Filtration" walltime="0:50:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Filter variants with DP less than 140
+    </description>
+    <!--
+        Ins:
+          1: ref
+	  2: variants_raw
+        Outs:
+	  1: variants_filtered
+    -->
+    
+
+    <module>python/2.7.3</module>
+    <module>java/1.7.0</module>
+    <module>perl/5.24.0</module>
+    <module>tabix/0.2.6</module>
+    <module>cga</module>
+
+
+
+
+<file id="dbsnp" input="True"
+        filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+
+ <file id="snpSift" input="True"
+        filespec="/opt/compsci/snpEff/4.1g/SnpSift.jar" />
+<file id="snpEff" input="True"
+        filespec="/opt/compsci/snpEff/4.0e/snpEff.jar" />
+
+<file id="vcfbreakmulti" input="True"
+        filespec="/opt/compsci/vcflib/bin/vcfbreakmulti" />
+<file id="vcf1" temp="True"
+        based_on="in_1" append=".DPfiltered.tmp.vcf" />
+<file id="vcf2" temp="True"
+        based_on="in_1" append=".additionalfilters.tmp.vcf" />
+<file id="vcf3" temp="True"
+        based_on="in_1" append=".additionalfilters_1.tmp.vcf" />
+
+<file id="vcf4" temp="True"
+        based_on="in_1" append=".additionalfilters_break.tmp.vcf" />
+
+<validate id="snpSift" />
+
+    <command program="allele_depth_min_and_AF_from_ADs.py">
+        <!-- Compute coverage depth by adding allele counts.
+             Compute allele frequencies from allele counts.
+             Filter out any reads that don't have a minimum coverage
+             of 140.
+        -->
+        <version_command>allele_depth_min_and_AF_from_ADs.py -v</version_command>
+        {in_1} {vcf1} 140
+    </command>
+
+
+ <command program="java">
+        <version_command>java -jar {snpSift} 2>&amp;1 | grep version</version_command>
+        -jar {snpSift} annotate -id {dbsnp} {vcf1} > {vcf2}
+    </command>
+
+
+
+
+
+    <command program="cat">
+        <!-- This version command looks strange, but is correct. The
+        cat command has no versioning, but the vcfbreakmulti is
+        a script in the vcflib, so here we're getting its
+        version-->
+    	<version_command>java -jar {snpEff} 2>&amp;1 | grep version</version_command>
+        {vcf2} | {vcfbreakmulti} > {vcf3}
+    </command>
+
+
+
+ <command program="caller_add_gatk.sh" >
+       {vcf3} {out_1}  
+    </command>
+    
+
+
+
+</tool>

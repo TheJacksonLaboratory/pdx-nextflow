@@ -1,0 +1,29 @@
+<tool name="diamond_blastp"
+    threads="20"
+    walltime="24:00:00"
+    mem="120"
+    tool_config_prefix="diamondp">
+    <description>
+        Run Diamond blastp of reads against a protein database
+    </description>
+    <!-- Files:
+        Ins:
+          1: diamond DB
+          2: sequence file (fasta, fastq can be gzipped))
+        OutS:
+	  1: diamond results file
+    -->
+    <option name="knum" command_text="-k" value="1000" type="numeric" description="Maximal number of hits" display_name="maximal hits"/>
+    <option name="evalue" command_text="-e" value="1e-10" type="numeric" description="diamond evalue" display_name="diamond evalue"/>
+    <option name="block" command_text="-b" value="20" type="numeric" description="Block size" display_name="diamond block size"/>
+    <option name="tempdir" command_text="-t" value="/dev/shm" type="string" description="Temporary dir" display_name="temp dir"/>
+    <option name="querycover" command_text="--query-cover" value="90" type="numeric" description="Query coverage" display_name="query coverage"/>
+    <option name="subjectcover" command_text="--subject-cover" value="90" type="numeric" description="subject coverage" display_name="subject coverage"/>
+    <option name="id" command_text="--id" value="80" type="numeric" description="Minimal identity of proteins" display_name="Minimal identity"/>
+    <option name="threads" command_text="-p" type="threads" description="Number of threads to use" display_name="threads" />
+    <module>diamond/0.9.22</module>
+    <command program="diamond blastp">
+         <version_command>diamond --version</version_command>
+         {threads} -d {in_1} -q {in_2} -f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen --no-self-hits {knum} {evalue} -o {out_1} {block} {tempdir} {querycover} {subjectcover} {id}
+    </command>
+</tool>

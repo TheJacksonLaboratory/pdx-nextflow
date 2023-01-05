@@ -1,0 +1,113 @@
+<pipeline name="Mouse_RNASeqSingleSampleSE.xml">
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        At first, these will all be real files.  Over time we may
+        make some of them tempfiles, to get cleaned up at the end.
+    -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    <file id="e1_fastq" input="True" parameter="1" />
+    -->
+    
+    <filelist id="fastqs" input="True" parameter="1" display_name="Fastq Files" description="one or more single-end fastq files"/>
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="sample_name" based_on="fastqs" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_"/>
+    <!-- Step 1 -->
+
+    <dir id="filter" filespec="filter" in_dir="outdir" />
+    <file id="e1_trimmed"  temp="True" in_dir="filter"
+               based_on="fastqs" pattern="(.*)" replace="\1_filtered_trimmed" />
+
+
+    <file id="ref" input="True" 
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/Mus_musculus_GRCm38_74_dna_primary_assembly_patch_removed.fa"/>
+    <file id="NamesGene" input="True"
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/mm10_final"/>
+
+
+    <step name="Qual_Stat">
+      <tool name="QnS"
+       input="fastqs,filter"
+       output="e1_trimmed"
+       description="qual_statistics_new_SE.xml" />
+    </step>
+
+
+    <!-- Step 2 -->
+    
+
+    <file id="refGTF" input="True" 
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/Mus_musculus_final.GRCm38.74.gtf"/>
+    <file id="refbowtie2_gene_name" 
+          filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/Reference/Mus_musculus_GRCm38_74_dna_primary_assembly_patch_removed"/>
+          
+    <!-- Output -->      
+
+    <file id="genome_bam"  based_on="sample_name" temp="True" append=".genome.sorted.bam"       />
+    <file id="genome_bai"  based_on="sample_name" temp="True" append=".genome.sorted.bam.bai"   />
+    <file id="genome_bam_only"  based_on="sample_name" temp="True" append=".genome.bam"       />
+
+
+    <step name="Alignment_Expression">
+       <tool name="rsem_align_expression"
+        input="e1_trimmed, refbowtie2_gene_name"
+        output="genome_bam"
+        description="rsem_alignment_SE.xml" />
+    </step>
+
+
+
+    <!-- Step 3 -->
+    <file id="read_group" temp="True" in_dir="outdir" filespec="read_group.txt" />
+
+    <file id="bam"         in_dir="outdir" temp="True"  based_on="sample_name" append="_genome_bam_with_read_group.bam" />
+    <file id="bam_index"   in_dir="outdir" temp="True"  based_on="sample_name" append="_genome_bam_with_read_group.bai" />
+    <file id="bam_reorder" in_dir="outdir"  based_on="sample_name" append="_genome_bam_with_read_group_reorder.bam"  />
+
+    <file id="aln_metrics" in_dir="outdir"  based_on="sample_name" append="_aln_metrics.txt" />
+
+    <step name="Alignment_Metrics">
+    <tool name="Read_group"
+     input="fastqs"
+     output="read_group"
+     description="read_group.xml" />
+
+    <tool name="Align_Metrics"
+     input="genome_bam, read_group, ref"
+     output="bam,bam_reorder,aln_metrics"
+     description="alignment_metrics_SE.xml" />
+    </step>
+
+    
+    <file id="genes_results"           based_on="sample_name" append=".genes.results"    />
+    <file id="isoforms_results"        based_on="sample_name" append=".isoforms.results" />
+
+
+
+   <step name="Add_name_normalization">
+      <tool name="AddName_and_Normalization"
+        input="genes_results,isoforms_results,NamesGene,genome_bam"
+        description="add_gene_name_normalization_out.xml" />
+   </step>
+
+ 
+   <step name="REMOVEFILES">
+      <tool name="RemoveOtherFiles"
+         input="bam_reorder,aln_metrics"
+         description="removeFiles.xml" />
+   </step>
+
+
+
+</pipeline>

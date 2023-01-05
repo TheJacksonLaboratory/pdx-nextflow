@@ -1,0 +1,6 @@
+VaPrePro2.targetfilegatk=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_targets_gatk_sorted.bed
+HSmetrics.targetfilepicard=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_targets_picard_sorted.bed
+HSmetrics.baitfilepicard=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_Baits_picard_sorted.bed
+UnifiedGenotyper.targetfilegatk=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_targets_gatk_sorted.bed
+exoncoverage.targetfile=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_targets_gatk_sorted.bed
+pindelmicroindel.targetfilepindel=/data/shared/DFCI_reference_data/DFCI_Hemoseq_hg38_targets_gatk_sorted.bed

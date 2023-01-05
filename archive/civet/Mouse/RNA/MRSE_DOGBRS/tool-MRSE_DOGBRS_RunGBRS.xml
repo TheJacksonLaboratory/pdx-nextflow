@@ -1,0 +1,70 @@
+<tool name="MRSE_DOGBRS_RunGBRS"
+    threads="1"
+    tool_config_prefix="MRSE_DOGBRS_RunGBRS"
+    walltime="36:00:00"
+    mem="32">
+    <description>
+     This is the third step
+    </description>
+
+    <!-- Files:
+        Ins:
+         
+
+    -->
+	
+	<module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/cga</module>
+    <module>samtools/0.1.18</module>
+        
+    <option name="Model"  command_text="-M" type="select" description="Multiread mode ID: 1 - Gene-&gt;Allele-&gt;Isoform, 2 - Gene-&gt;Isoform-&gt;Allele, 3 - Gene-&gt;(Isoform*Allele), 4 - Gene*Isoform*Allele" >
+        <select>1</select>
+        <select default="true">2</select>
+        <select>3</select>
+        <select>4</select>
+    </option>
+    
+    <option name="readLength"  display_name="Read Length"  command_text="-r"
+      type="numeric"  value="100"  description="Read Length" />
+    
+    <option name="EMiteration"  display_name="EM iterations"  command_text="-m"
+      type="numeric"  value="999"
+      description="maximum number of EM iterations" />
+    
+    <option name="tolerance"  command_text="-t" type="numeric"  value="0.0001"
+      description="Tolerance for the termination of EM." />
+    
+    <option name="pseudocount" command_text="-p" type="numeric" value="0.0" 
+      description="Pseudocount for allele specificity "/>
+	 
+	<command program="">
+      source activate /opt/compsci/gbrs/venv
+    </command>
+	 
+	<command program="">
+	  export GBRS_DATA=/hpcdata/shared/gbrs_data/1.0 
+	</command>
+	
+
+    <command program="gbrs">
+	  compress -i {in_1}  -o {out_1}
+	</command>
+	<command program="gbrs">
+	  quantify -i {out_1}  -g {in_2} -L {in_3} -o {in_9} -M 4 {EMiteration}  {pseudocount} {tolerance}  --report-alignment-counts
+	</command>
+    <command program="gbrs">
+      reconstruct -e {out_3} -t {in_4} -x {in_5} -g {in_6} -o {in_9}
+    </command>
+    <command program="gbrs">
+      quantify -i {out_1}  -G {out_4} -g {in_2}  -L {in_3} -o {in_9} {Model} {EMiteration} {pseudocount} {tolerance} --report-alignment-counts
+    </command>
+    <command program="gbrs">
+      interpolate -i {out_5} -g {in_7} -p {in_6} -o {out_2}
+    </command>
+    <command program="gbrs">
+      plot -i {out_2} -o {out_6} -n {in_9}
+    </command>
+
+</tool>
+

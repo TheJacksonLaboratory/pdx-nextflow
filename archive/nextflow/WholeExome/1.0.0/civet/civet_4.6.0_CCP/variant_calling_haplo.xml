@@ -1,0 +1,38 @@
+<tool name="Variant_Caller_haplo"  tool_config_prefix="HaplotypeGenotyper" threads="8" walltime="8:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Call variants from pre-processed BAM file using GATK Haplotype Caller.
+    </description>
+    <!--
+        Ins:
+	  1: realigned_BQSR_bam
+	  2: ref
+	  3: target_bed
+        Outs:
+	  1: variants_raw
+    -->
+    
+    <!-- Step 4.7: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+
+    <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/annotations/dbsnp/9606_b144_hg19/All_20150605_chr.vcf" />
+
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+    <validate id="dbsnp_144" />
+    <validate id="in_3" />
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx2g -jar {gatk} -R {in_2}
+        -T HaplotypeCaller -I {in_1} --dbsnp {dbsnp_144}  
+        -o {out_1} -stand_call_conf 50.0 
+        -stand_emit_conf 30.0 -dt NONE  -L {in_3} -nct 8 --dontUseSoftClippedBases --disable_auto_index_creation_and_locking_when_reading_rods
+    </command>
+
+</tool>

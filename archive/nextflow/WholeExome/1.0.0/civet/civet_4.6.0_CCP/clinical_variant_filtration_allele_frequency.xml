@@ -1,0 +1,51 @@
+<tool name="Variant_Clinical_Filtration_Allele_Frequency" walltime="5:00:00" 
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Filter out variants not present in clinical targets. Finally, remove variants with allele frequency less than 5% from vcf and reformat.
+    </description>
+    <!--
+        Ins:
+	  1: variants_filtered
+	  2: microIndels_filtered 
+	  3: outdir
+        Outs:
+	  1: variants_clinical_filtered
+	  2: variants_clinical_filtered_AFge0.05
+    -->
+    
+    <file id="clinical_target" input="True" 
+	filespec="/data/shared/cga_reference_data/clinical_targets_withgeneName.bed" />
+
+    <file id="vcf1" temp="True" in_dir="in_3"
+    filespec="clinical_variants.vcf" />
+
+    <file id="vcf2" temp="True" in_dir="in_3"
+    filespec="clinical_microIndels.vcf" />
+
+
+    <!-- Step 4.5: Variant_Clinical_Filtration -->
+    <module>bedtools/2.17.0</module>
+
+    <validate id="clinical_target" />
+    
+    <command program="bedtools">
+        <version_command>bedtools --version</version_command>
+        intersect -header -a {in_1} -b {clinical_target} -f 1.0 > {vcf1}
+    </command>
+
+    <command program="bedtools">
+        <version_command>bedtools --version</version_command>
+        intersect -header -a {in_2} -b {clinical_target} -f 1.0 > {vcf2}
+    </command>
+
+    <command program="cat">
+        {vcf1} {vcf2} > {out_1}
+    </command>
+    
+    <command program="allele_frequency_from_vcf">
+        <version_command>allele_frequency_from_vcf --version</version_command>
+        140 5 5 {vcf1} {vcf2} {out_2}
+    </command>
+
+
+</tool>
