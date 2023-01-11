@@ -332,7 +332,6 @@ process hwes_en_bwa_mem {
 
   run-bwamem -t ${task.cpus} -R \${rg} -o ${sampleID} -H ${params.ref_fa_bwa} ${trimmed_sorted[0]} ${trimmed_sorted[1]} | sh
 
-  rm -rf *read_group.txt *merged.fastq *temp.sam *out
 
   """
   }
@@ -441,7 +440,6 @@ process hwes_en_variant_preproc_2 {
 
   samtools index ${sampleID}_realigned_BQSR.bam
 
-  rm -rf aligner.intervals realigned.bam realigned.bai recal_data.grp
 
   """
   }
@@ -546,16 +544,21 @@ process hwes_en_var_call_mutect2 {
   -R ${params.ref_fa} \
   -I ${bam_realigned} \
   -tumor \${tumorName} \
+  --germline-resource ${params.exac_ref} \
+  --af-of-alleles-not-in-resource 0.0000082364 \
   -O ${sampleID}_intermed.vcf \
   --disable-read-filter MateOnSameContigOrNoMappedMateReadFilter \
-  --dont-use-soft-clipped-bases \
-  --genotype-germline-sites \
+  --dont-use-soft-clipped-bases false \
+  --genotype-germline-sites false \
   --sample-ploidy ${params.samp_ploidy} \
+  -L ${params.targets_gatk} \
   --annotation QualByDepth \
   --annotation RMSMappingQuality \
   --annotation FisherStrand \
   --annotation MappingQualityRankSumTest \
-  --annotation ReadPosRankSumTest
+  --annotation ReadPosRankSumTest \
+  --min-base-quality-score 20 \
+  --standard-min-confidence-threshold-for-calling 30
 
   bgzip ${sampleID}_intermed.vcf
 
@@ -565,13 +568,7 @@ process hwes_en_var_call_mutect2 {
   FilterMutectCalls \
   --variant ${sampleID}_intermed.vcf.gz \
   --output ${sampleID}_final_mutect_snp_indel_filtered.vcf \
-  --min-base-quality-score 20 \
-  --dont-use-soft-clipped-bases true \
-  --unique-alt-read-count 5 \
-  -stand-call-conf 30 \
-  -L ${params.targets_gatk}
-
-  rm -rf tumor_SN.txt
+  --unique-alt-read-count 5
 
   """
   }
@@ -607,7 +604,6 @@ process hwes_en_var_filt {
   ${params.add_caller_gatk} \
   ${sampleID}_mutect_snp_indel_filtered.vcf.additionalfilters.tmp.vcf ${sampleID}_variants.DPfiltered.vcf
 
-  rm -rf ${sampleID}_mutect_snp_indel_filtered.vcf.DPfiltered.tmp.vcf ${sampleID}_mutect_snp_indel_filtered.vcf.additionalfilters.tmp.vcf
 
   """
   }
@@ -729,7 +725,6 @@ process hwes_en_microindel_calling_b {
 
   touch  ${sampleID}_BP  ${sampleID}_D  ${sampleID}_DSI  ${sampleID}_INT  ${sampleID}_INT_final  ${sampleID}_INV  ${sampleID}_LI  ${sampleID}_RP  ${sampleID}_SI  ${sampleID}_TD
 
-  rm -rf ${sampleID}_BP ${sampleID}_CloseEndMapped ${sampleID}_D ${sampleID}_DSI ${sampleID}_INT ${sampleID}_INT_final ${sampleID}_INV ${sampleID}_LI ${sampleID}_RP ${sampleID}_SI ${sampleID}_TD
 
   """
   }
@@ -762,7 +757,6 @@ process hwes_en_microindel_filtering {
   ${params.add_caller_pindel} \
   ${sampleID}_microIndels.DPfiltered1.vcf.additionalfilters.tmp.vcf ${sampleID}_microIndels.DPfiltered.vcf
 
-  rm -rf ${sampleID}_microIndels.DPfiltered1.vcf.DPfiltered_microindels.tmp.vcf ${sampleID}_microIndels.DPfiltered1.vcf.additionalfilters.tmp.vcf
 
   """
   }
@@ -829,7 +823,6 @@ process hwes_en_variant_annot {
 
   cat !{sampleID}_variants_microIndels.DPfiltered.Annotated.tab | awk -F '\t' 'BEGIN {OFS="\t"} $6 == "FILTER" || $6 == "PASS" || $6 == "" || $6 == "."' > !{sampleID}_variants_microIndels.Hardfiltered.Annotated.txt
 
-  rm -rf !{sampleID}_all_genes_variants_microindels.vcf !{sampleID}_all_genes_variants_microindels_filtered.vcf !{sampleID}_all_genes_variants_microindels_snpEff.vcf !{sampleID}_all_genes_variants_microindels_snpEff_snpSift.vcf !{sampleID}_all_genes_variants_microindels_snpEff_snpSift_onePerLine.vcf !{sampleID}_all_genes_variants_microindels_cosmicannotation.vcf !{sampleID}_all_genes_variants_microindels_cosmicannotation_beforeintegenic.vcf
 
   '''
   }
@@ -841,7 +834,7 @@ process hwes_en_variant_annot {
 
 process hwes_en_tmb_score {
   tag "sampleID"
-  label 'vshort_mem'
+  label 'short_mem'
   label 'tmb_score'
 
   publishDir ".", pattern: "*.*", mode: 'copy'
@@ -1023,6 +1016,7 @@ process hwes_en_finalization {
   cd ${workflow.launchDir}
   mv  pipeline_running.txt  pipeline_completed.txt
   touch  pipeline_completed.txt
+
 
   if [ "${params.preserve_work}" == "no" ]; then
     rm -f raw_gatk.vcf.idx raw_indels.vcf.idx 
