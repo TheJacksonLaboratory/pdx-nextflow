@@ -5,7 +5,7 @@ process GATK_MUTECT2 {
   memory 15.GB
   time '24:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
 
@@ -26,7 +26,7 @@ process GATK_MUTECT2 {
     """
     tumorName=\$(cat ${tumor})
 
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
+    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
     Mutect2 \
     -R ${params.ref_fa} \
     -I ${bam}  \
@@ -36,15 +36,15 @@ process GATK_MUTECT2 {
     -O ${sampleID}_intermed.vcf \
     --disable-read-filter MateOnSameContigOrNoMappedMateReadFilter \
     --dont-use-soft-clipped-bases false \
-    --genotype-germline-sites true \
+    --genotype-germline-sites false \
     --sample-ploidy ${params.samp_ploidy} \
+    -L ${params.targets_gatk} \
     --annotation QualByDepth \
     --annotation RMSMappingQuality \
     --annotation FisherStrand \
     --annotation MappingQualityRankSumTest \
     --annotation ReadPosRankSumTest \
     --min-base-quality-score 20 \
-    -L ${params.targets_gatk} \
     --standard-min-confidence-threshold-for-calling 30
 
     bgzip ${sampleID}_intermed.vcf
@@ -56,7 +56,7 @@ process GATK_MUTECT2 {
     """
     tumorName=\$(cat ${tumor})
 
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
+    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
     Mutect2 \
     -R ${params.ref_fa} \
     -I ${bam}  \
