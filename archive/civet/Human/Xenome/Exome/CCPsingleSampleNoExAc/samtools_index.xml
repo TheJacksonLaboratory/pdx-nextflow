@@ -1,0 +1,205 @@
+<tool name="samtools " walltime="02:00:00">
+    <!-- What does this tool do? -->
+    <description>
+        Index the bam files 
+    </description>
+
+
+    <!-- Specify any modules needed for this tool -->
+    <module>samtools/0.1.19</module>  
+
+     <command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_1}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_2}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_3}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_4}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_5}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_6}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_7}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_8}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_9}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_10}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_11}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_12}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_13}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_14}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_15}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_16}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_17}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_18}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_19}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_20}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_21}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_22}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_23}
+
+</command>
+
+<command program="samtools">
+
+  <version_command> samtools  -v</version_command>
+
+    index {in_24}
+
+</command>
+
+
+
+</tool>

@@ -1,0 +1,42 @@
+<!-- ======================= -->
+<!-- step 2 Adapter trimming -->
+<!-- ======================= -->
+
+<tool name="trimming"  walltime="01:00:00" tool_config_prefix="parameter" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+    Check the quality of reads
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: read.fastq
+    2: Trimmed_reads directory
+    Outs:
+    1: trimmed fastq and QC files
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<module>fastqc/0.11.3</module>
+<module>python/2.7.3</module>
+
+<!-- 3 prime adapter seq can be replaced by the user --> 
+<option name="adapter" command_text="-a" value="TGGAATTCTCGGGTGCCAAGG"/>
+
+<!-- value to maximum length after trimming can be replaced by the user -->
+<option name="Maxlength" command_text="-M" value="30"/>
+
+<!-- Illumina TruSeq small RNA standard adapter: TGGAATTCTCGGGTGCCAAGG -->
+
+
+<!-- call tool for operation -->
+<command program="cutadapt">
+  <version_command>cutadapt --version</version_command>
+<!-- using illumina universal small RNA adapter for 3' adapter trimming -->
+  -e 0.2 -m 15 {Maxlength} {adapter} -o {out_1} {in_1} > {out_2}
+</command>
+
+
+</tool>

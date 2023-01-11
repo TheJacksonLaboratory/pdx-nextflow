@@ -1,0 +1,11 @@
+<tool name="remove"  tool_config_prefix="removeFiles" walltime="00:25:00">
+  <description>
+    Remove Files
+  </description>
+
+
+
+  <command program="">
+    rm n_out/*mouse_1.fastq n_out/*mouse_2.fastq n_out/*ambiguous_1.fastq n_out/*ambiguous_2.fastq n_out/*both_1.fastq n_out/*both_2.fastq n_out/*neither_1.fastq n_out/*neither_2.fastq t_out/*mouse_1.fastq t_out/*mouse_2.fastq t_out/*ambiguous_1.fastq t_out/*ambiguous_2.fastq t_out/*both_1.fastq t_out/*both_2.fastq t_out/*neither_1.fastq t_out/*neither_2.fastq *.idx n_out/*_normal.REF_*.bai t_out/*_tumor.REF_*.bai *_variant_fixAdjSNP.temp.vcf *_variant_fixAdjSNP.noIds.vcf normal_sorted.bai sorted.bai
+  </command>
+</tool>

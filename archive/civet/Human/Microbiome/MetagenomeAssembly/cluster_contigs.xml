@@ -1,0 +1,32 @@
+<tool name="cluster contigs"
+    threads="10"
+    walltime="72:00:00"
+    tool_config_prefix="cluster">
+    <description>
+        Divide the contigs into bins based on blast results and binning
+    </description>
+    <!-- Files:
+        Ins:
+          1: mash results
+          2: megahit dir
+          4: faa file (concatenated)
+        OutS:
+	  1: output prefix
+    -->
+    <option name="mdist" command_text="--maxdist" value="0.01" type="numeric" description="Maximal mash distance to output" display_name="max mash dist"/>
+    <option name="mclust" command_text="--minclust" value="100000" type="numeric" description="Minimal cluster size for interlibrary joining" display_name="interlibrary minimal cluster"/>
+    <option name="mclust2" command_text="--minclust" value="1000000" type="numeric" description="Minimal cluster size for combining clusters" display_name="combine clusters minimal cluster"/>
+    <!-- Generate the input file -->
+    
+    <command program="" delimiters="##">
+        ls #in_2#/*/final.contigs.fa | awk -F"/" '{print $(NF-1)"\t"$0}' > #out_1#_samples.txt
+    </command>         
+    <command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+    <option name="threads" command_text="--processors" type="threads" description="Number of threads to use" display_name="threads" />
+    <command program="recluster_contigs.py">
+         {threads} {mclust} {mdist} -p {out_1} -f {in_3} -s {in_1} {out_1}_samples.txt 
+    </command>
+    <command program="combine_clusters.py">
+         {threads} {mclust2} {out_1}_samples.txt {out_1}_united_clusters.out {out_1}_reads {out_1}_clusters.out  "clusters.out$" "reads" {out_2}
+    </command>
+</tool>

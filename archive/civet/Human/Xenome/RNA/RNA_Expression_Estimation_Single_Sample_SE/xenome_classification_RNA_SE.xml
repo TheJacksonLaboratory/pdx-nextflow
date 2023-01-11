@@ -1,0 +1,42 @@
+<tool name="Xenome_Classification" tool_config_prefix="XENOME" walltime="23:00:00"
+      threads="12">
+    <description>
+        Run the xenome classify command
+    </description>
+    <!--
+        Ins:
+	  1: fastq_file1
+        Outs:
+	  1: human.fastq
+	  2: xenome classification
+	  
+    -->
+    
+    <!-- Step 1: Xenome Classification -->
+    <module>xenome</module>
+    <module>perl/cga</module>
+
+    <!--
+        Declare some files created by this tool that we want to delete.
+        These files are never used in the pipeline.
+        By declaring them as temp they will get deleted at the end of this
+        job.
+    -->
+    <file id="both" filespec="both.fastq" temp="True" />
+    <file id="mouse" filespec="mouse.fastq" temp="True" />
+    <file id="neither" filespec="neither.fastq" temp="True" />
+    <file id="ambiguous" filespec="ambiguous.fastq" temp="True" />
+
+    <option name="threads" type="threads" command_text="-T"/>
+
+    <command program="xenome" stdout_id="out_2">
+    classify {threads} -P /data/shared/research_pipelines_reference_data/human/RNA/UpdatedTransIndex/Index_with_Human_unplaced/trans_hg19_NOD_based_on_mm10_k25
+    --host-name  mouse  --graft-name human  -i {in_1}
+    </command>
+
+    <validate>perl</validate>
+    <command program="Check_Xenome_Stats.pl">
+    {out_2}  50
+    </command>
+
+</tool>

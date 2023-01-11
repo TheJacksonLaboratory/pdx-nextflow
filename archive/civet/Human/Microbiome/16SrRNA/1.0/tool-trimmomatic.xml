@@ -1,0 +1,45 @@
+<tool name="trimmomatic"
+      threads="4"
+      walltime="10:00:00"
+      exit_if_exists="out_1, out_2"
+      exit_test_logic="and"
+      tool_config_prefix="tool-trimmomatic">
+  <description>
+    length cutoff at 100 bp by default
+    trim 20 bp off R1
+    trim 17 bp off R2
+  </description>
+  
+  <validate>/opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/Trimmomatic-0.32/trimmomatic-0.32.jar</validate>
+  <option name="minlen" command_text="" value="MINLEN:100" />
+  <option name="R1crop" command_text="" value="HEADCROP:20" />
+  <option name="R2crop" command_text="" value="HEADCROP:17" />
+  <file id="prefix" based_on="in_1" pattern="(.*)_R1.*" replace="\1" />
+  <file id="tmp1" based_on="prefix" append=".tmp1.fq" temp="True" />
+  <file id="tmp2" based_on="prefix" append=".tmp2.fq" temp="True" />
+  <file id="tmp1u" based_on="prefix" append=".tmp1u.fq" temp="True" />
+  <file id="tmp2u" based_on="prefix" append=".tmp2u.fq" temp="True" />
+
+  <command program="java">
+    <version_command> echo Trimmomatic:0.32 </version_command>
+    -jar /opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/Trimmomatic-0.32/trimmomatic-0.32.jar PE -phred33 {in_1} {in_2} {tmp1} {tmp1u} {tmp2} {tmp2u} {minlen}
+  </command>
+
+  <command program="java">
+    <version_command> echo Trimmomatic:0.32 </version_command>
+    -jar /opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/Trimmomatic-0.32/trimmomatic-0.32.jar SE -phred33 {tmp1} {out_1} {R1crop}
+  </command>
+
+  <command program="java">
+    <version_command> echo Trimmomatic:0.32 </version_command>
+    -jar /opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/Trimmomatic-0.32/trimmomatic-0.32.jar SE -phred33 {tmp2} {out_2} {R2crop}
+  </command>
+
+  <command program="">
+    <version_command> </version_command>
+    myprefix=` basename {prefix} `;
+    echo "QC_raw" $myprefix $(echo $(zless {in_1} |wc -l )/4|bc) | tee -a $myprefix.QC.log; 
+    echo "QC_trim" $myprefix $(echo $(zless {out_1} |wc -l )/4|bc) | tee -a $myprefix.QC.log
+  </command>
+
+</tool>

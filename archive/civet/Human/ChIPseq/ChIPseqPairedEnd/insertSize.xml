@@ -1,0 +1,38 @@
+<!-- insert size estimation
+
+Estimating insert size from picard.
+
+Basic command: 
+
+-->
+
+<tool name="InsertSize" tool_config_prefix="IS" walltime="04:00:00">
+    <!-- What does this tool do? -->
+    <description>
+        Estimates the insert size from paired end reads
+    </description>
+
+<!--
+        Files passed to this tool, ins and outs:
+        Ins: 
+          1: t_e1.bam
+        Outs:
+          1: Hist
+    -->
+    
+    <!-- Specify any modules needed for this tool -->
+    <module>java/1.8.0</module>
+    <module>R/3.3.1</module>
+
+<!--samtools view -bq 30 file.sam > filtered.bam 
+	CHECK TO MAKE SURE THIS IS CORRECT SYNTAX
+-->
+
+
+    <command program="">
+       
+
+     java -jar -Xmx4g  /opt/compsci/picard/2.1.1/picard.jar  CollectInsertSizeMetrics I={in_1} H={out_1}  O={out_2}
+
+    </command>
+</tool>

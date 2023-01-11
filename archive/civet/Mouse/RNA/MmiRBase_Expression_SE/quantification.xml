@@ -1,0 +1,37 @@
+<!-- ====================== -->
+<!-- step 5 Quantification  -->
+<!-- ====================== -->
+
+<tool name="quantification" walltime="01:00:00">
+<!-- What does this tool do? -->
+<description>
+        Counts the digital miRNA expression in a sample.
+</description>
+
+<!--
+     Files passed to this tool, ins and outs:
+     Ins:
+     1: file.sam
+     Outs:
+     1: CountTable.txt
+-->
+
+<!-- Specify any modules needed for this tool -->
+<module>subread/1.5.2</module>
+<module>samtools/1.3.1</module>
+
+<!-- call tool for operation -->
+
+<!-- Counting the miRNA expression from a sample -->
+<command program="featureCounts">
+    -T 2 -F SAF -a {in_1} -o {out_1} {in_2}
+</command>
+
+<!-- Create a miRNA and count table for the use of expression analysis -->
+<command program="miR_Counts.sh">
+    {out_1} {out_2}
+</command>
+
+
+</tool>
+

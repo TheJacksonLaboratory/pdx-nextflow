@@ -1,0 +1,43 @@
+#! /bin/bash
+
+# A short script that writes the path of a CGA
+# run to a status file, approving the
+# run to have its CollabRX report generated.
+# In production, must specify the directory containing 
+# the VCF output files as its only argument.
+
+# For test/debug, takes a second argument specifying
+# the directory into which to write both the okay_to_report.txt file
+# and the marker file.  If not specified, it defaults to
+# /sequenced-data/clinical/cga/gva/.
+
+if [ "X${1}" = "X" ]
+then
+  echo "USAGE: ${0} path-to-cga-output-directory"
+  exit 1
+fi
+
+RUN_NAME=$(basename ${1})
+RUN=/sequenced-data/clinical/cga/${RUN_NAME}
+
+OK_TO_REPORT=${2-/sequenced-data/clinical/cga}/okay_to_report.txt
+MARKER_FILE=${2-/sequenced-data/clinical/cga/gva/sent_to_reporting}/${RUN_NAME}
+if  ! ls ${RUN}/*AFge0.05.tab > /dev/null 2>&1
+then
+  echo "ERROR: ${RUN} is not a CGA output directory (containing the VCFs)"
+  exit 1
+fi
+
+# Set the umask to ensure that this is group writeable.
+umask 7
+echo ${RUN} >> ${OK_TO_REPORT}
+
+# Mark that this run has been sent to GVA reporting.
+# Note that this script intentionally does NOT test for this file.
+# This allows a user to manually send a file for reporting a second
+# time for whatever reason.  This marker file is tested by
+# check_cga_run.py in reporting mode, to avoid automatically sending
+# a run for annotation twice.
+touch ${MARKER_FILE}
+
+# End of script

@@ -1,0 +1,45 @@
+<pipeline name="only_remap.xml">
+
+<!-- ********************************* Input should be prepared with a dedicated python script ************** -->
+<!-- Input should include:
+         * input files list
+         * megahit input files list (cutadapt output)
+-->
+    <dir id="cain" input="True" parameter="1" />
+    <file id="mfinal" input="True" parameter="2" />
+    <string id="pname" parameter="3" />
+	<!--*************************** define and create directories ******************************* -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <dir id="stats" filespec="stats" in_dir="outdir" />
+    <file id="comremap" input="False" in_dir="stats" filespec="remap_to_combined_megahit_stats.txt" />
+    <file id="shead" in_dir="stats" temp="True" filespec="sheader.txt" />
+    <foreach id="infile" dir="cain">
+        <file id="cr1" pattern=".*R1_001.fastq.gz"/>
+        <related id="cr2" input="True" pattern="(.*)R1(_001\.fastq\.gz)$" replace="\1R2\2"/>
+       
+        <related id="remapidx" input="False" in_dir="outdir" pattern="(.*)_R1_001.fastq.gz" replace="\1.final_contigs"/>
+        <related id="remapsai1" input="False" in_dir="outdir" pattern="(.*)_R1_001.fastq.gz" replace="\1.map_to_final_contigs.sai1"/>
+        <related id="remapsai2" input="False" in_dir="outdir" pattern="(.*)_R1_001.fastq.gz" replace="\1.map_to_final_contigs.sai2"/>
+        <related id="remap" input="False" in_dir="outdir" pattern="(.*)_R1_001.fastq.gz" replace="\1.map_to_final_contigs.bam"/>
+        <related id="remapstats" input="False" in_dir="outdir" pattern="(.*)_R1_001.fastq.gz" replace="\1_map_to_final_contigs_stats.txt"/>
+
+        <step name="megahit_assembly">
+            <tool name="bwamap"
+             input="cr1,cr2,mfinal"
+             output="remapsai1,remapsai2,remap,remapstats,remapidx"
+             description="map_paired_end_with_bwa_aln.xml" />
+        </step>
+    </foreach>
+<filelist id="astats" in_dir="outdir" pattern=".*_map_to_final_contigs_stats.txt" foreach_id="infile" />
+<step name="get_stats1">
+    <tool name="sheader"
+     output="shead"
+     description="print_stats_header.xml" />
+    <tool name="merge_stats_1"
+     input="shead, astats"
+     output="comremap"
+     description="merge_stats.xml" />
+</step>
+
+
+</pipeline>

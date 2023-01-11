@@ -1,0 +1,251 @@
+#!/bin/bash
+#
+# Run the PDX Whole Exome nextflow pipeline
+#
+# Example:  ./run_ctp  TM00099  BR1367F003P6  --real
+#
+# This script takes care of submitting a slurm job using sbatch.
+# When SA team releases a new pipeline version, CS-Ops updates VERSION here.
+#
+# If --real  is specified, it's a real production run and the result folder
+# will be named so that the db loader will load from it next time it runs.
+#
+# For command line options see the Usage statement and case statements below.
+#
+
+
+VERSION="1.0.0"
+# NF_SCRIPT=pipelines/Exome/$VERSION/hctp_en_mutect.nf
+NF_SCRIPT=pipelines/WholeExome/$VERSION/hwes_en.nf
+PDX=/pdx/pdx_resource_service/elion
+CMD=run_wholeexome
+
+
+# get mandatory first three command line args...
+if [ $# -lt 2 ]; then
+  echo "Usage: $CMD  modelname  samplename  [options]"
+  echo "Quitting."
+  exit 1
+fi
+MODEL=$1
+SAMPLE=$2
+PLATFORM=Whole_Exome
+
+
+# detect BAYLOR-sequenced wes samples and if found, bail for now.
+# These used a special civet pipeline w/ Baylor-specific reference files
+# (civet ./Exome/WholeExome/Baylor_config_file_Whole_Exome_Single_Sample)
+is_baylor=`echo $SAMPLE | grep "^BCM-" | wc -l`
+if [ $is_baylor -eq 1 ]; then
+  echo "$MODEL $SAMPLE was sequenced at Baylor and requires separate protocol... $CMD quitting."
+  exit
+fi
+
+
+# get any additional command line --options...  first set the defaults...
+real=no                  # if --real it's a real production run
+all_but_launch=no        # if --all_but_launch  do prelimaries but stop short of pipeline launch
+preserve_work=no         # if --preserve_work  don't delete nextflow's ./work dir at end [NOT YET IMP.]
+resultloc="default"      # specify to put result folder somewhere other than ./analysis
+indir="default"          # specify to set a special dir to get fastq files from
+min_pct_hq_reads=50      # minimum % high quality reads
+
+
+shift 2
+for iarg in "$@"
+do
+  case $iarg in
+    --preserve_work)
+      # this option not yet working for whole_exome... 
+      # it looks like the WholeExome/*.nf has it hooked up but likely some of the 
+      # enumerated filenames are wrong causing the whole cleanup to fail
+      preserve_work=yes
+      shift
+      ;;
+    --real)
+      real=yes
+      shift
+      ;;
+    --all_but_launch)
+      all_but_launch=yes
+      real=no
+      shift
+      ;;
+    --min_pct_hq_reads=*)
+      min_pct_hq_reads="${iarg#*=}"
+      shift
+      ;;
+    --resultloc=*)
+      resultloc="${iarg#*=}"
+      shift
+      ;;
+    --indir=*)
+      indir="${iarg#*=}"
+      shift
+      ;;
+    Whole_Exome)
+      # placeholder arg does nothing
+      shift
+      ;;
+    *)
+      echo "ERROR: $CMD quitting: unrecognized arg: ${iarg}"
+      exit 1
+      ;;
+  esac
+done
+
+
+# general sanity checks...
+if [ $real == "yes" ]; then 
+  GROUP=`id -gn`
+  if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
+    echo "ERROR: you must be svc-pdx (group pdx-data) to do --real"
+    exit 1
+  fi
+fi
+
+if [ "$resultloc" == "" -o "$indir" == "" ]; then
+  echo "ERROR: $CMD quitting: zero-length arg detected, --resultloc or --indir "
+  exit 1
+fi
+
+
+# determine where the fastq files are and be sure there are two of them...
+if [ $indir == "default" ]; then
+  indir=$PDX/seqdata/$MODEL/$SAMPLE/Whole_Exome
+fi
+if [ -d $indir ]; then
+  test
+else
+  echo "ERROR: $CMD quitting: fastq dir doesn't exist: $indir"
+  exit 1
+fi
+nfastq=`(cd $indir; ls *.fastq.gz) | wc -l`
+if [ $nfastq -lt 2 ]; then
+  echo "ERROR: $CMD quitting: 2+ fastq files not seen: $indir"
+  exit 1
+fi
+
+
+# go to the general result location...
+if [ $resultloc == "default" ]; then
+  cd $PDX/analysis/$MODEL
+else
+  cd $resultloc
+fi
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $resultloc result location (model=$MODEL)"
+  exit 1
+fi
+
+
+# build result folder name, derived from fastq name... and cd into it
+outdir=`(cd $indir; ls *.fastq.gz) | head -1 | sed "s/_R[1-9]_.*$//" `
+if [ $real != "yes" -a $resultloc == "default" ]; then
+  outdir="test_run_$outdir"
+fi
+if [ -d $outdir ]; then
+  echo -n "Notice: $CMD quitting: result folder already exists ($outdir). "
+  show_folder_status $outdir
+  exit 1
+fi
+
+mkdir $outdir
+cd $outdir
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $outdir"
+  exit 1
+fi
+
+
+# use pdxdata API to see whether this WES sample used
+# GT old_capture or new_capture  methodology
+GT_WES_CAPTURE=`curl "http://pdxdata.jax.org/api/gt_wes_method/$MODEL/$SAMPLE" 2>/dev/null | grep "GT_WES_capture\":" | awk '{ print $2 }' | sed "s/\"//g"`
+if [ "$GT_WES_CAPTURE" == "new_method" ]; then
+  echo "$MODEL $SAMPLE is new_capture_WES"
+  VERSION="$VERSION-NEWCAP"
+elif [ "$GT_WES_CAPTURE" == "old_method" ]; then
+  echo "$MODEL $SAMPLE is old_capture_WES"
+else
+  echo "ERROR: $MODEL $SAMPLE ... cannot determine old vs. new capture"
+  exit 1
+fi
+
+# create a status file with version info...
+echo "$PLATFORM  $VERSION  $NF_SCRIPT" > pipeline_running.txt
+
+
+
+# list the fastq files, prepend each with the string "${FQ_PATH}/" (a variable used 
+# within config file), and end up with a comma-separated list...
+FASTQS_LIST=`(cd $indir; ls *.fastq.gz)| sed 's/^/${FQ_PATH}\//' | paste -s -d, - `
+
+
+# build the params.config file (branch on pediatric or not)...
+echo "// params.config : `date`
+
+params
+{
+    FQ_PATH=\"$indir\"                    
+    fastqInputs = \"$FASTQS_LIST\"
+    min_pct_hq_reads = \"$min_pct_hq_reads\"
+    preserve_work = \"$preserve_work\" 
+    "    > params.config
+
+if [ $GT_WES_CAPTURE == "new_method" ]; then
+  # GT fastqs generated July 2021 and later
+  REFDIR=$PDX/refdata/WholeExome/new_capture_WES
+  # hg38_chrom_sizes.window.1000000_hex.coverage_Sorted_S31285117_MergedProbes_no_gene_names_Bed.bed
+  # S31285117_MergedProbes_no_gene_names.bed
+  # S31285117_MergedProbes_no_gene_names_picard.bed
+  echo "
+    targets_gatk =        \"${REFDIR}/S31285117_MergedProbes_no_gene_names.bed\"
+    hex_genes =           \"${REFDIR}/S31285117_MergedProbes_no_gene_names.bed\"
+    targets_picard =      \"${REFDIR}/S31285117_MergedProbes_no_gene_names_picard.bed\"
+    targets_exons_picard= \"${REFDIR}/S31285117_MergedProbes_no_gene_names_picard.bed\"
+    bins_hexcoverage =    \"${REFDIR}/hg38_chrom_sizes.window.1000000_hex.coverage_Sorted_S31285117_MergedProbes_no_gene_names_Bed.bed\"
+    " >> params.config
+
+else
+  # GT fastqs generated before July 2021
+  REFDIR=$PDX/refdata/WholeExome/old_capture_WES
+  echo "
+    targets_gatk =        \"${REFDIR}/hg38_agilent_SureSelect_V4.bed\"
+    hex_genes =           \"${REFDIR}/hg38_agilent_SureSelect_V4.bed\"
+    targets_picard =      \"${REFDIR}/hg38_agilent_SureSelect_V4_picard.bed\"
+    targets_exons_picard= \"${REFDIR}/hg38_agilent_SureSelect_V4_picard.bed\"
+    bins_hexcoverage =    \"${REFDIR}/hg38_chrom_sizes.window.1000000_hex.coverage_hg38_agilent_SureSelect_V4_picard_sorted_merged.bed\"
+    " >> params.config
+fi
+echo "}" >> params.config
+
+
+if [ $all_but_launch != "no" ]; then
+  echo "At user request, stopping just short of launching the pipeline..."
+  exit 1
+fi
+
+jobname="pdx_${PLATFORM}_${MODEL}_${SAMPLE}"
+
+# launch the pipeline........   
+sbatch  --job-name=$jobname  --mail-type=NONE \
+  -q batch   -t 72:00:00  --mem=2000  \
+  nextflow -c ./params.config   run $PDX/$NF_SCRIPT   -profile slurm,singularity   -with-dag nf_reports/flowchart.pdf
+
+
+
+# old capture was:
+    # targets_gatk =        \"${REFDIR}/S04380110_Padded_hg38_Agi_v5_PDMR_3_column_only_primary.bed\"
+    # hex_genes =           \"${REFDIR}/S04380110_Padded_hg38_Agi_v5_PDMR_3_column_only_primary.bed\"
+    # targets_picard =      \"${REFDIR}/S04380110_Covered_hg38_picard_only_primary_chr.intervals\"
+    # targets_exons_picard= \"${REFDIR}/S04380110_Covered_hg38_picard_only_primary_chr.intervals\"
+    # bins_hexcoverage =    \"${REFDIR}/hg38_chrom_sizes.window.1000000_hex.coverage_S04380110_Covered_hg38_picard_only_primary_chr_sorted_merged.bed\"
+
+# later try was:
+#    targets_gatk =        \"${REFDIR}/agilent_SureSelect_V4_pChrM_probes_padded.bed\"
+#    hex_genes =           \"${REFDIR}/agilent_SureSelect_V4_pChrM_probes_padded.bed\"
+#    targets_picard =      \"${REFDIR}/hg38_agilent_SureSelect_V4_pChrM_probes_picard_updated.bed\"
+#    targets_exons_picard= \"${REFDIR}/hg38_agilent_SureSelect_V4_pChrM_probes_picard_updated.bed\"
+#    bins_hexcoverage =    \"${REFDIR}/hg38_chrom_sizes.window.1000000_hex.coverage_Sorted_hg38_agilent_SureSelect_V4_Capture_Bed.bed\"
+

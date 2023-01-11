@@ -1,0 +1,101 @@
+#!/bin/sh
+#
+# Run pipeline for all instances awaiting up to a max number of instances. 
+#
+# Usage: run_all_awaiting  [listfile]
+#
+
+
+# The default listfile...
+INLIST=~svc-pdxread/workflow_status/awaits_pipeline
+
+# The default max number of instances to launch...
+maxrun=42
+
+GROUP=`id -gn`
+if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
+  echo "ERROR: you must be svc-pdx (group pdx-data) to run this (use 'newgrp pdx-data' to set group)"
+  exit 1
+fi
+
+
+if [ $# -eq 1 ]; then
+  INLIST=$1
+fi
+if [ -f $INLIST ]; then
+  echo "getting instances from $INLIST ..."
+else
+  echo "cannot open $INLIST ... quitting"
+  exit 1
+fi
+
+echo
+echo "Disk:"
+df -h | grep pdx_resource_service
+echo
+
+ARGS="--real"
+
+runcount=1
+
+cat $INLIST | 
+
+while read  model  sample  platform
+do
+  # echo "$model ... $sample ... $platform"
+  # continue
+
+  if [ `echo "$model" | egrep "^TM0|J00" | wc -l` -ne 1 ]; then
+    echo "ERROR bad input: $model  $sample  $platform"
+    exit
+  fi
+
+  # be sure an analysis dir exists for the model...
+  if [ -d $pdx/analysis/$model ]; then
+    test
+  else
+    mkdir $pdx/analysis/$model
+  fi
+
+  # run the appropriate pipeline...
+  if [ $platform == "CTP" ]; then
+    run_ctp  $model  $sample  $ARGS
+
+  elif [ $platform == "stRNA_Seq" -o $platform == "RNA_Seq" ]; then
+    run_rnaseq  $model  $sample  $platform  $ARGS
+
+  elif [ $platform == "SNP" ]; then
+    run_cnv  $model  $sample  $ARGS
+
+  elif [ $platform == "stRNA_Fusion" -o $platform == "RNA_Fusion" ]; then
+    run_rnafusion  $model  $sample  $platform  $ARGS
+
+  elif [ $platform == "Whole_Exome" ]; then
+    run_wholeexome  $model  $sample  $platform  $ARGS
+
+  else
+    echo "Skipping $platform ... No elion / nextflow support yet"
+    continue
+  fi
+
+  if [ $? -ne 0 ]; then
+    continue
+  fi
+
+  echo "${runcount}.  $model  $sample  $platform  $ARGS ....."
+  runcount=`expr $runcount + 1`
+  if [ $runcount -gt $maxrun ]; then
+    break
+  fi
+  sleep 1
+
+done
+
+if [ $runcount -gt 0 ]; then
+  exit 0
+else
+  # indicate that nothing was done
+  exit 2
+fi
+
+

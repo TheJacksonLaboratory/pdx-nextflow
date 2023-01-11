@@ -1,0 +1,27 @@
+<tool name="MRPE_MREMASE_DipHap"
+    tool_config_prefix="MRPE_MREMASE_DipHap"
+    walltime="47:59:00"
+    >
+    <description>
+    We are going to call perl script EMASE_Analysis_DipHap which will create pooled transcript.
+    </description>
+
+    <!-- Files:
+        Ins:
+          1: list_genome
+          2: dataDir
+          3: outdir
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>Anaconda</module>
+    <module>perl/cga</module>
+    <module>bowtie/1.0.0</module>
+    <module>samtools/0.1.18</module>
+
+    <command program="EMASE_Analysis_DipHap.pl">
+     -gl {in_1} -dd {in_2} -od {in_3}  
+    </command>
+
+</tool>
+

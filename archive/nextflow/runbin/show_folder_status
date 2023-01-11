@@ -1,0 +1,23 @@
+#!/bin/sh
+# Print info to stdout about run / completion status of an analysis result folder.
+# Shared by all run_* scripts.
+
+if [ $# -ne 1 ]; then
+  echo "ERROR: show_folderstatus expects one arg"
+  exit 1
+fi
+
+FOLDERNAME=$1
+
+if [ -f $FOLDERNAME/pipeline_running.txt ]; then
+  echo -n "NF Running, or else an earlier NF Fail: "
+  (cd $FOLDERNAME; ls -l --time-style="+%Y-%m-%d %H:%M" pipeline_running.txt ) | awk '{ print $6, $7 }'
+elif [ -f $FOLDERNAME/pipeline_completed.txt ]; then
+  echo -n "Completed NF run on: "
+  (cd $FOLDERNAME; ls -l --time-style="+%Y-%m-%d %H:%M" pipeline_completed.txt) | awk '{ print $6, $7 }'
+elif [ -f $FOLDERNAME/pipeline_failed.txt ]; then
+  echo -n "Completed (but failed) NF run, no resolution planned"
+elif [ -d $FOLDERNAME/logs ]; then
+  echo "Civet folder.  Remove the symlink and try again."
+fi
+

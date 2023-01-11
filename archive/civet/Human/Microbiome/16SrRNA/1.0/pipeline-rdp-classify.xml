@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+
+<pipeline name='rdp_classify'>
+  <!--<description>Use RDP to classify fasta files</description>-->
+  <!-- Parameters:
+    1: fasta dir
+  -->
+
+  <!-- Parameters -->
+  <dir id='fasta_dir' parameter='1' />
+
+  <foreach id='rdp_fasta' dir='fasta_dir'>
+    <file id='fasta'
+      pattern='.*.fasta'
+      />
+    <step name=''>
+      <tool name='rdp_classify'
+      description='tool-rdp_classify.xml'
+      input='fasta_dir,fasta'
+      />
+    </step>
+      <!--output='out_classed,out_hierarc'-->
+  </foreach>
+
+</pipeline>

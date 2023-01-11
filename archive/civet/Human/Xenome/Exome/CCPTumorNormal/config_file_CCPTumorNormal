@@ -1,0 +1,4 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38.bed
+Mutect2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38.bed
+HSmetrics.TARGET_INTERVALS=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38_picard.bed
+HSmetrics.BAIT_INTERVALS=/data/shared/cga_reference_data/hg38_201601/CGA_exon_list_371_genes_targets_gatk_hg38_picard.bed

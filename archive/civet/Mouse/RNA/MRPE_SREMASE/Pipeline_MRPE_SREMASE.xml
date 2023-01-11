@@ -1,0 +1,87 @@
+<pipeline name="MRPE_SREMASE" display_name="Diversity Outbred Mouse RNAseq Single End  EMASE based Pipeline for Single Reference">
+
+	<!--
+	civet_run -.xml inputfasta  
+	-->
+
+    <!--
+     INPUT FILES TO THE PIPELINE [Single end fastq file ]   
+    -->
+
+    <file id="e1_fastq" display_name="Paired end fastq file" input="True" parameter="1" 
+      description="R1 fastq file" />
+    <file id="e2_fastq" display_name="Paired end fastq R2" input="True" parameter="2" 
+      description="R2 fastq file" />
+    <string id="list_genome" display_name= "Refrence genome name"  parameter="3" 
+      description="Reference genome name, example 'DBA_2J'" />
+   
+	
+	
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+
+    <file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+		
+    
+
+    <!-- The pipeline's default output directory. -->
+
+	<dir id="outdir"    based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_"/>
+	<dir id="datadir"   filespec="/data/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels" create="False"  />
+ 
+	<string id="list_genome1" based_on="list_genome"  append=".mysuffix"/>
+	<string id="list_genome2"  based_on="list_genome1" pattern="(.*?).mysuffix" replace="/data/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/\1"/>
+	<string id="mylink"  based_on="list_genome"  pattern=".*" replace ="mylink"/>
+	<string id="ref_transcript" based_on="list_genome"  append=".transcripts"/>
+	<string id="refdir" based_on="list_genome"  append=".mysuffix"/>
+	<string id="refdir1"  based_on="refdir" pattern="(.*?).mysuffix" replace="/data/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/\1"/>
+	<file id="R1transcriptome" based_on="sample_name" append="bowtie.R1.transcriptome.bam" />
+	<file id="R2transcriptome" based_on="sample_name" append="bowtie.R2.transcriptome.bam" />
+   
+    <step name="Step1">
+	
+	
+        <tool name="MRPE_SREMASE_Alignment"
+     	 input="e1_fastq, refdir1,ref_transcript,e2_fastq ,list_genome2"
+		 output ="R1transcriptome,R2transcriptome ,mylink"
+         description="tool-MRPE_SREMASE_Alignment.xml" />          
+    </step>
+	
+    <string id="list_genome4" based_on="list_genome"  append=".emase.transcriptome.info.mysuffix"/>
+    <string id="emase_info" based_on="list_genome4"  pattern="(.*?).mysuffix" replace="mylink/\1"/>
+   
+	<file id="R1transcriptomeH5" based_on="sample_name" append=".bowtie.R1.transcriptome.h5" />
+    <file id="R2transcriptomeH5" based_on="sample_name" append=".bowtie.R2.transcriptome.h5" />
+  	
+   
+	<step name="Step2">
+        <tool name="MRPE_SREMASE_Convert_BAM"
+         input="R1transcriptome, emase_info ,R2transcriptome"
+		 output="R1transcriptomeH5,R2transcriptomeH5"
+         description="tool-MRPE_SREMASE_ConvertBAM.xml" />          
+    </step>
+	 
+	<string id="list_genome5" based_on="list_genome"  append=".emase.gene2transcript.tsv.mysuffix"/>
+	<string id="gene2transcript" based_on="list_genome5"  pattern="(.*?).mysuffix" replace="mylink/\1"/>
+   
+    <string id="list_genome6" based_on="list_genome"  append=".emase.transcriptome.info.mysuffix"/>
+	<string id="emasetranscriptsinfo" based_on="list_genome6"  pattern="(.*?).mysuffix" replace="mylink/\1"/>
+   
+    <file id="combinetranscriptomeh5" based_on="sample_name" append=".combined.transcriptome.h5" />
+     <file id="combinecompressed" based_on="sample_name" append=".combine.compressed.h5" />
+
+	<file id = "outstring" in_dir = "outdir"  based_on ="sample_name" append = ""/>
+
+	<step name="Step3">
+        <tool name="MRPE_SREMASE_RunEMASE"
+         input="R1transcriptomeH5,gene2transcript,emasetranscriptsinfo,R2transcriptomeH5 "
+		 output ="combinetranscriptomeh5,outstring,combinecompressed"
+         description="tool-MRPE_SREMASE_RunEMASE.xml" />          
+    </step>
+
+
+</pipeline>

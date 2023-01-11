@@ -1,0 +1,25 @@
+<tool name="MRSE_SREMASE_ConvertBAM"
+    tool_config_prefix="MRSE_SREMASE_ConvertBAM"
+    walltime="47:59:00"
+   >
+    <description>
+     This is the ConvertBam step
+    </description>
+
+    <!-- Files:
+        Ins:
+    -->
+	
+	<module>Anaconda</module>
+    	 
+	<command program="">
+      source activate emase-0.10.17 
+    </command>
+
+
+   <command program="">
+    bam-to-emase  -a {in_1} -i {in_2} -s {in_3} -o {out_1} 
+   </command>
+
+</tool>
+

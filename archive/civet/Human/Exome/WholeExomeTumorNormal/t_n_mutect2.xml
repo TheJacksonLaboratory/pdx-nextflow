@@ -1,0 +1,31 @@
+<tool name="T_N_variant_callers" tool_config_prefix="T_N_callers"  walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+      Call snps and indels based on tumor-normal paired samples.
+    </description>
+
+    <!-- Files:
+         Ins:t_final_bam, n_final_bam, reference,dbsnp,target file
+         Outs: snp_vcf
+    -->
+
+    
+    <module>java/1.7.0</module>
+    <module>GATK/3.5-0</module>
+
+
+    <file id="gatk" input="True" filespec="/opt/compsci/GATK/3.5-0/GenomeAnalysisTK.jar" />
+
+    <validate id="gatk" />
+
+    
+    
+
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx24g -jar {gatk} -T MuTect2   -R {in_3}    -I:tumor {in_1}  
+        -I:normal {in_2} --dbsnp {in_4}  -L {in_5}  -o {out_1}
+    </command>
+</tool>
+

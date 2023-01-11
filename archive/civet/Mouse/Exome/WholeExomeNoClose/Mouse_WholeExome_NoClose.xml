@@ -1,0 +1,182 @@
+<pipeline name="Mouse_WholeExome_NoClose.xml">
+    <!-- First, set up the files this pipeline will use -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <filelist id="fastqs" display_name="Fastq Pairs" paired="true" input="True" parameter="1"
+     description="Fastq file pairs"/>
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="sample_name" based_on="fastqs" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" datestamp_prepend="%y%m%d-%H%M%S_"
+         default_output="True"/>
+
+    <dir id="filter" filespec="filter"  in_dir="outdir" />
+
+    <dir id="mmr_data" filespec="/data/shared/mmr" create="False" /> 
+       
+    <file id="dbsnp" filespec="dbSNP.mm10.tab.gz" in_dir="mmr_data" input="True" />
+
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+   
+     <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+    <file id="e1_trimmed"  temp="True" in_dir="filter"
+            based_on="fastqs" append="_filtered_trimmed" />
+    <file id="e2_trimmed"  temp="True" in_dir="filter"
+            based_on="e1_trimmed" pattern="(.*)(_|\.)R1(.*)" replace="\1\2R2\3" />
+
+    <file id="bwa_ref" input="True" in_dir="mmr_data"
+               filespec="BWA_Index" />
+
+    <file id="ref" input ="True"
+              filespec="/data/shared/mmr/BWA_Index/genome.fa" />
+
+
+
+    <file id="read_group" temp="True" in_dir="outdir" filespec="read_group.txt" />
+
+ 
+    <file id="stats" in_dir="filter" based_on="fastqs"
+          pattern="(.*)(_|\.)R1(.*)" replace="\1\2R1\3_\1\2R2\3_stat" />
+
+    <step name="Qual_Stat">
+        <tool name="QnS"
+        input="fastqs, filter"
+        output="e1_trimmed, e2_trimmed"
+        description="qual_statistics_new.xml" />
+    </step>
+
+     <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="sam" in_dir="outdir" temp="True"
+                based_on="sample_name" append=".sam" />
+
+    <step name="Alignment">
+       <tool name="read_group"
+        input="fastqs"
+        output="read_group"
+        description="read_group.xml" />
+
+      <tool name="BWA_MEM_Alignment"
+         input="e1_trimmed,e2_trimmed,bwa_ref,read_group"
+         output="sam"
+         description="bwa_mem.xml" />
+    </step>
+
+
+     <file id="bam" in_dir="outdir" 
+                 based_on="sample_name" temp="True"  append="_aln.bam" />
+     <file id="bam_bai" in_dir="outdir"
+                 based_on="sample_name" temp="True"  append="_aln.bai" />
+
+    <file id="bam_dedupe" temp="True"  based_on="sample_name"
+          append="_dedupe.bam" />
+    <!--
+	Not referenced in the pipeline; implicitly created.
+	Just an entry to mark it as temp. More like this below.
+    -->
+    <file id="bam_dedupe_bai" temp="True"  based_on="sample_name"
+          append="_dedupe.bai" />
+
+    <file id="dedup_metrics" in_dir="outdir" based_on="sample_name"
+          append="_dup_metrics.dat" />
+    <file id="final_bam" in_dir="outdir" based_on="sample_name"
+          append="_realigned_dedup.bam" />
+
+    <file id="bait_picard" input="True" in_dir="mmr_data" 
+	  filespec="bait_picard.bed" />
+    <file id="target_picard" input="True" in_dir="mmr_data"
+	  filespec="target_picard.bed" />
+    <file id="target_gatk" input="True" in_dir="mmr_data"
+          filespec="target_gatk.bed" />
+
+    <file id="coverage_metrics" in_dir="outdir" based_on="sample_name"  append="_CoverageMetrics.txt" />
+    
+
+    <step name="Variant_Preprocessing">
+        <tool name="Variant_Preproc_1"
+            input="sam, outdir"
+            output="bam,bam_dedupe,dedup_metrics"
+            description="variant_pre_proc_1.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="bam_dedupe, outdir, ref, target_gatk"
+            output="final_bam" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="final_bam,outdir,target_picard,bait_picard,ref"
+            output="coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+    
+    <file id="variants_raw" in_dir="outdir" based_on="sample_name"
+          append="_variants_raw.vcf" />
+
+    <file id="variants_filtered" in_dir="outdir" based_on="sample_name"
+          append="_variants_filtered.vcf" />
+
+
+
+    <step name="Variant_Calling">
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, target_gatk"
+            output="variants_raw"
+            description="variant_calling.xml" />
+       
+        <tool name="Variant_Filtration"
+            input="ref, variants_raw"
+            output="variants_filtered"
+            description="variant_filtration.xml" />
+
+    </step>
+
+    <file id="variants_filtered_dbsnp" in_dir="outdir" based_on="sample_name"
+          append="_variants_filtered_dbsnp.vcf" />
+    <file id="variants_filtered_dbsnp_snpEff" in_dir="outdir" based_on="sample_name"
+          append="_variants_filtered_dbsnp_snpEff.vcf" />
+    <file id="variants_filtered_highestsnpEff" in_dir="outdir" based_on="sample_name"
+          append="_variants_filtered_highestsnpEff.vcf" />
+    <file id="snpeff_snp_all_summary"          in_dir="outdir" based_on="sample_name"
+          append="_snpeff_summary.html" />
+
+
+    <step name="Annotation">
+        <tool name="Variant_Annotation_dbSNP"
+            input="variants_filtered, dbsnp"
+            output="variants_filtered_dbsnp"
+            description="variant_annotation_dbSNP.xml" />
+
+        <tool name="Variant_Annotation_snpEff"
+            input="variants_filtered_dbsnp"
+            output="variants_filtered_dbsnp_snpEff,snpeff_snp_all_summary"
+            description="variant_annotation_snpEff.xml" />
+
+        <tool name="Variant_Highest_Impact"
+            input="ref,variants_filtered_dbsnp,variants_filtered_dbsnp_snpEff,variants_filtered_dbsnp"
+            output="variants_filtered_highestsnpEff"
+            description="variant_highest_impact.xml" />
+    </step>
+
+
+    <file id="summary_stats" in_dir="outdir" based_on="sample_name" append="_summary_stats.txt" />
+
+    <step name="Summarize">
+        <tool name="Aggregate_stats"
+            input="stats, coverage_metrics"
+            output="summary_stats"
+            description="aggregate_stats.xml" />
+    </step>
+
+</pipeline>

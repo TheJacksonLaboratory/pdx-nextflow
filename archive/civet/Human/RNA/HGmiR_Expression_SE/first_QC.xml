@@ -1,0 +1,29 @@
+<!-- =============== -->
+<!-- step 1 first qc -->
+<!-- =============== -->
+
+<tool name="first_QC" walltime="00:30:00">
+<!-- What does this tool do? -->
+<description>
+  Check the quality of reads
+</description>
+
+<!--
+Files passed to this tool, ins and outs:
+Ins:
+  1: read.fastq
+  2: QC directory
+Outs:
+  1: read_qc1.zip
+-->
+
+<!-- Specify any modules needed for this tool -->
+<module>fastqc/0.11.3</module>
+
+<!-- call tool for operation -->
+<command program="fastqc">
+  <version_command>fastqc --version</version_command>
+  --noextract -q {in_1} --outdir {out_1}
+</command>
+
+</tool>

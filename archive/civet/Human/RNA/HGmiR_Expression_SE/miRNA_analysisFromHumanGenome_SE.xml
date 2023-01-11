@@ -1,0 +1,172 @@
+<!--
+    The Pipeline needed a fastq (unpaired) short read of miRNA sample
+-->
+
+<pipeline name="miRNA_analysisFromHumanGenome_SE.xml">
+
+	<!-- Read input fastq -->
+	<file id="e1_fastq" input="True" parameter="1" />
+
+	<!--
+      To mitigate the possibility of file name hits when multiple
+      pipelines are run simultaneously, we'll create some files with
+      the sample name as a prefix.
+	-->
+	
+	<file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+  	replace="\1" />
+
+	<!-- The pipeline's default output directory. -->
+	<!-- create a output directory in current working directory -->
+	<dir id="outdir" based_on="sample_name" datestamp_prepend="%y%m%d-%H%M%S_"
+  	default_output="True" />
+
+	<!-- The next files have filenames based on previously declared files. -->
+	<!-- The pipeline will generate these files. -->
+
+	<!-- =============== -->
+	<!-- step 1 first qc -->
+	<!-- =============== -->
+
+	<!-- create a directory QC inside output directory -->
+	<dir id="QC1" filespec="QC1" in_dir="outdir" />
+
+	<!-- calling first script (first_QC) -->
+	<step name="First_QC">
+          <tool name="first_QC"
+           input="e1_fastq"
+           output="QC1"
+           description="first_QC.xml" />
+	</step>
+
+	<!-- ======================= -->
+	<!-- step 2 Adapter trimming -->
+	<!-- ======================= -->
+
+	<!-- create a directory Trimmed_reads inside output directory -->
+	<dir id="Trimmed_reads" filespec="Trimmed_reads" in_dir="outdir" />
+
+	<file id="clipped" in_dir="Trimmed_reads" temp="True"  based_on="sample_name"  append="_clipped.fastq" />
+
+	<file id="clipLog" in_dir="Trimmed_reads" temp="False"  based_on="sample_name"  append="_clipLog.log" />
+
+	<!-- call program to clip adapter from 3 prime end -->
+	<step name="Trimming">
+          <tool name="trimming"
+           input="e1_fastq"
+           output="clipped,clipLog"
+          description="trimming.xml" />
+	</step>
+
+	<!-- ================= -->
+	<!-- step 3 second qc  -->
+	<!-- ================= -->
+
+	<!-- create a directory QC2 inside output directory -->
+	<dir id="QC2" filespec="QC2" in_dir="outdir" />
+			
+	<!-- calling script (second_QC) -->
+	<step name="Second_QC">
+	      <tool name="second_QC"
+	      input="clipped"
+	      output="QC2"
+	      description="second_QC.xml" />
+	</step>
+
+	<!-- ================= -->
+	<!-- step 4 alignment  -->
+	<!-- ================= -->
+	
+	<!-- create a mapping directory inside output directory -->
+	<dir id="mapped_reads" filespec="mapped_reads" in_dir="outdir" />
+	
+	<!-- Define a annotation directory -->
+	<dir id="index_dir"  input ="True" filespec="/data/shared/research_pipelines_reference_data/human/miRNA/RefDataBaseHG/hsa_genome38.78/Index" create="False" />
+	
+	<!-- annotation file -->
+	<file id="ref" input="True" filespec="hsa.genome_v78.fa" in_dir="index_dir" />
+	
+	<!-- file id for mapping bam/sam -->
+	<file id="sam" in_dir="mapped_reads" temp="True"  based_on="sample_name"  append="_TotalMap.sam" />
+	
+	<file id="bam" in_dir="mapped_reads" temp="True"  based_on="sample_name"  append="_TotalMap.bam" />
+	
+	<file id="bamSort" in_dir="mapped_reads" temp="False"  based_on="sample_name"  append="_TotalMapSort.bam" />
+
+	<file id="mappingLog" in_dir="mapped_reads" temp="False"  based_on="sample_name"  append="_mappingLog.log" />
+		
+	<!-- calling script (mapping) -->
+	<step name="Mapping_to_Genome">
+	      <tool name="mapping"
+	      input="ref,clipped"
+	      output="sam,bam,bamSort,mappingLog"
+	      description="mapping.xml" />
+	</step>
+
+	<!-- ====================== -->
+	<!-- step 5 Quantification  -->
+	<!-- ====================== -->
+
+	<!-- create a Quantification directory within output directory -->
+	<dir id="Quantification" filespec="Quantification" in_dir="outdir" />
+
+	<!-- Define a annotation directory -->
+	<dir id="annotations" input ="True" filespec="/data/shared/research_pipelines_reference_data/human/miRNA/RefDataBaseHG/annotation" create="False" />
+
+	<!-- miR annotation file -->
+	<file id="gff" input="True" filespec="hsa.gff3" in_dir="annotations" />
+
+	<!-- file id for long table -->
+	<file id="CountsTable" in_dir="Quantification" temp="False"  based_on="sample_name"  append="_quantification.txt" />
+	
+	<!-- file id for main table -->
+	<file id="miR_Counts" in_dir="Quantification" temp="False"  based_on="sample_name"  append="_miR_Counts.txt" />
+	
+	<!-- Ensembl annotation file -->
+	<file id="gtf" input="True" filespec="Homo_sapiens.GRCh38.78.gtf" in_dir="annotations" />
+
+	<!-- file id for long Ensembl table -->
+	<file id="EnsemblCountsTable" in_dir="Quantification" temp="False"  based_on="sample_name"  append="_EnsemblBiotypes.txt" />
+	
+	<!-- file id for Ensembl Report -->
+	<file id="EnsemblBioTypes" in_dir="Quantification" temp="False"  based_on="sample_name"  append="_EnsemblBioTypesExpression.txt" />
+
+	<!-- calling script (mapping) -->
+	<step name="Quantification">
+	      <tool name="quantification"
+	      input="gff,sam,gtf"
+	      output="CountsTable,miR_Counts,EnsemblCountsTable,EnsemblBioTypes"
+	      description="quantification.xml" />
+	</step>
+
+
+	<!-- =================================== -->
+	<!-- step 6 miRNA variants/seed-isomiRs  -->
+	<!-- =================================== -->
+
+	<!-- create a isomiRs directory within output directory -->
+	<dir id="isomiRs" filespec="isomiRs" in_dir="outdir" />
+
+	<!-- gff2 hairpin to 35flank+fasta from genome -->
+	<file id="flankfasta" input="True" filespec="hsa.35nt.pre.fa" in_dir="annotations" />
+	
+	<!-- gff2 annotation from miRBase -->
+	<file id="gff2" input="True" filespec="hsa.gff3.gff2" in_dir="annotations" />
+	
+	<!-- mature miRNA from miRBase -->
+	<file id="miR" input="True" filespec="mature.fa" in_dir="annotations" />
+	
+	<!-- bam to intermediate -->
+	<file id="intermediate" in_dir="isomiRs" temp="False"  based_on="sample_name"  append="_miRspring.input.txt" />
+	
+	<!-- intermediate to miRSpring -->
+	<file id="miRSpring" in_dir="isomiRs" temp="False"  based_on="sample_name"  append="_miRspring.Report.html" />
+
+	<step name="miRNA_variants">
+	      <tool name="miRNA_variants"
+	      input="flankfasta,gff2,miR,bamSort"
+	      output="intermediate,miRSpring"
+	      description="isomiR.xml" />
+	</step>
+	
+</pipeline>

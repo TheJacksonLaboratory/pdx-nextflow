@@ -1,0 +1,5 @@
+VaPrePro2.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38.bed
+HSmetrics.targetfilepicard=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38_picard.bed
+HSmetrics.baitfilepicard=/data/shared/cga_reference_data/hg38_201601/CGA_exon_list_371_genes_targets_gatk_hg38_picard.bed
+UnifiedGenotyper.targetfilegatk=/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38.bed
+exoncoverage.targetfile=/data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/359genes_b38_noheader_withNames.bed

@@ -1,0 +1,37 @@
+<tool name="T_N_variant_callers" tool_config_prefix="T_N_callers"  walltime="23:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+      Call snps and indels based on tumor-normal paired samples.
+    </description>
+
+    <!-- Files:
+         Ins:t_final_bam, n_final_bam, reference
+         Outs: snp_vcf, indel_vcf
+    -->
+
+    <module>somaticsniper/1.0.2</module>
+    <module>java/1.7.0</module>
+    <module>GATK/2.2-16</module>
+
+
+    <file id="gatk" input="True" filespec="/opt/compsci/GATK/2.2-16/GenomeAnalysisTK.jar" />
+
+    <validate id="gatk" />
+
+    <option name="Joint_Genotype"          command_text=""   value="-J"    /> 
+    <option name="mapping_quality"         command_text="-q" value="30"    />
+    <option name="somatic_quality"         command_text="-Q" value="20"    />
+    <option name="SNP_output"              command_text="-F" value="vcf"   />
+
+    <command program="bam-somaticsniper">
+        {mapping_quality} {somatic_quality} {SNP_output} {Joint_Genotype} -f {in_3} {in_1} {in_2} {out_1}
+    </command>
+
+
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx24g -jar {gatk} -T SomaticIndelDetector -R {in_3} -o {out_2}
+        -I:normal {in_2} -I:tumor {in_1} -ws 500 
+    </command>
+</tool>
+

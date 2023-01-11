@@ -1,0 +1,23 @@
+<tool name="compare files"
+    threads="12"
+    walltime="10:00:00"
+    tool_config_prefix="mashsk">
+    <description>
+        Sketch a fasta file using mash
+    </description>
+    <!-- Files:
+        Ins:
+          1: db fasta file
+        OutS:
+	  
+    -->
+    <command program="echo">
+        $'>dummy\nAAAAAAAAAAAAAAAAAAAAAAAAA' >> {in_1}
+    </command>
+    <!-- Modules needed to run on the cluster -->
+    <module>mash</module>
+    <option name="threads" command_text="-p" type="threads" description="Number of threads to use" display_name="threads" />
+    <command program="mash sketch">
+        -i {threads}  {in_1} 
+    </command>
+</tool>

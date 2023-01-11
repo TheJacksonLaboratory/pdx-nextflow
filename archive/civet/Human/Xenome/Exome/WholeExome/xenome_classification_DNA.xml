@@ -1,0 +1,39 @@
+<tool name="XENOME" tool_config_prefix="XENOME_CLASS" walltime="23:00:00" threads="12">
+    <description>
+        classify the reads 
+    </description>
+    <!--
+        Ins:
+	  1: fastq_file1
+	  2: fastq_file2
+        Outs:
+	  1: human_1.fastq
+	  2: human_2.fastq
+	  3: xenome classification
+    -->
+    
+    <!-- Step 1: Xenome Classification -->
+    <module>xenome</module>
+
+    <!--
+        Declare some files created by this tool that we want to delete.
+        These files are not used anywhere in the pipeline.
+        By declaring them as temp they will get deleted at the end of this
+        job.
+    -->
+    <file id="both1" filespec="both_1.fastq" temp="True" />
+    <file id="both2" filespec="both_2.fastq" temp="True" />
+    <file id="mouse1" filespec="mouse_1.fastq" temp="True" />
+    <file id="mouse2" filespec="mouse_2.fastq" temp="True" />
+    <file id="neither1" filespec="neither_1.fastq" temp="True" />
+    <file id="neither2" filespec="neither_2.fastq" temp="True" />
+    <file id="ambiguous1" filespec="ambiguous_1.fastq" temp="True" />
+    <file id="ambiguous2" filespec="ambiguous_2.fastq" temp="True" />
+
+    <option name="threads" type="threads" command_text="-T"/>
+
+    <command program="xenome" stdout_id="out_3">
+        classify {threads} -P   /data/shared/cga_reference_data/hg38_201601/Xenome_broad_Index_Files/hg38_broad_NOD_based_on_mm10_k25
+        --pairs --host-name  mouse  --graft-name human  -i {in_1} -i {in_2}
+    </command>
+</tool>

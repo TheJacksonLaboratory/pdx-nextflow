@@ -1,0 +1,29 @@
+<tool name="kraken" threads="10" walltime="12:00:00" tool_config_prefix="kraken" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+   Run Kraken on fasta file or single-ended reads
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: fasta file
+    Outs:
+    1: kraken output 
+    2: kraken report
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<module>gcc</module>
+<module>blast+</module>
+<module>kraken2</module>
+
+<!-- call tool for operation -->
+<option name="db" command_text="--db" value="/projects/compsci/kraken2db/Oct18/" type="string" description="Kraken database dir" display_name="kraken DB"/>
+<option name="conf" command_text="--confidence" value="0.02" type="numeric" description="confidence level" display_name="confidence level"/>
+<option name="threads" command_text="--threads" type="threads" description="Number of threads to use" display_name="threads" />
+<command program="kraken2">
+  {threads} {db} --report {out_2} {conf} --use-mpa-style --output {out_1} {in_1} 
+</command>
+</tool>

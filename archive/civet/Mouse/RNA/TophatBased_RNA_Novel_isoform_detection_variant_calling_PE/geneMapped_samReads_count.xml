@@ -1,0 +1,41 @@
+<tool name="HTSeq_GeneMapped_RawCountReads" tool_config_prefix="htseq" walltime="23:00:00">
+    <description>
+        Getting raw counts of reads mapping to genes using htseq:
+    </description>
+    <!-- Files used:
+        Ins: 
+          1. accepted_hits_with_read_group.bam
+          2. outdir
+          3. ref_GTF
+        Outs: 
+	  1: HTSEQ Sam (TMP)
+	  2: HTSEQ COUNT 
+    -->
+
+    <module>java/1.7.0</module>
+    <module>samtools/0.1.19</module>
+    <module>python</module> 
+    
+    <validate>/opt/compsci/picard/1.95/SortSam.jar</validate>
+    <validate id="in_3" />
+ 
+
+    <file id="sam" in_dir="in_2" temp="True"  filespec="name_sorted.sam"  />
+ 
+    <!-- Step5.1: Picard SortSam.jar (sorting BAM file by name and converting to SAM) -->
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR 
+        -Xmx8g -jar /opt/compsci/picard/1.95/SortSam.jar 
+        SO=queryname 
+        INPUT={in_1} 
+        OUTPUT={sam}
+    </command>
+
+   <option name="strand_specific"              command_text="-s" value="no" />
+
+    <!-- Step5.2:  Counting reads from SAM file that map to genes -->
+    <command program="htseq-count" stdout_id="out_2">
+	-q {strand_specific}  -o {out_1} {sam} {in_3} 
+    </command>
+
+</tool>

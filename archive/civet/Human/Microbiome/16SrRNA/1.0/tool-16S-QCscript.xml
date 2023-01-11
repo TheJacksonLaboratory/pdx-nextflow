@@ -1,0 +1,25 @@
+<tool name="16S-QCscript"
+      threads="1"
+      walltime="1:00:00"
+      mem="2"
+      tool_config_prefix="tool-16S-QCscript">
+  <description>
+    perl 16-QC.pl
+  </description>
+  <option name="scriptQC" command_text="" value="/opt/compsci/Microbiome/16srRNA/1.0/Scripts/qc_16S_civet.pl" />
+  <option name="scriptAlert" command_text="" value="/opt/compsci/Microbiome/16srRNA/1.0/Scripts/qc_16S_civet_alert.pl" />
+
+
+  
+
+  <command program="">
+    <version_command> </version_command>
+    cat *.QC.log > QC.log;
+    perl {scriptQC} ;
+    perl {scriptAlert} ;
+    rm -rf *.QC.log
+  </command>
+
+
+
+</tool>

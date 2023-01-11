@@ -1,0 +1,64 @@
+<tool name="trim_galore" tool_config_prefix="trim_gal"  walltime="23:00:00" threads="4">
+    <!-- What does this tool do? -->
+    <description>
+        Checks paired end fastq files for overall quality, and performs
+        some quality control
+    </description>
+    
+    <!--
+        Files passed to this tool, ins and outs:
+        Ins: 
+          1: end1.fastq
+          2: end2.fastq
+          3: out_dir
+        Outs:
+    -->
+    
+    <!-- Specify any modules needed for this tool -->
+
+    <module>java</module>
+    <module>fastqc</module>
+    <module>python</module>
+    <module>perl/cga</module>
+    <module>bismark/0.13.0</module>
+
+    <command program="force_gd_graph.pl" />
+    
+<!--
+     Keeping this file for Incase need to use different Adaptor in future
+    <file id="adaptor" input="True"               filespec="/data/shared/research_pipelines_reference_data/human/RNA/fastqc_contaminant_list"/>
+-->
+
+
+<!-- QC before trimming to see the quality and adaptor level -->
+
+     <command program="fastqc">
+      -o {in_3} -t 4 {in_1} {in_2}     
+     </command>
+
+
+<!-- Actual QC using trim_galore -->
+
+    <option name="non_directional" display_name="Non-Directional" command_text="--non_directional" value="true" type="boolean"
+      description="Selecting this option for non-directional RRBS libraries will screen quality-trimmed sequences for CAA or CGA at the start of the read and, if found, removes the first two base pairs" />    
+
+    <option name="trimLength" display_name="Trim Length" type="numeric" command_text="--length" value="30" 
+     description="Discard reads that became shorter than length (INT) because of either quality or adapter trimming." />
+    
+    <option name="qualThreshold" display_name="Quality Threshold" type="numeric" command_text="-q" value="30" 
+      description="Trim low-quality ends from reads in addition to adapter removal." />
+      
+    <option name="adapOverlap" display_name="Adaptor Overlap" type="numeric" command_text="--stringency"   value="1"
+      description="Overlap with adapter sequence required to trim a sequence." />
+      
+    <option name="adaptorSeq" display_name="Adaptor Sequence" type="string" command_text="-a" value="GATCGGAAGAGCACACG"
+      description="Adapter sequence to be trimmed." />
+      
+    <option name="rrbs_option" display_name="RRBS" type="boolean" command_text="--rrbs" value="true" 
+      description="Specifies that the input file was an MspI digested RRBS sample (recognition site: CCGG)" />
+
+    <command program="trim_galore"> 
+    --paired {rrbs_option} {non_directional} {trimLength} {qualThreshold}  {adapOverlap}  {adaptorSeq}  --fastqc {in_1} {in_2}
+    </command>
+
+</tool>

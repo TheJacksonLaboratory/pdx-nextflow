@@ -1,0 +1,47 @@
+#!/bin/bash
+
+inp=$1 ###UnifiedGenotyper
+inp2=$2 ####pindel
+out=$3 ###outfile
+
+fpdir=$4 ####hg38_recurring_variants_ctp
+windows=$5 #####1MB_bins_ctpcoverage_hg38.bed
+
+# cat $inp $inp2 | bedtools intersect -header -v -a - -b $fpdir/*bed | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowAF" --rmFilter "PASS" 'ALT_AF[ANY] < 5' | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowQD" --rmFilter "PASS" 'QD < 2' | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "strandBias" --rmFilter "PASS" 'FS > 60' | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowMQ" --rmFilter "PASS" 'MQ < 40' | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowMQRankSum" --rmFilter "PASS" 'MQRankSum < -12.5' | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowReadPosRankSum" --rmFilter "PASS" 'ReadPosRankSum < -8' > nofalsePositives.tmp2.vcf
+
+
+cat $inp $inp2 | bedtools intersect -header -v -a - -b $fpdir/*bed | \
+java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowAF" --rmFilter "PASS" 'ALT_AF[ANY] < 5' | \
+java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "strandBias" --rmFilter "PASS" 'FS > 60' | \
+java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowMQ" --rmFilter "PASS" 'MQ < 40' | \
+java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowMQRankSum" --rmFilter "PASS" 'MQRankSum < -12.5' | \
+java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowReadPosRankSum" --rmFilter "PASS" 'ReadPosRankSum < -8' > nofalsePositives.tmp2.vcf
+
+
+# cat $inp $inp2 | bedtools intersect -header -v -a - -b $fpdir/*bed | \
+# java -jar /opt/compsci/snpEff/4.1g/SnpSift.jar filter --addFilter "lowAF" --rmFilter "PASS" 'ALT_AF[ANY] < 5' > nofalsePositives.tmp2.vcf
+
+
+java -jar /opt/compsci/snpEff/4.2/snpEff.jar eff -v -lof -canon -hgvs hg38 -noStats nofalsePositives.tmp2.vcf > all_genes_variants_snpEff.vcf
+java -jar /opt/compsci/snpEff/4.2/SnpSift.jar dbnsfp -v -db /data/shared/cga_reference_data/actionseq/dbNSFP3.2a.txt.gz -noDownload -f SIFT_score,SIFT_pred,Polyphen2_HDIV_score,MutationAssessor_score,phyloP100way_vertebrate,1000Gp3_AF,1000Gp3_AFR_AF,1000Gp3_EUR_AF,1000Gp3_AMR_AF,1000Gp3_EAS_AF,ESP6500_AA_AF,ESP6500_EA_AF,ExAC_AC,ExAC_AF all_genes_variants_snpEff.vcf > all_genes_variants_snpeff_snpsift.vcf
+java -jar /opt/compsci/snpEff/4.0e/SnpSift.jar annotate -id /data/shared/cga_reference_data/actionseq/COSMICv75_Coding_NonCoding.vcf.gz all_genes_variants_snpeff_snpsift.vcf > all_genes_variants_cosmicannotation.vcf
+java -jar /opt/compsci/snpEff/4.2/SnpSift.jar filter --addFilter "PutativeGermline" --rmFilter "PASS" '(ALT_AF[ANY] >= 90 & dbNSFP_1000Gp3_AF[ANY] >= 0.0095) | ((ALT_AF[ANY] >= 40 & ALT_AF[ANY] <= 60) & dbNSFP_1000Gp3_AF[ANY] >= 0.0095)| (ALT_AF[ANY] >= 90 & dbNSFP_ESP6500_AA_AF[ANY] >= 0.0095)| ((ALT_AF[ANY] >= 40 & ALT_AF[ANY] <= 60) & dbNSFP_ESP6500_AA_AF[ANY] >= 0.0095)|(ALT_AF[ANY] >= 90 & dbNSFP_ESP6500_EA_AF[ANY] >= 0.0095)|((ALT_AF[ANY] >= 40 & ALT_AF[ANY] <= 60) & dbNSFP_ESP6500_EA_AF[ANY] >= 0.0095)|(ALT_AF[ANY] >= 90 & dbNSFP_ExAC_AF[ANY] >= 0.0095)|((ALT_AF[ANY] >= 40 & ALT_AF[ANY] <= 60) & dbNSFP_ExAC_AF[ANY] >= 0.0095)' all_genes_variants_cosmicannotation.vcf > all_genes_variants_cosmicannotation_germlineflag.vcf
+cat all_genes_variants_cosmicannotation_germlineflag.vcf | /opt/compsci/snpEff/4.2/scripts/vcfEffOnePerLine.pl > all_genes_variants_cosmicannotation_germlineflag_oneperline.vcf
+java -jar /opt/compsci/snpEff/4.2/SnpSift.jar extractFields all_genes_variants_cosmicannotation_germlineflag_oneperline.vcf CHROM POS REF ALT ID FILTER DP_HQ ALT_AF "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp3_AF" "dbNSFP_1000Gp3_AFR_AF" "dbNSFP_1000Gp3_EUR_AF" "dbNSFP_1000Gp3_AMR_AF" "dbNSFP_1000Gp3_EAS_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF" "dbNSFP_ExAC_AC" "dbNSFP_ExAC_AF" "CALLER" > $out
+
+
+#high, moderate; FILTER=PASS; not in dbSNP
+header="chr\tstart\tend\tCTPlength\tHM"
+cat $out|grep "HIGH\|MODERATE" | awk -F '\t' '{ if($5 !~ "rs" && ($6==""||$6=="PASS"||$6==".")) print $1,$2-1,$2 }'|sort|uniq|tr ' ' '\t' > count2 ;
+echo -e $header > "$out".HM.tab
+bedtools coverage -b $windows -a count2 | cut -f 1-5 >> "$out".HM.tab
+
+
+##High TMB cutoff is >=22
+

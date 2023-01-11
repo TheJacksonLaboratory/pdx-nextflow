@@ -1,0 +1,49 @@
+<tool name="MRSE_SREMASE_RunEMASE"
+    tool_config_prefix="MRSE_SREMASE_RunEMASE"
+    walltime="47:59:00"
+    mem="32">
+    <description>
+     This is the third step
+    </description>
+
+    <!-- Files:
+        Ins:
+         
+
+    -->
+	
+	<module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>perl/cga</module>
+    <module>samtools/0.1.18</module>
+	
+     <option name="Model"  command_text="-M" type="select" description="Multiread mode ID: 1 - Gene-&gt;Allele-&gt;Isoform, 2 - Gene-&gt;Isoform-&gt;Allele, 3 - Gene-&gt;(Isoform*Allele), 4 - Gene*Isoform*Allele" >
+        <select>1</select>
+        <select>2</select>
+        <select >3</select>
+        <select default="true">4</select>
+    </option>
+    <option name="readLength"  display_name="Read Length"  command_text="-r"
+      type="numeric"  value="100"  description="" />
+    <option name="EMiteration"  display_name="EM iterations"  command_text="-m"
+      type="numeric"  value="999"  description="maximum number of EM iterations" />
+    <option name="tolerance"  command_text="-t" type="numeric"  value="0.0001"
+      description="EM convergence tolerance" />
+      
+    <command program="">
+      source activate emase-0.10.17
+    </command>
+	 
+	<command program="">
+	  export EMASE_DATA=/hpcdata/shared/research_pipelines_reference_data/mouse/RNA/EMASE_reference_data_REL-1505-SNPs_Indels/8Way_Ref
+	</command>
+
+    <command program="run-emase">
+	 -i {in_1} -g {in_2} -L {in_3} {Model} -o {out_1} {readLength} {EMiteration} {tolerance}
+    </command>
+
+	<command program="">
+	 rm mylink
+	</command>
+</tool>
+

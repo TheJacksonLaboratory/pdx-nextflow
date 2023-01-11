@@ -5,7 +5,7 @@ process GATK_FILTERMUTECTCALLS {
   memory 15.GB
   time '05:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_htslib_tabix.sif'
+  container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
 
@@ -22,14 +22,10 @@ process GATK_FILTERMUTECTCALLS {
   my_mem =  my_mem[0..-4]
 
     """
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
+    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
     FilterMutectCalls \
     --variant ${sampleID}_intermed.vcf.gz \
     --output ${sampleID}_final_mutect_snp_indel_filtered.vcf \
-    --min-base-quality-score 20 \
-    --dont-use-soft-clipped-bases true \
-    --unique-alt-read-count 5 \
-    --stand-call-conf 30 \
-    -L ${params.targets_gatk}
+    --unique-alt-read-count 5
     """
 }

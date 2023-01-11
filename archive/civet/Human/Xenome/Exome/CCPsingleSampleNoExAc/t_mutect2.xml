@@ -1,0 +1,73 @@
+<tool name="Mutect2" tool_config_prefix="Mutect2"  threads="1"
+      walltime="24:00:00" mem="256"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+      Call snps and indels based on tumor samples.
+    </description>
+
+    <!-- Files:
+         Ins:t_final_bam, reference, ExAC
+         Outs: snp_vcf, flt_vcf
+    -->
+
+    <module>compsci</module>
+    <module>java/1.8.0</module>
+    <module>GATK/4.0.5.1</module>
+    <module>htslib</module>
+    <module>tabix/0.2.6</module>
+
+
+    <file id="gatk" input="True" filespec="/opt/compsci/GATK/4.0.5.1/gatk-package-4.0.5.1-local.jar" />
+    <validate id="gatk" />
+
+    <option name="TARGET_INTERVALS"   command_text="" value="/data/shared/cga_reference_data/hg38_201601/359genes_targets_sorted_gatk_hg38.bed" />
+
+    <file id="t_SN"      temp="True"    filespec="tumor_SN.txt" />
+
+    <command program="java">
+    -Xmx4g -jar {gatk} GetSampleName -I {in_1} -O {t_SN}
+    </command>
+
+    <command program="">
+    tumorName=`cat {t_SN}`
+    </command>
+
+
+    <command program="java" delimiters="||">
+      -Djava.io.tmpdir=$TMPDIR
+      -Xmx250g -jar |gatk|  Mutect2   -R |in_2|    -I |in_1|  -tumor ${tumorName} --germline-resource |in_3| --af-of-alleles-not-in-resource 0.0000082364 -O |out_1| --disable-read-filter MateOnSameContigOrNoMappedMateReadFilter --dont-use-soft-clipped-bases  --genotype-germline-sites --sample-ploidy 4
+    </command>
+
+    <!-- zip -->
+    <command program="" >
+       bgzip {out_1}
+    </command>
+
+    <!-- tabix -->
+    <command program="" >
+       tabix {out_3}
+    </command>
+
+     <file id="tumor_pileup_summary"          temp="True"    filespec="tumor_getpileupsummaries.table" />
+     <file id="tumor_calc_contamination"      temp="True"    filespec="tumor_calculatecontamination.table" />
+
+    <command program="java" >
+     -Djava.io.tmpdir=$TMPDIR
+     -Xmx48g -jar {gatk} GetPileupSummaries -I {in_1} -V {in_3}
+     -O {tumor_pileup_summary}
+    </command>
+
+    <command program="java" >
+     -Djava.io.tmpdir=$TMPDIR
+     -Xmx48g -jar {gatk} CalculateContamination -I {tumor_pileup_summary}
+     -O {tumor_calc_contamination}
+    </command>
+
+    <command program="java">
+    -Djava.io.tmpdir=$TMPDIR
+    -Xmx48g -jar {gatk} FilterMutectCalls --variant {out_3} --output {out_2} --min-base-quality-score 20 --dont-use-soft-clipped-bases true  --unique-alt-read-count 5  -stand-call-conf 30 --contamination-table {tumor_calc_contamination} -L {TARGET_INTERVALS}
+    </command>
+
+
+
+</tool>

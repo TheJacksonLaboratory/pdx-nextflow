@@ -1,0 +1,401 @@
+#! /usr/bin/env python
+from __future__ import print_function
+ 
+# The "main" program of the civet_research pipelines.  The actual
+# pipeline to be run and its characteristics are controlled by the
+# table (nested dict) below.
+
+import os
+import sys
+import inspect
+import get_version
+import argparse
+import textwrap
+import subprocess
+
+cmd_folder = os.path.realpath(os.path.abspath(os.path.split(
+    inspect.getfile(inspect.currentframe()))[0]))
+
+import pipeline_parse as PL
+
+
+from pipeline_definitions import pipes, testing_files
+
+def parse_options(help_prolog, help_epilog):
+    parser = argparse.ArgumentParser(
+        version="3.0",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=help_prolog,
+        epilog=help_epilog)
+
+    parser.add_argument('-o', '--options-file',
+                        help='Alternate options file')
+    parser.add_argument('-c', '--create-options-file',
+                        action='store_true',
+                        help="Create a default options file in the "
+                             "user's current working directory, to "
+                             "serve as a base for modifications")
+    parser.add_argument('-e', '--email-address', default=None,
+                        help="email address for notifications, defaults to "
+                             "the user. Can be a comma delimited list of "
+                             "addresses.")
+    parser.add_argument('--error-email-address', default=None,
+                        help="email address for error emails, defaults to "
+                             "'--email-address' value")
+    parser.add_argument('-k', '--keep-temp', action='store_true',
+                        help='Keep temp files, usually for debugging')
+    parser.add_argument('-n', '--no-submit', dest='submit',
+                        action='store_false',
+                        help="Generate batch scripts but don't "
+                             "submit them")
+    parser.add_argument('-q', '--queue',
+                        help="Specify an alternate queue to submit to.")
+    parser.add_argument('-w', '--walltime-multiplier', type=float,
+                        help="optional walltime multiplier to be "
+                             "applied to every job's walltime")
+    parser.add_argument('input_file', nargs='*',
+                        help='One or more pipeline input files (use the '
+                        '"list_pipelines" command for the files '
+                        'required for a particular pipeline)')
+    args = parser.parse_args()
+
+    return args
+
+
+def translate_legacy_pipeline_names(pn):
+    if pn == 'cnv_paired':
+        print('pipeline cnv_paired is now called hcnv_tn', file=sys.stderr)
+        return 'hcnv_tn'
+    if pn == 'cnv_single':
+        print('pipeline cnv_single is now called hcnv', file=sys.stderr)
+        return 'hcnv'
+
+    # No translation necessary; return the input pipeline name.
+    return pn
+
+
+def main():
+    get_version.parse_options()
+    global cmd_folder
+    global pipes
+
+    pn = os.path.split(sys.argv[0])[1]
+
+    try:
+        help_prolog = textwrap.dedent(pipes[pn]['help_prolog'])
+    except KeyError:
+        help_prolog = None
+    try:
+        help_epilog = textwrap.dedent(pipes[pn]['help_epilog'])
+    except KeyError:
+        help_epilog = None
+    args = parse_options(help_prolog, help_epilog)
+
+    # Grab the fastq file list
+    input_files = args.input_file
+
+    # First check for the special list_pipelines program name.
+    if pn == 'list_pipelines':
+        list_pipelines()
+        return
+
+    # And for the special "test_xmls" name
+    if pn == 'test_xmls':
+        test_xmls()
+        return
+
+    pn = translate_legacy_pipeline_names(pn)
+
+    if pn not in pipes.keys():
+        print('Unknown pipeline {0}. Sorry'.format(pn), file=sys.stderr)
+        sys.exit(1)
+
+    this_pipe = pipes[pn]
+
+    if this_pipe['dir']:
+        pipe_dir = this_pipe['dir']
+    else:
+        pipe_dir = this_pipe['dir_function']()
+
+    if args.create_options_file:
+        create_options_file(pn, this_pipe, pipe_dir)
+        return
+
+    if 'num_in_group' in this_pipe:
+        num_args = this_pipe['num_in_group']
+    elif this_pipe['args']:
+        num_args = len(this_pipe['args'])
+    else:
+        raise ValueError('Could not determine the number of args')
+
+    num_trailing = 0
+    if this_pipe['allow_groups']:
+        try:
+            num_trailing = this_pipe['trailing_args']
+        except KeyError:
+            # Already initialized. We could have done it here, but PyCharm
+            # isn't smart enough and emits an annoying warning.
+            pass
+
+        if num_trailing:
+            nt_msg = ", followed by {0} additional arguments.".format(
+                num_trailing
+            )
+        else:
+            nt_msg = ""
+
+        if (len(input_files) - num_trailing) % num_args != 0 or not input_files:
+            print('The "{}" ({}) pipeline '
+                  'requires a multiple of {} arguments{}, e.g.,: \n'
+                  '{}'
+                  .format(this_pipe['fullname'],
+                          pn,
+                          num_args,
+                          nt_msg,
+                          this_pipe['args']),
+                  file=sys.stderr)
+            sys.exit(1)
+    else:
+        if 'trailing_args' in this_pipe.keys():
+            print('INTERNAL ERROR: the "trailing_args" is not allowed when '
+                  'allow_groups is False. Please report this. Ignoring...',
+                  file=sys.stderr)
+        if len(input_files) != num_args:
+            print('The "{0}" ({1}) pipeline '
+                  'requires exactly {2} arguments: {3}'
+                  .format(this_pipe['fullname'], pn,
+                          num_args,
+                          ' '.join(this_pipe['args'])),
+                  file=sys.stderr)
+            sys.exit(1)
+
+    # Determine the path to the pipeline...
+    pipeline = os.path.join(cmd_folder, '..', pipe_dir,
+                            this_pipe['pipeline'])
+
+    optionfile = args.options_file
+    if (optionfile is None) and (this_pipe['option'] is not None):
+        optionfile = os.path.join(cmd_folder, '..', pipe_dir,
+                                  this_pipe['option'])
+
+    # For parametric filelists (new in civet release 1.6.1),
+    # civet requires a single argument of comma-separated filenames.
+    
+    # Not all pipelines support this; indicated by the characteristic
+    # 'allow_groups'
+
+    if this_pipe['allow_groups']:
+    
+        # FIXME
+        # this is a work around for the hctp pipeline because it still uses the old
+        # e1_fastq, remaining_fastqs split parameters. Since it's not part of the 
+        # civet_research_pipelines repository, it's harder for us to update. 
+        # this should be removed next time the hctp pipeline is updated
+        first_fastq = None
+        if this_pipe.get('use_old_style_list_param', False):
+            first_fastq = input_files.pop(0)
+            
+        if num_trailing != 0:
+            filelist = ','.join(input_files[0:-num_trailing])
+            trailing = input_files[-num_trailing:]
+        else:
+            filelist = ','.join(input_files)
+            trailing = []
+        params = [filelist] + trailing
+        
+        # FIXME
+        # this goes with the work-around noted above. When that goes away, this 
+        # goes away too
+        if first_fastq:
+            params = [first_fastq] + params
+    else:
+        params = input_files
+
+    try:
+        with open(pipeline):
+            pass
+    except IOError:
+        print('Cannot open pipeline description '
+              'file:', pipeline, file=sys.stderr)
+        sys.exit(1)
+
+    PL.parse_XML(pipeline, params,
+                 submit_jobs=args.submit,
+                 skip_validation=True,
+                 queue=args.queue,
+                 keep_temp=args.keep_temp,
+                 user_override_file=optionfile,
+                 email_address=args.email_address,
+                 error_email_address=args.error_email_address,
+                 walltime_multiplier=args.walltime_multiplier)
+    PL.submit()
+
+
+def list_pipelines():
+    global pipes
+
+    # Set up the column headers
+    cmd_header = 'Command'
+    cmd_head_len = len(cmd_header)
+    cmd_max_len = cmd_head_len
+    cmds = [cmd_header]
+    cmds.append('-' * cmd_head_len)
+
+    desc_header = 'Pipeline Description'
+    desc_header_len = len(desc_header)
+    desc_max_len = desc_header_len
+    descs = [desc_header]
+    descs.append('-' * desc_header_len)
+
+    # Last column; don't need to track lengths
+    args = ['Arguments']
+    args.append('-' * len(args[0]))
+
+    pk = sorted(pipes.keys())
+    for command in pk:
+        p = pipes[command]
+        if len(command) > cmd_max_len:
+            cmd_max_len = len(command)
+        cmds.append(command)
+
+        fn = p['fullname']
+        if len(fn) > desc_max_len:
+            desc_max_len = len(fn)
+        descs.append(fn)
+        args.append(' '.join(p['args']))
+
+    # Now we have our content ready to emit, and we know the max size
+    # of the content in each column
+    # Set column width to 3 longer than the max content
+    cmd_len = cmd_max_len + 3
+    desc_len = desc_max_len + 3
+
+    for n in range(len(cmds)):
+        print('{0}{1}{2}{3}{4}'.format(
+            cmds[n],
+            ' ' * (cmd_len - len(cmds[n])),
+            descs[n],
+            ' ' * (desc_len - len(descs[n])),
+            args[n]
+        ))
+    print("\n\nTo test pipeline XML files, use the command:")
+    print("    test_xmls [pipeline-name]...)")
+    print("All pipelines are tested if no name is specified.\n")
+
+
+def create_options_file(pn, pipe, pipe_dir):
+    if pipe['option'] is None:
+        print('The "{0}" pipe has no default options file'.format(
+            pipe['fullname']), file=sys.stderr)
+        return
+
+    ofn = pn + '.options'
+    print('Creating {0}'.format(ofn))
+    src = os.path.join(cmd_folder, '..', pipe_dir,
+                       pipe['option'])
+    with open(ofn, 'w') as of:
+        for line in open(src):
+            of.write(line)
+
+
+test_directory = 'civet_research_pipelines_XML_test'
+
+
+def test_xmls():
+    """
+    This routine is used to walk through all of the pipelines and run them
+    against dummy files, in no-submit mode.  This only tests that the XMLs
+    parse correctly.  The generated scripts are left in place, in case a mode
+    detailed check is desired of particular changes.  It is NOT, however,
+    a test that any pipeline is correctly designed / specified.  That has
+    to be done in detail by the pipeline author / maintainer.
+
+    If invoked with one or more pipeline names as arguments, only those
+    pipelines will be tested.
+
+    Side effects: Creates a directory tree with the results of running the
+    script generation phase of all the pipelines.
+
+    NOTE:  This routine invokes civet_research_pipeline_master through its
+           pipeline aliases, THROUGH THE PATH.  The directory containing this
+           file MUST BE IN YOUR PATH.
+
+    :return: None
+    """
+
+    counters = {'attempts': 0,
+             'failures': 0}
+    failure_names = []
+
+    print("Testing results are in", os.path.abspath(test_directory),
+          file=sys.stderr)
+
+    if len(sys.argv) > 1:
+        for pn in sys.argv[1:]:
+            test_xml(pn, counters, failure_names)
+    else:
+        for pn in pipes.keys():
+            test_xml(pn, counters, failure_names)
+
+    if counters['failures'] == 0:
+        print("Success! All", counters['attempts'], "test cases succeeded")
+    else:
+        print("FAILURES: Of", counters['attempts'], "test cases,",
+              counters['failures'], "failed.",
+              file=sys.stderr)
+        print("Failing pipelines:", file=sys.stderr)
+        for n in failure_names:
+            print("   ", n, file=sys.stderr)
+
+
+def test_xml(pn, counters, failure_names):
+    print("Processing", pn, file=sys.stderr)
+    pipe = pipes[pn]
+
+    cwd = os.getcwd()
+
+    # Create a new directory for running this test
+    pipe_test_directory = os.path.join(test_directory, pn)
+    try:
+        # In a try block in case the dir already exists. We don't care.
+        os.makedirs(pipe_test_directory)
+    except OSError:
+        pass
+
+    os.chdir(pipe_test_directory)
+
+    # Create the needed files.
+    files = testing_files[pipe['testing_files']]
+    for f in files:
+        if f.endswith('_dir'):
+            try:
+                # In a try block in case the dir already exists. We don't care.
+                os.makedirs(f)
+            except OSError:
+                pass
+        else:
+            with open(f, 'w'):
+                pass
+
+    cmd_line = [pn, '-n'] + files
+    print(cmd_line)
+
+    try:
+        counters['attempts'] += 1
+        subprocess.check_call(cmd_line)
+    except OSError as e:
+        counters['failures'] += 1
+        failure_names.append(pn)
+        print("Couldn't find command", pn, "or other error:\n",
+              e, file=sys.stderr)
+    except subprocess.CalledProcessError as e:
+        counters['failures'] += 1
+        failure_names.append(pn)
+        print("Command", pn, "didn't complete successfully:\n",
+              e, file=sys.stderr)
+
+    os.chdir(cwd)
+
+
+if __name__ == "__main__":
+    main()

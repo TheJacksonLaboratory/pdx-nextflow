@@ -1,0 +1,26 @@
+<pipeline name="Diamond_proteins_vs_protein_DB.xml">
+
+<!-- Input should include:
+         * A dir with clean cutadapt files
+         * A protein DB (can be /projects/peera/databases/gtdb_refinem/r80/gtdb_r80_protein_db.2017-11-09.faa)
+-->
+    <dir id="filter" input="True" parameter="1" />
+    <file id="reffile" input="True" parameter="2" />
+    <string id="pname" parameter="3" />
+ 
+	<!--*************************** define and create directories ******************************* -->
+    <dir id="outdir" based_on="pname" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+    <dir id="dxdir" filespec="diamondp" in_dir="outdir" />
+    <foreach id="infile" dir="filter">
+        <file id="ocr1" pattern=".*\.fa.*a$"/>
+        <related id="dx1" input="False" in_dir="dxdir" pattern="(.*)\.fa.*a" replace="\1_diamond.tsv"/>
+
+        <step name="map_to_ref">
+            <tool name="diamond"
+             input="reffile,ocr1"
+             output="dx1"
+             description="run_diamond_blastp.xml" />
+        </step>
+    </foreach>
+
+</pipeline>

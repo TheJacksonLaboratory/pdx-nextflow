@@ -1,0 +1,157 @@
+<tool name="Post_Call_Processing" tool_config_prefix="VaPostPro"  threads="1" walltime="04:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        filter SNP and Indel from variant calls and add annotations
+    </description>
+
+    <!-- Step5: Variant filtration and annotation - SNPs and indels
+        Ins:  
+        1: variants_raw
+        2: output (directory)
+	3: ref
+	4: cosmic db
+       
+    -->
+
+
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>    
+    <module>perl/cga</module>
+
+
+    <file id="gatk" input="True"
+	filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+    <file id="snpeffJar" input="True"
+        filespec="/opt/compsci/snpEff/3.6c/snpEff.jar" />
+    <file id="snpsiftJar" input="True"
+        filespec="/opt/compsci/snpEff/3.6c/SnpSift.jar" />
+
+    <file id="dbNSFP" input="True"
+           filespec="/opt/compsci/snpEff/3.6c/other_data/dbNSFP2.4.txt.gz" />
+
+
+
+    <validate id="gatk" />
+    <validate id="snpeffJar" />
+    <validate id="in_3" />
+
+    <file id="snps" temp="true" in_dir="in_2"  filespec="only_snps.vcf" />
+    <file id="idx"  temp="true" in_dir="in_2"  filespec="only_snps.vcf.idx" /> 
+
+
+
+    <!-- Step 5.1: Select SNPs -->
+    <command program="java">
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx4g -jar {gatk} -T SelectVariants -R {in_3} --variant {in_1}
+	-o {snps} -selectType SNP
+    </command>
+
+   <file id="vcf_f" temp="true" in_dir="in_2" filespec="only_snps_filtered.vcf" />
+   <file id="idx_f" temp="true" in_dir="in_2" filespec="only_snps_filtered.vcf.idx" />
+
+   <!-- Step 5.2: Soft filtered SNPs -->
+     <command program="java">
+     -Djava.io.tmpdir=$TMPDIR
+     -Xmx2g -jar {gatk}  -R {in_3} -T VariantFiltration --out {vcf_f}
+     --variant {snps} 
+     -window 35 -cluster 3
+     --filterExpression "DP &lt; 5"
+     --filterName "LowCoverage"    
+     --filterExpression "QD &lt; 2.0"
+     --filterName "LowQD"
+     --filterExpression "FS &gt; 30.0"
+     --filterName "StrandBias" 
+   </command>
+
+   
+
+    <!-- Step 5.3: Cosmic Annotation  -->
+
+    <validate>perl</validate>
+    <command program="Cosmic_Annotation.pl" stdout_id="out_1">
+    -i1 {in_4} -i2 {vcf_f} 
+    </command>
+
+   
+    <!-- Step 5.4: SNPeff annotation -->
+
+    <command program="java" stdout_id="out_2">
+    -Djava.io.tmpdir=$TMPDIR
+    -Xmx4g -jar {snpeffJar} -v -lof hg19 -noStats {out_1}  
+    </command>
+
+
+    <command program="java"  stdout_id="out_3">
+         -jar {snpsiftJar} dbnsfp -a -f SIFT_score,SIFT_pred,Polyphen2_HDIV_score,MutationAssessor_score,phyloP100way_vertebrate,1000Gp1_AF,1000Gp1_AFR_AF,1000Gp1_EUR_AF,1000Gp1_AMR_AF,1000Gp1_ASN_AF,ESP6500_AA_AF,ESP6500_EA_AF  -v -a {dbNSFP} {out_2}
+              </command>
+
+
+    <command program=""  stdout_id="out_4">        cat {out_3} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
+        </command>
+
+
+
+
+    <file id="indels" 	     temp="true"  in_dir="in_2"  filespec="only_indels.vcf" /> 
+    <file id="indels_idx"    temp="true"  in_dir="in_2"  filespec="only_indels.vcf.idx" /> 
+
+
+    <!-- Step 5.5: Select Indels -->
+    <command program="java">
+    -Djava.io.tmpdir=$TMPDIR
+    -Xmx2g -jar {gatk} -T SelectVariants -R {in_3} --variant {in_1}
+    -o {indels} -selectType INDEL
+    </command>
+  
+
+    <file id="vcf_indel_flt"  temp="true"  in_dir="in_2" filespec="only_indels_filtered.vcf" />
+    <file id="idx_indel_flt"  temp="true"  in_dir="in_2" filespec="only_indels_filtered.vcf.idx" />
+
+
+   
+    <!-- Step 5.6: Soft filtered Indels -->
+     <command program="java">
+     -Djava.io.tmpdir=$TMPDIR
+     -Xmx2g -jar {gatk}  -R {in_3} -T VariantFiltration --out {vcf_indel_flt}
+     --variant {indels} 
+     -window 35 -cluster 3
+     --filterExpression "DP &lt; 5"
+     --filterName "LowCoverage"
+     --filterExpression "QD &lt; 2.0"
+     --filterName "LowQD"
+     --filterExpression "FS &gt; 30.0"
+     --filterName "StrandBias"    
+     </command>
+
+   
+
+
+
+    <!-- Step 5.7: Indel Cosmic Annotation  -->
+
+    <validate>perl</validate>
+    <command program="Cosmic_Annotation.pl" stdout_id="out_5">
+    -i1 {in_4} -i2 {vcf_indel_flt}
+    </command>
+
+
+    <!-- Step 5.8: Indel SNPeff annotation -->
+
+    <command program="java" stdout_id="out_6">
+    -Djava.io.tmpdir=$TMPDIR
+    -Xmx4g -jar {snpeffJar}  -v -lof hg19 -noStats {out_5}
+    </command>
+
+
+    <command program="java"  stdout_id="out_7">     -jar {snpsiftJar} dbnsfp -a -f SIFT_score,SIFT_pred,Polyphen2_HDIV_score,MutationAssessor_score,phyloP100way_vertebrate,1000Gp1_AF,1000Gp1_AFR_AF,1000Gp1_EUR_AF,1000Gp1_AMR_AF,1000Gp1_ASN_AF,ESP6500_AA_AF,ESP6500_EA_AF  -v -a {dbNSFP} {out_6}
+    </command>
+
+
+    <command program=""  stdout_id="out_8">     cat {out_7} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
+        </command>
+
+
+
+</tool>
+

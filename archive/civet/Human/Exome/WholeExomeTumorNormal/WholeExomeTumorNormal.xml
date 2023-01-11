@@ -1,0 +1,267 @@
+<pipeline name="WholeExomeTumorNormal.xml">
+    <!-- First, set up the files this pipeline will use -->
+    <!--
+        At first, these will all be real files.  Over time we may
+        make some of them tempfiles, to get cleaned up at the end.
+    -->
+
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <file id="t_e1_fastq" input="True" parameter="1" />
+    <file id="t_e2_fastq" input="True" parameter="2" />
+    <file id="n_e1_fastq" input="True" parameter="3" />
+    <file id="n_e2_fastq" input="True" parameter="4" />
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+    <file id="sample_name" based_on="t_e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="hextn" based_on="sample_name" create="False"
+         pattern="^(.*)_HEX_(.*)$" replace="\1_HEXTN_\2" />
+    <dir id="outdir" based_on="hextn"
+         datestamp_prepend="%y%m%d-%H%M%S_" default_output="True" />
+
+    <dir id="t_outdir" in_dir="outdir" filespec="t_out" />
+    <dir id="n_outdir" in_dir="outdir" filespec="n_out" />
+    <dir id="t_filter" filespec="t_filter"  in_dir="t_outdir" />
+    <dir id="n_filter" filespec="n_filter"  in_dir="n_outdir" />
+
+
+   
+
+
+
+
+    <!-- The next files have filenames based on previously declared files. -->
+    <!-- The pipeline will generate these files. -->
+
+    <!-- Tumor filtered files -->
+    <file id="t_e1_trimmed"   temp="True"  in_dir="t_filter" 
+        based_on="t_e1_fastq" append="_filtered_trimmed" />
+    <file id="t_e2_trimmed" temp="True"  in_dir="t_filter" 
+        based_on="t_e2_fastq"  append="_filtered_trimmed" />
+
+    <!-- Normal filtered files -->
+    <file id="n_e1_trimmed" temp="True"  in_dir="n_filter" 
+        based_on="n_e1_fastq" append="_filtered_trimmed" />
+    <file id="n_e2_trimmed" temp="True"  in_dir="n_filter" 
+        based_on="n_e2_fastq" append="_filtered_trimmed" />
+
+    <!-- our genome reference -->
+    <file id="ref" input="True"
+          filespec="/data/shared/cga_reference_data/hg38_201601/Homo_sapiens_assembly38.fasta"/>
+
+
+    <file id="bwa7_idx_pfx" 
+          filespec="/data/shared/cga_reference_data/hg38_201601/bwa_hg38/"/>
+  
+
+
+    <!-- Run the quality and statistics on both samples -->
+    <step name="T_Qual_Stat">
+        <tool name="QnS"
+            input="t_e1_fastq, t_e2_fastq, t_filter"
+            output="t_e1_trimmed, t_e2_trimmed"
+            description="qual_statistics_new.xml" />
+
+    </step>
+            
+    <step name="N_Qual_Stat">
+        <tool name="QnS"
+            input="n_e1_fastq, n_e2_fastq, n_filter"
+            output="n_e1_trimmed, n_e2_trimmed"
+            description="qual_statistics_new.xml" />
+            
+      </step>
+
+    <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="t_sam"  temp="True" in_dir="t_outdir"
+        based_on="sample_name" append="_tumor.sam" />
+    <file id="n_sam"  temp="True" in_dir="n_outdir"
+        based_on="sample_name" append="_normal.sam" />
+
+    <!-- Align both samples -->
+ 
+    <step name="T_Alignment">
+        <tool name="BWA_MEM_Alignment"
+            input="t_e1_trimmed, t_e2_trimmed,bwa7_idx_pfx"
+            output="t_sam"
+            description="bwa_mem.xml" />
+
+    </step>
+
+    <step name="N_Alignment">
+        
+
+        <tool name="BWA_MEM_Alignment"
+            input="n_e1_trimmed, n_e2_trimmed,bwa7_idx_pfx"
+            output="n_sam"
+            description="bwa_mem.xml" />
+    </step>
+
+
+
+
+
+
+
+    <!-- Files for variant preprocessing... -->
+
+    <file id="t_bam"   based_on="sample_name"
+              append="_aln_tumor.bam" in_dir="t_outdir" />
+    <file id="t_bam_dedupe" temp="True"  based_on="sample_name"
+          append="_tumor_dedupe.bam" in_dir="t_outdir" />
+    <file id="t_bam_dedupe_bai" temp="True"  based_on="sample_name"
+              append="_tumor_dedupe.bai" in_dir="t_outdir" />             
+    <file id="t_dedup_metrics" based_on="sample_name"
+          append="_tumor_dedup_metrics.dat" in_dir="t_outdir" />
+    <file id="t_final_bam" in_dir="t_outdir" based_on="sample_name"
+          append="_tumor_realigned_BQSR.bam" />
+
+    <file id="n_bam" based_on="sample_name"
+              append="_aln_normal.bam" in_dir="n_outdir" />
+    <file id="n_bam_dedupe" temp="True"  based_on="sample_name"
+          append="_normal_dedupe.bam" in_dir="n_outdir" />
+    <file id="n_bam_dedupe_bai" temp="True"  based_on="sample_name"
+              append="_normal_dedupe.bai" in_dir="n_outdir" />      
+    <file id="n_dedup_metrics" based_on="sample_name"
+          append="_normal_dedup_metrics.dat" in_dir="n_outdir" />
+    <file id="n_final_bam" in_dir="n_outdir" based_on="sample_name"
+          append="_normal_realigned_BQSR.bam" />
+
+
+    <file id="beds"  input="True" filespec="/data/shared/cga_reference_data/hg38_201601/" />
+    <file id="target_bed" input="True" in_dir="beds" filespec="hg38_agilent_SureSelect_V4_pChrM_probes_sorted_picard.bed" />
+    <file id="target_bed_gatk" input="True" in_dir="beds" filespec="hg38_agilent_SureSelect_V4_pChrM_probes_sorted.bed" />
+
+    <file id="t_coverage_metrics" in_dir="t_outdir" filespec="TCoverageMetrics.txt" />
+    <file id="n_coverage_metrics" in_dir="n_outdir" filespec="NCoverageMetrics.txt" />
+
+
+    <step name="T_Variant_Preproc">
+        <tool name="Variant_Preproc_1"
+            input="t_sam, t_outdir"
+            output="t_bam_dedupe,t_dedup_metrics,t_bam"
+            description="variant_pre_proc_1.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="t_bam_dedupe, t_outdir, ref, target_bed_gatk"
+            output="t_final_bam" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="t_final_bam, ref"
+            output="t_coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+    
+    <step name="N_Variant_Preproc">
+        <tool name="Variant_Preproc_1"
+            input="n_sam, n_outdir"
+            output="n_bam_dedupe,n_dedup_metrics,n_bam"
+            description="variant_pre_proc_1.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="n_bam_dedupe, n_outdir, ref, target_bed_gatk"
+            output="n_final_bam" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="n_final_bam,  ref"
+            output="n_coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+
+
+    <!-- Call the snps and indels -->
+
+    <file id="snp_indel_vcf" based_on="sample_name" in_dir="outdir"
+          append="_snp_indel.vcf" />
+   
+          
+     <file id="dbsnp_144" input="True"
+	  filespec="/data/shared/cga_reference_data/hg38_201601/dbsnp_144.hg38.vcf.gz" />
+
+    <step name="callers">
+        <tool name="Mutect2"
+            input="t_final_bam, n_final_bam,  ref,dbsnp_144,target_bed_gatk"
+            output="snp_indel_vcf"
+            description="t_n_mutect2.xml" />
+    </step>
+
+<!--
+    <file id="cosmic_annotation_snp"      temp="True" based_on="sample_name"
+                      append="_flt_snp_cosmic_annotation.vcf" />
+    <file id="variant_snpEff"    in_dir="outdir" based_on="sample_name"
+                      append="_SnpEff_snp.vcf" />
+    <file id="variants_full_annot" in_dir="outdir" based_on="sample_name"
+                      append="_full_anno_snp.vcf" />
+    <file id="variants_full_annot_txt" in_dir="outdir" based_on="sample_name"
+                       append="_full_anno_snp.txt" />
+
+   
+    <file id="cosmic_annotation_indel"      temp="True" based_on="sample_name"
+                     append="_flt_indel_cosmic_annotation.vcf" />
+    <file id="variant_snpEff_indel"    in_dir="outdir" based_on="sample_name"
+                     append="_SnpEff_indel.vcf" />
+    <file id="variants_full_annot_indel" in_dir="outdir" based_on="sample_name"
+                     append="_full_anno_indel.vcf" />
+    <file id="variants_full_annot_txt_indel" in_dir="outdir" based_on="sample_name"
+                     append="_full_anno_indel.txt" />
+ 
+   <file id="cosmic" input="True"
+                 filespec="/data/shared/cga_reference_data/COSMICv68_Coding_NonCoding.vcf"/>
+
+ 
+    <step name="Post_Processing">
+    <tool name="Post_Call_Processing"
+        input="snp_vcf, indel_vcf,outdir, ref, cosmic "
+        output="cosmic_annotation_snp, variant_snpEff,variants_full_annot,variants_full_annot_txt, cosmic_annotation_indel, variant_snpEff_indel,variants_full_annot_indel,variants_full_annot_txt_indel"
+        description="post_call_processing.xml" />
+    </step>
+
+
+    <file id="MergedVCF" in_dir="outdir"    based_on="sample_name"
+                           append="_SNP_INDEL_COMBINED.vcf" />
+
+    <step name="Merge">
+    <tool name="MergeSNP_Indel"
+      input="variants_full_annot, variants_full_annot_indel, ref"
+      output="MergedVCF"
+      description="merge_SNP_INDEL.xml" />
+    </step>
+
+    <file id="t_stats" in_dir="t_filter" based_on="t_e1_fastq" pattern="(.*)(_|\.)R1(.*)"
+                                 replace="\1\2R1\3_\1\2R2\3_stat" />
+    <file id="t_summary_stats" in_dir="outdir" based_on="sample_name" append="_tumor_summary_stats.txt" />
+
+
+   <step name="Summarize">
+     <tool name="Aggregate_stats"
+      input="t_stats, t_dedup_metrics, t_coverage_metrics"
+      output="t_summary_stats"
+      description="aggregate_stats_updated.xml" />
+     </step>
+
+   <file id="n_stats" in_dir="n_filter" based_on="n_e1_fastq" pattern="(.*)(_|\.)R1(.*)"
+   			       replace="\1\2R1\3_\1\2R2\3_stat" />
+   <file id="n_summary_stats" in_dir="outdir" based_on="sample_name" append="_normal_summary_stats.txt" />
+
+
+   <step name="Summarize">
+     <tool name="Aggregate_stats"
+      input="n_stats, n_dedup_metrics, n_coverage_metrics"
+      output="n_summary_stats"
+      description="aggregate_stats_updated.xml" />
+   </step>
+
+-->
+
+</pipeline>

@@ -1,0 +1,7 @@
+filter_trim.qual_cutoff= 50 ####At least 50 % of reads of high quality
+#XENOME.human_cutoff=50 ####At least 50 % of reads should be human
+AlnMetrics.SEQ_STRAND= NONE
+##For strand-specific library prep. For unpaired reads, use FIRST_READ_TRANSCRIPTION_STRAND if the reads are expected to be on the transcription strand. Required. Possible values: {NONE, FIRST_READ_TRANSCRIPTION_STRAND, SECOND_READ_TRANSCRIPTION_STRAND}#
+gatkcoverage.targetfile= /data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/359genes_b38_noheader_withNames.bed
+gatkcoverage.exomefile= /data/shared/research_pipelines_reference_data/human/RNA/Final_Supporting_Files_RNA_hg38/hg38_agilent_SureSelect_V4_pChrM_probes_genename.bed
+subsetter.targetfilesubset=/data/shared/cga_reference_data/hg38_201601/hg38_agilent_SureSelect_V4_pChrM_probes_sorted.bed

@@ -1,0 +1,50 @@
+<!-- MACS2 callpeaks
+Run after BWA and post-alignment QC. 
+
+Basic command (normal peak). Note that "hs" is appropriate for human, "mm" for mice. -B will store fragment pileup, control lambda, -log10pvalue and -log10qvalue scores in bedGraph files. -q is appropriate for normal peaks.
+
+macs2 callpeak -t {tumor} -c {normal} -g hs -n test -B -q 0.01
+
+variant for broad peak. Unsure whether to include -q 0.05
+
+macs2 callpeak -t {tumor} -c {normal} -broad -g hs -n test -B -broad-cutoff 0.1
+
+use MACS/2.1.0.20151222 probably?
+-->
+
+<tool name="callpeaks" tool_config_prefix="callpeaks" walltime="23:00:00">
+    <!-- What does this tool do? -->
+    <description>
+        Calls peaks from aligned, qc reads
+    </description>
+
+<!--
+        Files passed to this tool, ins and outs:
+        Ins: 
+          1: t_e1.sam
+        Outs:
+          1: t_e1.bam
+    -->
+    
+    <!-- Specify any modules needed for this tool -->
+    <module>MACS/2.1.0.20151222</module>
+
+
+<!--samtools view -bq 30 file.sam > filtered.bam 
+	Add command to create file base name to pass as "-n $base"?
+	CHECK TO MAKE SURE THIS IS CORRECT SYNTAX
+	FIND OUT HOW TO SET OPTIONAL VARIANT FOR BROAD PEAK CALLING
+-->
+
+	<option name="qvalue"       command_text="-q"      value="0.01" />
+    <option name="broadpeak"    command_text=""             value=""     />
+    <option name="callsummit"   command_text=""             value=""     />
+    <option name="shift"        command_text="--shift"      value="0"    />
+    <option name="nomodel"      command_text=""             value=""     />
+    <option name="extsize"      command_text=""             value=""     />
+    
+    <command program="macs2 callpeak">
+       -t {in_1} -c {in_2} -n {in_3} --outdir {in_4} -g mm  {qvalue} {broadpeak} {callsummit} {shift} {nomodel} {extsize}
+    </command>
+
+</tool>

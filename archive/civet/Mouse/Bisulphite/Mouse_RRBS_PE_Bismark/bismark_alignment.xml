@@ -1,0 +1,50 @@
+<tool name="Bismark_Alignment"
+    threads="12"
+    tool_config_prefix="Bismark_Aln"
+    walltime="48:00:00"
+    error_strings="'Abort!'">
+    <description>
+        Align a pair of fastq files.  Any quality checking and trimming
+        should be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: fastq1
+          2: fastq1
+          3: reference dir
+          4: outdir
+        Outs:
+          1: sam
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>samtools</module>
+    <module>bowtie2/2.2.3</module> 
+    <module>bismark/0.13.0</module>
+    <module>perl/cga</module>
+    
+    <option name="threads" type="threads" command_text="-p" />
+    
+    <option name="non_directional" display_name="Non-Directional" command_text="--non_directional" value="true" type="boolean"
+      description="Selecting this option for non-directional RRBS libraries will screen quality-trimmed sequences for CAA or CGA at the start of the read and, if found, removes the first two base pairs" />    
+    
+    <option name="seedlength" display_name="Seed Length" type="numeric" command_text="-L" value="20" 
+      description="Sets the length of the seed substrings to align during multiseed alignment. Smaller values make alignment slower but more sensitive." />
+      
+    <option name="seed_mismatch" display_name="Seed Mismatch" type="select" command_text="-N" 
+      description="Sets the number of mismatches to be allowed in a seed alignment during multiseed alignment. Can be set to 0 or 1. Setting this higher makes alignment slower (often much slower) but increases sensitivity.">
+      <select default="true">0</select>
+      <select>1</select>
+    </option>
+    
+    <option name="MinInsert" display_name="Minimum Insert Size" type="numeric" command_text="--minins" value="0" 
+      description="The minimum insert size for valid paired-end alignments." />
+      
+    <option name="MaxInsert" display_name="Maximum Insert Size" type="numeric" command_text="--maxins" value="1000" 
+      description="The maximum insert size for valid paired-end alignments."/>
+
+
+    <command program="bismark">
+        --bowtie2 {threads} {non_directional} {seedlength} {seed_mismatch} {MinInsert}  {MaxInsert}  --output_dir {in_4}   --unmapped --ambiguous  {in_3} -1  {in_1} -2  {in_2}
+    </command>
+</tool>

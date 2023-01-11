@@ -1,0 +1,44 @@
+<tool name="TopHat_Alignment"
+    threads="12"
+    tool_config_prefix="tophat2_aln"
+    walltime="23:00:00">
+    <description>
+        Align a pair of (filtered, trimmed) fastq files.  Any quality checking and trimming
+        should be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: end1.fastq
+          2: end2.fastq 
+          3: reference GTF
+          4: reference (bowtie2) gene annotation file
+          5: transcriptome index
+        Outs:
+          1: aln_paired_out directory
+          2: accepted_hits.bam
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+     <module>samtools/0.1.19</module>
+     <module>bowtie2/2.0.6</module>
+     <module>tophat/2.0.13</module>
+    
+    <!--
+        Files we have to verify as unchanged, in addition to the commands.
+        (Command program names are automatically added to the validate list,
+        so they don't need to be added here. (Here, the reference sequence.)
+    -->
+    <validate id="in_3" />
+    <validate id="in_4" />
+
+    <option name="min-anchor"              command_text="--min-anchor"              value="8"    />
+    <option name="min-isoform-fraction"    command_text="--min-isoform-fraction"    value="0.15" />
+    <option name="no-novel-juncs"          command_text=""                          value=""     />
+    <option name="raw-juncs"               command_text=""                          value=""     />
+    <option name="lib_type"                command_text="--library-type"            value="fr-unstranded"       />
+    <option name="threads" command_text="-p" type="threads" />
+  
+    <command program="tophat">
+        -G {in_3} {min-anchor} {min-isoform-fraction}  {no-novel-juncs} {raw-juncs} {lib_type} --transcriptome-index {in_5} {threads}  -o {out_1} {in_4} {in_1} {in_2}
+    </command>
+</tool>

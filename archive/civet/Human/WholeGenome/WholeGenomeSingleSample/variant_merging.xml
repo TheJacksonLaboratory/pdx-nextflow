@@ -1,0 +1,55 @@
+<tool name="Variant_Merging"  tool_config_prefix="GATK_Cat" walltime="04:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Merge chromsomes vcf into one vcf
+    </description>
+    <!--
+        Ins:
+          1: ref
+	  2: variants_raw from each chromosome
+        Outs:
+	  1: variants_merged
+    -->
+    
+    <!-- Step 4.2: Variant Calling -->
+    <module>java/1.7.0</module>
+
+ 
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.1-1/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+
+  <command program="java">
+   -cp {gatk} org.broadinstitute.sting.tools.CatVariants 
+        -R {in_1}  
+        -V {in_2} 
+        -V {in_3} 
+        -V {in_4} 
+        -V {in_5} 
+        -V {in_6} 
+        -V {in_7} 
+        -V {in_8} 
+        -V {in_9} 
+        -V {in_10} 
+        -V {in_11} 
+        -V {in_12} 
+        -V {in_13}                      
+        -V {in_14} 
+        -V {in_15} 
+        -V {in_16} 
+        -V {in_17}     
+        -V {in_18} 
+        -V {in_19} 
+        -V {in_20} 
+        -V {in_21} 
+        -V {in_22}
+        -V {in_23}
+        -V {in_24}
+        -V {in_25}
+        -V {in_26}    
+        -out {out_1} 
+        -assumeSorted
+  </command>
+
+</tool>

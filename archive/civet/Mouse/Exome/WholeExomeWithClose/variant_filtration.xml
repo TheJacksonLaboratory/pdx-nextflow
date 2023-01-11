@@ -1,0 +1,45 @@
+<tool name="Variant_Filtration"  tool_config_prefix="GATK_FILETR" walltime="04:00:00"
+      error_strings="'##### ERROR MESSAGE:'">
+    <description>
+        Filter variants with DP less than 140
+    </description>
+    <!--
+        Ins:
+          1: ref
+	  2: variants_raw
+        Outs:
+	  1: variants_filtered
+    -->
+    
+    <!-- Step 4.2: Variant Calling -->
+    <module>java/1.7.0</module>
+    <module>GATK/3.4-0</module>
+
+ 
+    <file id="gatk" input="True"
+          filespec="/opt/compsci/GATK/3.4-0/GenomeAnalysisTK.jar" />
+   
+    <validate id="gatk" />
+
+    <command program="java">
+        <version_command>java -jar {gatk} --help | grep "(GATK)"</version_command>
+        -Djava.io.tmpdir=$TMPDIR
+        -Xmx8g -jar {gatk} -R {in_1}
+        -T VariantFiltration --variant {in_2}
+        --out {out_1}
+        --clusterWindowSize 10
+        --filterExpression "MQ0 &gt;= 4 &amp;&amp; ((MQ0 / (1.0 * DP)) &gt; 0.1)"
+        --filterName "HARD_TO_VALIDATE"
+        --filterExpression "DP &lt; 5"
+        --filterName "LowCoverage"
+        --filterExpression "QUAL &lt; 30.0"
+        --filterName "VeryLowQual"
+        --filterExpression "QUAL &gt; 30.0 &amp;&amp; QUAL &lt; 50.0"
+        --filterName "LowQual"
+        --filterExpression "QD &lt; 1.5"
+        --filterName "LowQD"
+        --filterExpression "FS &gt; 60.0"
+        --filterName "StrandBias"
+    </command>
+
+</tool>

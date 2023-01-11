@@ -1,0 +1,29 @@
+<tool name="MRSE_MREMASE_BowtieBuild"
+    tool_config_prefix="MRSE_MREMASE_BowtieBuild"
+    walltime="47:59:00"
+    >
+    <description>
+    We  will create BowtieBuild.
+    </description>
+
+    <!-- Files:
+        Ins:
+          1: list_genome
+          2: dataDir
+          3: outdir
+
+
+
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+    <module>Anaconda</module>
+    <module>bowtie/1.0.0</module>
+    <module>samtools/0.1.18</module>
+
+
+    <command program="">
+      bowtie-build {in_1} {in_2}
+    </command>
+
+</tool>

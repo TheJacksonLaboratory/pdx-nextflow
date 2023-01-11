@@ -1,0 +1,34 @@
+<tool name="RDPclassifyShscript"
+      threads="1"
+      walltime="8:00:00"
+      mem="8"
+      tool_config_prefix="tool-RDPclassifyShscript">
+  <description>
+    run Benjamin's RDP classify shell script
+  </description>
+
+  <option name="cutoff" command_text="CUTOFF=" value="0.5"/>
+  <option name="classifydir" command_text="CLASS_DIR=" value="classify" />
+  <option name="format" command_text="FORMAT=" value="filterbyconf"/>
+
+
+  <command program="export">
+    FASTQ_FILE={in_2}
+  </command>
+  <command program="export">
+    {cutoff}
+  </command>
+  <command program="export">
+    {format}
+  </command>
+  <command program="export">
+    {classifydir}
+  </command>
+  <command program="export">
+    BASE_DIR={in_1}
+  </command>
+
+  <command program="RDP_Classify.sh">
+  </command>
+
+</tool>

@@ -1,0 +1,46 @@
+<tool name="uchime"
+      threads="4"
+      walltime="100:00:00"
+      mem="8"
+      exit_if_exists="out_1, out_2, out_3, out_4, out_5"
+      exit_test_logic="and"
+      tool_config_prefix="tool-uchime">
+  <description>
+    Uchime
+  </description>
+  <validate>extractreads_byname_fq.pl</validate>
+  <option name="db" command_text="--db" value="/data/shared/Microbiome/16srRNA/1.0/rRNA16S.gold.foruchime.fasta" />
+  <file id="prefix" based_on="in_1" pattern="(.*).assembledPhixRemoved.fastq" replace="\1" />
+  <file id="fa" based_on="prefix" append=".assembledPhixRemoved.fastq.fasta" temp="True" />
+  <file id="qual" based_on="prefix" append=".assembledPhixRemoved.fastq.fasta.qual" temp="True" />
+  <command program="rm">
+    -rf {fa} {qual}
+  </command>
+  <command program="fastq2fastanqual.pl">
+    {in_1}
+  </command>
+  <command program="/opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/uchime-4.2.40/uchime">
+    <version_command> /opt/compsci/Microbiome/16srRNA/1.0/PipelineTools/uchime-4.2.40/uchime  2>&amp;1 | grep UCHIME </version_command>
+    --input {fa} {db} --uchimeout {out_3} --uchimealns {out_2}  --quiet --log {out_1}
+  </command>
+  
+  <command program="cat" delimiters="%%">
+    %out_3% |awk -F'\t' '{if($17=="Y") print $2}'  > %out_4%
+  </command>
+  
+  
+  <command program="cat">
+    {in_1} |perl /opt/compsci/Microbiome/16srRNA/1.0/Scripts/extractreads_byname_fq.pl -v {out_4} > {out_5}
+  </command>
+
+
+  <command program="">
+    <version_command> echo Chimera Removal:uchime-4.2.40</version_command>
+    myprefix=` basename {prefix} `;
+    echo "QC_nonchimera" $myprefix $(echo $(wc -l {out_5} |cut -d" " -f1 )/4|bc) | tee -a $myprefix.QC.log
+  </command>
+
+
+
+  
+</tool>

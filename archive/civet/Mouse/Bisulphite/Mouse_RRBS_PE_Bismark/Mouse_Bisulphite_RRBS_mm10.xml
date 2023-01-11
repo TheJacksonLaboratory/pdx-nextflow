@@ -1,0 +1,63 @@
+<pipeline name="Mouse_Bisulphite_RRBS_mm10">
+
+    <file id="e1_fastq" display_name="R1 Fastq" input="True" parameter="1" 
+      description="R1 Fastq File" />
+    <file id="e2_fastq" display_name="R2 Fastq" input="True" parameter="2" 
+      description="R2 Fastq File"/>
+
+    <file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" datestamp_prepend="%y%m%d-%H%M%S_" default_output="True"/>
+
+
+    <!-- The pipeline will generate these files. -->
+    <file id="e1_trimmed"   in_dir="outdir" 
+        based_on="e1_fastq" temp="True" pattern="(.*)\.fastq" replace="\1_val_1.fq" />
+    <file id="e2_trimmed"   in_dir="outdir" 
+        based_on="e2_fastq" temp="True" pattern="(.*)\.fastq" replace="\1_val_2.fq" />
+
+
+    <file id="bismark_ref_dir" input="True" 
+          filespec="/data/shared/research_pipelines_reference_data/mouse/Bisulphite/Bismark_Index/WholeGenomeFasta/" />
+    <file id="ref" input ="True"
+          filespec="/data/shared/research_pipelines_reference_data/mouse/Bisulphite/Bismark_Index/WholeGenomeFasta/genome.fa" />
+
+    <file id="read_group" temp="True" in_dir="outdir" filespec="read_group.txt" />
+
+
+    <step name="Qual_Stat">
+        <tool name="QnS"
+            input="e1_fastq, e2_fastq, outdir"
+            output="e1_trimmed, e2_trimmed"
+            description="trim_galore.xml" />
+    </step>
+
+
+   <file id="sam" in_dir="outdir" 
+            based_on="e1_trimmed" append="_bismark_bt2_pe.sam" />
+
+    <step name="Alignment">
+        <tool name="Read_group"
+            input="e1_fastq"
+            output="read_group"
+            description="read_group.xml" />
+
+        <tool name="Sam_Generation"
+            input="e1_trimmed,e2_trimmed,bismark_ref_dir, outdir"
+            output="sam"
+            description="bismark_alignment.xml" />
+    </step>
+
+
+
+    <step name="MethylationExtractor">
+        <tool name="Meth_Extractor"
+            input="sam, outdir"
+            description="bismark_methylation_extractor.xml" />
+    </step>
+
+
+
+</pipeline>

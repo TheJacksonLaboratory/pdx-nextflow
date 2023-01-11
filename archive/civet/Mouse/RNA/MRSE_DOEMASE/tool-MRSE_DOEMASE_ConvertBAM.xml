@@ -1,0 +1,37 @@
+<tool name="MRSE_DOEMASE_ConvertBAM"
+    threads="12"
+    tool_config_prefix="MRSE_DOEMASE_ConvertBAM"
+    walltime="47:59:00"
+    mem="32">
+    <description>
+     This is the second step
+    </description>
+
+    <!-- Files:
+        Ins:
+    
+
+    -->
+	
+	<module>Anaconda</module>
+     <module>bowtie/1.0.0</module>
+     <module>perl/cga</module>
+     <module>samtools/0.1.18</module>
+	 
+	<command program="">
+        source activate emase-0.10.17 
+		
+   </command>
+
+
+   <command program="">
+
+    bam-to-emase  -a {in_1} -i {in_2} -s A,B,C,D,E,F,G,H  -o {out_1} 
+
+	 
+	
+
+   </command>
+
+</tool>
+

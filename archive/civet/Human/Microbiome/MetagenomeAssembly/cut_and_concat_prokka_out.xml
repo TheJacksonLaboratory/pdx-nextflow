@@ -1,0 +1,30 @@
+<tool name="cut_concat" threads="1" walltime="05:00:00" tool_config_prefix="cutconcat" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+Given a final assembly file cut only the relevant gff lines from a set of gff files then grep the IDs and get only the relevant proteins
+from the faa file list
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: assemblt fasta file
+    2: a list of gff files
+    3: a concatenation of all faa files
+    Outs:
+    1: A new gff file
+    2: A new faa file
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<command program="source /opt/compsci/assembly_tools/0.3.12/bin/activate"> </command>
+
+<command program="fasta_tools.py length">
+  {in_1} | in.py - {in_2} > {out_1} 
+</command>
+<command program="sed">
+  's/.*ID=\([^;]*\);.*/\1/' {out_1} |  fasta_tools.py headers -d - {in_3} > {out_2}
+</command>
+
+</tool>

@@ -1,0 +1,211 @@
+<pipeline name="SingleSample_PE_Exome_Diploid">
+    <!--
+        The files needed for the first step of the pipeline: Quality and
+        Statistics
+    -->
+    <filelist id="fastqs" input="True" parameter="1" paired="true"/>
+
+    <!-- A base name for derived files... -->
+    <file id="sample_name" based_on="fastqs" pattern="(.*?)_R1_.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+    <dir id="outdir" based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_" />
+
+    <dir id="filter" filespec="filter" in_dir="outdir" />
+
+    <file id="e1_trimmed" temp="False" in_dir="filter"
+      based_on="fastqs" append="_filtered_trimmed" />
+
+
+    <file id="e2_trimmed" temp="False" in_dir="filter"
+        based_on="e1_trimmed" pattern="(.*?)(_|\.)R1_(.*)" replace="\1\2R2_\3"/>
+
+
+    <file id="ref" input="True"
+          filespec="/data/shared/cga_reference_data/hg38_201601/Homo_sapiens_assembly38.fasta"/>
+    <file id="bwa7_idx_pfx"
+          filespec="/data/shared/cga_reference_data/hg38_201601/bwa_hg38"/>
+
+    <file id="read_group" in_dir="outdir" temp="True"
+          filespec="read_group.txt" />
+
+    <file id="human_1" in_dir="outdir" temp="True"
+          filespec="human_1.fastq" />
+    <file id="human_2" in_dir="outdir" temp="True"
+          filespec="human_2.fastq" />
+    <file id="xenome_classification"  in_dir="outdir"
+          based_on="sample_name" append="_xenome_stats.txt"   />
+    <file id="stats" in_dir="filter" filespec="*_stat" />
+
+
+    <step name="Qual_Stat">
+        <tool name="Quality_and_Statistics"
+            input="fastqs, filter"
+            output="e1_trimmed, e2_trimmed, stats"
+            description="qual_statistics_new_xenome.xml" />
+    </step>
+
+    <step name="Classification">
+      <tool name="XENOME"
+       input="e1_trimmed, e2_trimmed"
+       output="human_1, human_2, xenome_classification"
+       description="xenome_classification_DNA.xml" />
+    </step>
+
+
+    <!-- Files for the bwa alignment (in addition to those above)... -->
+    <file id="sam" in_dir="outdir" temp="True"
+        based_on="sample_name" append=".sam" />
+
+    <step name="Alignment">
+      
+        <tool name="BWA_MEM_Alignment"
+            input="human_1, human_2, bwa7_idx_pfx"
+            output="sam"
+            description="bwa_mem.xml" />
+    </step>
+
+    <file id="bam" in_dir="outdir" based_on="sample_name"
+          temp="True" append="_aln.bam" />
+    <file id="bai" in_dir="outdir" based_on="sample_name"
+          temp="True" append="_aln.bai" />
+
+    <file id="final_bam" in_dir="outdir" based_on="sample_name"
+          append="_realigned_BQSR.bam" />
+     <file id="final_bai" in_dir="outdir" based_on="sample_name"
+          append="_realigned_BQSR.bai" />
+
+    <file id="beds"  input="True"
+          filespec="/data/shared/cga_reference_data/hg38_201601/" />
+    <file id="bait_bed" input="True" in_dir="beds"
+          filespec="hg38_TruSeq_Amplicon_baits_sorted_picard.bed" />
+    <file id="target_bed" input="True" in_dir="beds"
+          filespec="hg38_TruSeq_Amplicon_targets_gatk_sorted_picard.bed" />
+    <file id="target_bed_gatk" input="True" in_dir="beds"
+          filespec="hg38_TruSeq_Amplicon_targets_gatk_sorted.bed" />
+    <file id="coverage_metrics" in_dir="outdir"
+          filespec="CoverageMetrics.txt" />
+     <file id="pindel_config" temp="True" in_dir="outdir" filespec="pindel_config.txt" />
+
+
+    <step name="Variant_Preprocessing">
+        <tool name="Variant_Preproc_1"
+            input="sam, outdir"
+            output="bam"
+            description="variant_pre_proc_1.xml" />
+
+        <tool name="Variant_Preproc_2"
+            input="bam, outdir, ref, target_bed_gatk"
+            output="final_bam" 
+            description="variant_pre_proc_2.xml" />
+
+        <tool name="Variant_Preproc_3"
+            input="final_bam,outdir,target_bed,bait_bed, ref"
+            output="coverage_metrics"
+            description="variant_pre_proc_3.xml" />
+    </step>
+
+    
+   <file id="variants_raw" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_variants.raw.vcf" />
+
+    <file id="variants_raw_idx" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_variants.raw.vcf.idx" />
+
+    <file id="variants_filtered" in_dir="outdir" based_on="sample_name"
+          append="_variants.DPfiltered.vcf" />
+
+    <file id="microIndels_raw" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_microIndels.raw.vcf" />
+     <file id="cosmic" input="True" 
+          filespec="/data/shared/cga_reference_data/hg38_201601/COSMICv75_Coding_NonCoding.vcf.gz"/>
+
+    <!--
+    <file id="microIndels_raw_idx" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_microIndels.raw.vcf.idx" />
+    -->
+
+    <file id="microIndels_filtered" in_dir="outdir" temp="True" based_on="sample_name"
+          append="_microIndels.DPfiltered1.vcf" />
+   <file id="microIndels_filtered1" in_dir="outdir" based_on="sample_name"
+          append="_microIndels.DPfiltered.vcf" />
+
+
+    <file id="variants_annotated" in_dir="outdir" based_on="sample_name"
+          append="_variants_microIndels.DPfiltered.Annotated.tab" />
+
+
+     <file id="variants_annotated_hardfiltered" in_dir="outdir" based_on="sample_name"
+          append="_variants_microIndels.Hardfiltered.Annotated.txt" />
+
+    <!-- added extra step to fix Adj SNP if any -->
+     <file id="fixAdjSNPOut" in_dir="outdir" based_on="sample_name"
+          append="_variant_fixAdjSNP.vcf" />
+
+      <file id="fixAdjSNPlog" in_dir="outdir" based_on="sample_name"
+          append="_AdjSNP.log.txt" />
+
+     <file id="zipped" in_dir="outdir" based_on="sample_name"
+          append="_variant_fixAdjSNP.vcf.gz" />
+
+     <file id="noIds" in_dir="outdir" based_on="sample_name"
+          append="_variant_fixAdjSNP.noIds.vcf.gz" />
+
+    <step name="Variant_Calling">
+        <tool name="Variant_Caller"
+            input="final_bam, outdir, ref, target_bed_gatk"
+            output="variants_raw"
+            description="variant_calling_quadraploid.xml" />
+
+        <tool name="Variant_Filtration"
+            input="variants_raw"
+            output="variants_filtered"
+            description="variant_filtration_gatk.xml" />
+
+        <!-- added extra step to fix Adj SNP if any -->
+        <tool name="variant_fixAdjSNP"
+            input="variants_filtered,final_bam"
+            output="fixAdjSNPOut,fixAdjSNPlog,zipped,noIds"
+            description="variant_fixAdjSNP.xml" />
+
+        <tool name="microIndel_Caller"
+            input="final_bam, sample_name, ref, target_bed_gatk, outdir,pindel_config"
+            output="microIndels_raw, microIndels_filtered"
+            description="microIndel_calling.xml" />
+
+         <tool name="Variant_Filtration"
+            input="microIndels_filtered"
+            output="microIndels_filtered1"
+            description="variant_filtration_pindel.xml" />
+            
+        <tool name="Variant_Annotation"
+            input="fixAdjSNPOut, microIndels_filtered1, outdir,cosmic"
+            output="variants_annotated,variants_annotated_hardfiltered"
+            description="variant_annotation_snpEff.xml" />
+
+       
+    </step>
+    
+   <file id="stats_h" in_dir="filter" based_on="human_1" pattern="(.*)_1(.*)"
+                      replace="\1_1\2_\1_2\2_stat" />
+
+   <file id="summary_stats" in_dir="outdir" based_on="sample_name" append="_summary_stats.txt" />
+
+   <step name="Summarize">
+    <tool name="Aggregate_stats"
+     input="stats,coverage_metrics"
+     output="summary_stats"
+     description="aggregate_stats_updated.xml" />
+   </step>
+
+
+
+    <step name="REMOVEFILES">
+        <tool name="RemoveOtherFiles"
+            input="variants_annotated"
+            description="removeFiles.xml" />
+    </step>
+
+
+</pipeline>

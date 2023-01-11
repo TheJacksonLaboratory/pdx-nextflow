@@ -1,0 +1,17 @@
+Adult 
+targets_gatk='/pdx/pdx_resource_service/elion/etc/carolyn/WES_benchmarking/S04380110_Padded_hg38_Agi_v5_PDMR_3_column_only_primary.bed'
+targets_picard='/pdx/pdx_resource_service/elion/etc/carolyn/WES_benchmarking/S04380110_Covered_hg38_picard_only_primary_chr.intervals'
+targets_exons_picard='/pdx/pdx_resource_service/elion/etc/carolyn/WES_benchmarking/S04380110_Covered_hg38_picard_only_primary_chr.intervals'
+hex_genes='/pdx/pdx_resource_service/elion/etc/carolyn/WES_benchmarking/S04380110_Padded_hg38_Agi_v5_PDMR_3_column_only_primary.bed'
+bins_hexcoverage='/pdx/pdx_resource_service/elion/etc/carolyn/WES_benchmarking/hg38_chrom_sizes.window.1000000_hex.coverage_S04380110_Covered_hg38_picard_only_primary_chr_sorted_merged.bed'
+
+
+
+Pediatric
+targets_gatk='/pdx/pdx_resource_service/elion/etc/carolyn/pediatric_WES/refdata/S31285117_MergedProbes_no_gene_names.bed'
+targets_picard='/pdx/pdx_resource_service/elion/etc/carolyn/pediatric_WES/refdata/S31285117_MergedProbes_no_gene_names_picard.bed'
+targets_exons_picard='/pdx/pdx_resource_service/elion/etc/carolyn/pediatric_WES/refdata/S31285117_MergedProbes_no_gene_names_picard.bed'
+hex_genes='/pdx/pdx_resource_service/elion/etc/carolyn/pediatric_WES/refdata/S31285117_MergedProbes_no_gene_names.bed'
+bins_hexcoverage='/pdx/pdx_resource_service/elion/etc/carolyn/pediatric_WES/refdata/hg38_chrom_sizes.window.1000000_hex.coverage_Sorted_S31285117_MergedProbes_no_gene_names_Bed.bed'
+
+

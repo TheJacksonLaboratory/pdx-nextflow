@@ -1,0 +1,18 @@
+<tool name="read_group" tool_config_prefix="readgroup"
+  walltime="00:05:00">
+  <description>
+    Process a fastq file to extract read group information.
+  </description>
+
+  <!--
+      Files:
+      Ins: fastq
+      Outs: read_group_data
+  -->
+
+  <module>python/2.7.3</module>
+  <command program="read_group_from_fastq.py">
+     <version_command>read_group_from_fastq.py --version</version_command>
+     -p -o {out_1} {in_1}
+  </command>
+</tool>

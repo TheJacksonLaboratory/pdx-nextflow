@@ -1,0 +1,10 @@
+tophat2_aln.min-anchor= 8 ####Default is 8  
+tophat2_aln.min-isoform-fraction= 0.15 ####Default is 0.15
+tophat2_aln.lib_type= fr-unstranded ####Default is fr-unstranded but for strand specific generated at JAX use fr-firststrand (confirm with GT)
+tophat2_aln.raw-juncs= ####type -j  and provide  junctionfile you  want to use else leave blank
+tophat2_aln.no-novel-juncs=   #### put  --no-novel-juncs if you do not want novel junction
+cufflinks_v2.novel_transcripts= -g  #### change is to -G if don't want novel isoform
+cufflinks_v2.multi-read-correct= -u   #### Leave it blank if don't want multi-read-correct
+cufflinks_v2.upper-quartile-norm= -N  #### Leave it blank if don't want upper quantile normalization
+cufflinks_v2.lib_type = fr-unstranded ########Default is fr-unstranded but for strand specific generated at JAX use fr-firststrand (confirm with GT)
+htseq.strand_specific= no  #### Other option yes or reverse  ####For stranded=no, a read is considered overlapping with a feature regardless of whether it is mapped to the same or the opposite strand as the feature. For stranded=yes and single-end reads, the read has to be mapped to the same strand as the feature. For paired-end reads, the first read has to be on the same strand and the second read on the opposite strand. For stranded=reverse, these rules are reversed.

@@ -1,0 +1,198 @@
+#!/bin/bash
+#
+# Run the PDX CNV nextflow pipeline 
+#
+# Example:  ./run_cnv  TM00099  BR1367F003P6  --real
+#
+# This script takes care of submitting a slurm job using sbatch.
+# When SA team releases a new pipeline version, CS-Ops updates VERSION here.
+#
+# If --real  is specified, it's a real production run and the result folder 
+# will be named so that the db loader will load from it next time it runs.
+#
+# For command line options see the Usage statement and case statements below.
+#
+
+VERSION="1.0.0"
+NF_SCRIPT=pipelines/CNV/$VERSION/hCNV.nf 
+PDX=/pdx/pdx_resource_service/elion
+CMD=run_cnv
+
+
+# get mandatory first three command line args...
+if [ $# -lt 2 ]; then
+    echo "Usage: $CMD  modelname  samplename  [options]"
+    echo "Quitting."
+    exit 1
+fi
+MODEL=$1
+SAMPLE=$2
+PLATFORM=SNP
+
+
+# get any additional command line --options...  first set the defaults...
+real=no                  # if --real it's a real production run
+all_but_launch=no        # if --all_but_launch  do prelimaries but stop short of pipeline launch
+preserve_work=no         # if --preserve_work  don't delete nextflow's ./work dir at end
+resultloc="default"      # specify to put result folder somewhere other than ./analysis
+indir="default"          # specify to set a special dir to get fastq files from
+
+shift 2
+for iarg in "$@"
+do
+  case $iarg in
+    --preserve_work)
+      preserve_work=yes
+      shift
+      ;;
+    --real)
+      real=yes
+      shift
+      ;;
+    --all_but_launch)
+      all_but_launch=yes
+      real=no
+      shift
+      ;;
+    --resultloc=*)
+      resultloc="${iarg#*=}"
+      shift
+      ;;
+    --indir=*)
+      indir="${iarg#*=}"
+      shift
+      ;;
+    SNP)
+      # placeholder arg does nothing
+      shift
+      ;;
+    *)
+      echo "ERROR: $CMD quitting: unrecognized arg: ${iarg}"
+      exit 1
+      ;;
+  esac
+done
+
+# general sanity checks...
+if [ $real == "yes" ]; then
+  GROUP=`id -gn`
+  if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
+    echo "ERROR: you must be svc-pdx (group pdx-data) to do --real"
+    exit 1
+  fi
+fi
+
+if [ "$resultloc" == "" -o "$indir" == "" ]; then
+  echo "ERROR: $CMD quitting: zero-length arg detected, --resultloc or --indir "
+  exit 1
+fi
+
+
+# determine where the input CEL file is and be sure it's there...
+if [ $indir == "default" ]; then
+  indir=$PDX/seqdata/$MODEL/$SAMPLE/snp_array
+fi
+if [ -d $indir ]; then
+  test
+else
+  echo "ERROR: $CMD quitting: cel file dir doesn't exist: $indir"
+  exit 1
+fi
+ncel=`(cd $indir; ls *.CEL) | wc -l`
+if [ $ncel -ne 1 ]; then
+  echo "ERROR: $CMD quitting: one cel file not seen: $indir"
+  exit 1
+fi
+
+
+# go to the general result location 
+if [ $resultloc == "default" ]; then
+  cd $PDX/analysis/$MODEL
+else
+  cd $resultloc
+fi
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $resultloc result location (model=$MODEL)"
+  exit 1
+fi
+
+
+# build result folder name derived from cel name... and cd into it
+outdir=`(cd $indir; ls *.CEL) | head -1 | sed "s/.CEL$/_ascatresult/" `
+if [ $real != "yes" -a $resultloc == "default" ]; then
+  outdir="test_run_$outdir"
+fi
+if [ -d $outdir ]; then
+  echo -n "Notice: $CMD quitting: result folder already exists ($outdir). "
+  show_folder_status $outdir
+  exit 1
+fi
+
+mkdir $outdir
+cd $outdir
+if [ $? -ne 0 ]; then
+  echo "ERROR: $CMD quitting: cannot chdir to $outdir"
+  exit 1
+fi
+
+
+# create a status file with version info...
+echo "$PLATFORM  $VERSION  $NF_SCRIPT" > pipeline_running.txt
+
+
+
+# list the cel file, prepend it with the string "${CELPATH}/" (a variable used 
+# within config file).  (There's always just one CEL file for SNP so this may seem 
+# a little convoluted... we're following the pattern used for other pipelines 
+# where there's >1 fastq file and we need to build a list here)
+CEL_INPUT=`(cd $indir; ls *.CEL)| sed 's/^/${CELPATH}\//' | paste -s -d, - `
+
+
+# build the params.config file...
+echo "// params.config : `date`
+
+params
+{
+    CELPATH    = \"${indir}\"
+    celInput   = \"${CEL_INPUT}\"
+    outdir     = '.'
+    outputdir  = ';'
+    preserve_work = \"$preserve_work\"
+    hapmap_dat = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap.ncbi.nlm.nih.gov/'
+    hapmap_fm  = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap_female300_SNP6.txt'
+    hapmap_m   = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap_male300_SNP6.txt'
+    genoclust  = '/pdx/pdx_resource_service/elion/refdata/CNV/gw6.genocluster'
+    snp6chip   = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.cdf'
+    snp6chip_birdseed_mod = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.birdseed.models'
+    snp6chip_specsnps     = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.specialSNPs'
+    hapmap_norm_target    = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap.quant-norm.normalization-target.txt'
+    gw6_pfb_file = '/pdx/pdx_resource_service/elion/refdata/CNV/affygw6.hg38.pfb'
+    SNPpos     = '/pdx/pdx_resource_service/elion/refdata/CNV/SNPpos_Affy_na36_hg38.txt'
+    GC         = '/pdx/pdx_resource_service/elion/refdata/CNV/GC_AffySNP6_na36_hg38.txt'
+    chr_arm    = '/pdx/pdx_resource_service/elion/refdata/GRCh38_chromosome_arm.txt'
+    exp_mart_genes        = '/pdx/pdx_resource_service/elion/refdata/CNV/mart_export_gene_chr1-Y.GRCh38ensembl84.20170420.txt'
+ } "                  > params.config
+
+# params.config should resemble this....
+# params
+# {
+#     CELPATH="/pdx/pdx_resource_service/elion/seqdata/TM01386/TM01386F1075P0/snp_array"
+#     celInput = "${CELPATH}/TM01386_TM01386F1075P0_GES14_01809_SNP.CEL"
+#     outdir = "."
+#     outputdir = ";"
+#  ....
+# }
+
+
+if [ $all_but_launch != "no" ]; then
+  echo "At user request, stopping just short of launching the pipeline..."
+  exit 1
+fi
+
+jobname="pdx_CNV_${MODEL}_${SAMPLE}"
+
+# launch the pipeline........   
+sbatch  --job-name=$jobname  --mail-type=NONE \
+  -q batch   -t 24:00:00  --mem=2000  \
+  nextflow -c ./params.config   run $PDX/$NF_SCRIPT   -profile slurm,singularity  -with-dag nf_reports/flowchart.pdf
+

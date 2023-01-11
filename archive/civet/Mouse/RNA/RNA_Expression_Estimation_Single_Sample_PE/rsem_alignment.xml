@@ -1,0 +1,45 @@
+<tool name="RSEM_alignment_exp"
+    threads="12"
+    tool_config_prefix="rsem_aln_exp"
+    walltime="23:00:00">
+    <description>
+        Align a pair of (filtered, trimmed) fastq files.  Any quality checking and trimming
+        should be done before this step.
+    </description>
+    <!-- Files:
+        Ins:
+          1: end1.fastq
+          2: end2.fastq 
+          3: reference base name
+        OutS:
+          1. genome.bam (based on sample name)
+    -->
+    
+    <!-- Modules needed to run on the cluster -->
+     <module>samtools/0.1.18</module>
+     <module>bowtie2/2.2.0</module>
+     <module>rsem/1.2.12</module>
+
+
+    <command program="">
+        base=`basename {out_1} .genome.sorted.bam`
+    </command>
+
+
+    <option name="phredquals" command_text="" type="select"
+      description="Input quality scores are encoded as Phred+33.or Phred+64. If the quality scores contain character 0 it is either Sanger phred+33 or Illumina 1.8+ phred+33. When they also contain the character J, it is Illumina 1.8+ phred 33, otherwise it is Sanger phred + 33">
+         <select default="true">--phred33-quals</select>
+         <select>--phred64-quals</select>
+    </option>
+    <option name="seed-length" command_text="--seed-length" type="numeric" value="25"
+      description="Seed length used by the read aligner. Providing the correct value is important for RSEM. If RSEM runs Bowtie, it uses this value for Bowtie's seed length parameter. Any read with its or at least one of its mates' (for paired-end reads) length less than this value will be ignored. If the references are not added poly(A) tails, the minimum allowed value is 5, otherwise, the minimum allowed value is 25."/>
+    <option name="strand-specific" command_text="--forward-prob" type="numeric" value="0.5"
+      description="The RNA-Seq protocol used to generate the reads is strand specific, i.e., all (upstream) reads are derived from the forward strand. Probability of generating a read from the forward strand of a transcript. Set to 1 for a strand-specific protocol where all (upstream) reads are derived from the forward strand, 0 for a strand-specific protocol where all (upstream) read are derived from the reverse strand, or 0.5 for a non-strand- specific protocol."/>
+    <option name="threads" command_text="-p" type="threads" />
+
+
+    <command program="rsem-calculate-expression">
+        {threads} {phredquals}  {seed-length} {strand-specific} --time --output-genome-bam --bowtie2 --paired-end {in_1} {in_2} {in_3} $base
+    </command>
+
+</tool>

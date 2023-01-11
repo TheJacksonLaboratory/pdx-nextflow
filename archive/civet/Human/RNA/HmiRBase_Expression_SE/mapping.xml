@@ -1,0 +1,57 @@
+<!-- ================= -->
+<!-- step 4 alignment  -->
+<!-- ================= -->
+
+<tool name="mapping" walltime="02:00:00">
+<!-- What does this tool do? -->
+<description>
+        Align a trimmed fastq file to a miRBase reference species (hairpin).
+</description>
+
+<!--
+     Files passed to this tool, ins and outs:
+     Ins:
+     1: _clipped.fastq
+     2: mapped_reads
+     Outs:
+     1: _TotalMap.sam
+     2: MappingStatistics.html
+-->
+
+<!-- Specify any modules needed for this tool -->
+<module>bowtie/1.0.0</module>
+<module>samtools/1.3.1</module>
+<module>samstat/1.5.1</module>
+
+<!-- call tool for operation -->
+
+<!-- Mapping To miRBase (hairpin) -->
+<command program="bowtie">
+  <version_command>bowtie --version</version_command>
+    --sam --best -p 4 -n 1 -l 15 --nomaqround --chunkmbs 256 {in_1} {in_2} {out_1} 2> {out_4}
+</command>
+
+<!-- sam to bam -->
+<command program="samtools">
+     view -bS {out_1} > {out_2}
+</command>
+
+<!-- sorting -->
+<command program="samtools">
+     sort {out_2} > {out_3}
+</command>
+
+<!-- indexing sorted bam to bai -->
+<command program="samtools">
+     index {out_3}
+</command>
+
+<!-- Mapping stats-->
+<command program="samstat">
+  <version_command>samstat --version</version_command>
+	{out_1}
+</command>
+
+
+</tool>
+

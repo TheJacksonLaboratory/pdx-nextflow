@@ -1,0 +1,19 @@
+
+This runbin has bash scripts to invoke the various pdx nextflow pipelines.
+This runbin should be in the PATH of any user running the pipelines.
+
+Use ./run_all_awaiting to run the any items awaiting pipeline run
+according to ~svc-pdxread/workflow_status/awaits_pipeline  (up to 40 items).
+
+Use ./run_all_repeat to invoke run_all_awaiting periodically, until there's 
+nothing left to do.  (Useful eg. when re-running a pipeline on all samples).
+
+The other run_* scripts each do some preliminaries then launch a partciular
+pipeline using 'sbatch' (slurm).
+
+We no longer send emails for each pipeline instance; instead the status
+can be monitored using 'squeue' (or 'sq') as well as checking for the 
+pipeline_running.txt / pipeline_completed.txt file in each result folder.
+
+The 'nextflow' instance here was downloaded from https://www.nextflow.io/ 
+(using the curl command in step 2)

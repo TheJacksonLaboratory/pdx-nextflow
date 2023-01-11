@@ -1,0 +1,49 @@
+<!-- ======================================= -->
+<!-- step 1 Adapter trimming and low quality -->
+<!-- ======================================= -->
+
+<tool name="trimming"  walltime="12:00:00" tool_config_prefix="cutadapt" error_strings="'##Unknown options in config'">
+
+<!-- What does this tool do? -->
+<description>
+    Remove adapter sequences from the reads and trim low quality reads.
+</description>
+
+<!--
+    Files passed to this tool, ins and outs:
+    Ins:
+    1: R1.fastq.gz
+    2: R2.fastq.gz
+    Outs:
+    1: R1_filteres.fastq.gz
+    2: R2_filtered.fastq.gz
+    3: stats file
+-->
+
+<!-- Specify modules which is needed for this tool -->
+<module>python/2.7.3</module>
+
+<!-- 3 prime adapter seq can be replaced by the user --> 
+<option name="adapter1" command_text="-a" value="AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC" type="string" description="Illumina i7 adapter" display_name="i7 adapter"/>
+<option name="adapter2" command_text="-A" value="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTA" type="string" description="Illumina i5 adapter" display_name="i5 adapter"/>
+<option name="nextera1" command_text="-a" value="CTGTCTCTTATACACATCT" type="string" description="Nextera transposase sequence read 1" display_name="Nextera read1"/>
+<option name="nextera2" command_text="-A" value="CTGTCTCTTATACACATCT" type="string" description="Nextera transposase sequence read 2" display_name="Nextera read2"/>
+<option name="nextera3" command_text="-a" value="TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG" type="string" description="Nextera adapter read1" display_name="Nextera adapter1"/>
+<option name="nextera4" command_text="-A" value="GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG" type="string" description="Nextera adapter read2" display_name="Nextera adapter2"/>
+
+<!-- value to maximum length after trimming can be replaced by the user -->
+<option name="minlen" command_text="-m" value="22" type="numeric" description="Minimal length of reads to output" display_name="Minimal read length"/>
+<option name="nextseq" command_text="--nextseq-trim" value="20" type="numeric" description="Trim Nextseq low quality and poly-G" display_name="nexseq quality trim"/>
+<option name="quality" command_text="-q" value="30" type="numeric" description="minimal quality" display_name="Minimal quality"/>
+
+
+
+
+<!-- call tool for operation -->
+<command program="cutadapt">
+  <version_command>cutadapt --version</version_command>
+  {minlen} {adapter1} {adapter2} {nextera1} {nextera2} {nextera3} {nextera4} {nextseq} {quality} -o {out_1} -p {out_2} {in_1} {in_2} > {out_3}
+</command>
+
+
+</tool>

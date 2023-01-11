@@ -1,0 +1,34 @@
+<pipeline name="STANDARD_EMASE_BASED_ANALYSIS">
+
+    <!--
+     INPUT FILES TO THE PIPELINE [Single end fastq file and genome list]   
+    -->
+
+    <file id="e1_fastq"     input="True" parameter="1" />
+
+
+    <!--
+        To mitigate the possibility of file name hits when multiple 
+        pipelines are run simultaneously, we'll create some files with
+        the sample name as a prefix.
+    -->
+
+    <file id="sample_name" based_on="e1_fastq" pattern="(.*?)(_|\.)R1.*"
+          replace="\1" />
+
+    <!-- The pipeline's default output directory. -->
+
+ <dir id="outdir"    based_on="sample_name" default_output="True" datestamp_prepend="%y%m%d-%H%M%S_" />
+ <dir id="datadir"   filespec="/data/shared/research_pipelines_reference_data/human/RNA/ReferenceEMASE_PDX" create="False"  />
+
+
+    <!-- Step 1 -->
+
+    <step name="Run_EMASE">
+        <tool name="Run_EMASE"
+         input="e1_fastq, datadir, outdir, sample_name"
+         description="run_EMASE_PDX.xml" />          
+    </step>
+
+
+</pipeline>

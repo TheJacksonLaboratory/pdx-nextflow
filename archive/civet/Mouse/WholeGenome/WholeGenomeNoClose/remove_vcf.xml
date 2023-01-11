@@ -1,0 +1,11 @@
+<tool name="remove_VCF" tool_config_prefix="removeVcf"
+  walltime="00:15:00">
+  <description>
+    Remove the vcf idx file
+  </description>
+
+
+  <command program="">
+    rm *variants_raw.vcf.idx 
+  </command>
+</tool>

@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Get fastq readlength for a sample instance and print to stdout.
+#
+# Example usage:  get_fastq_readlength $pdx/seqdata/TM00090/BR0744F098P0/stRNA_Seq
+#
+
+if [ $# -ne 1 ]; then
+  echo "ERROR: usage get_fastq_readlength fastqdir"
+  exit 1
+fi
+
+fastqdir=$1
+
+# Look at 1st 20 lines of fastq file; 
+# Use grep -A -B to extract a few lines beginning with "+" along with one line above and below;
+# Then use grep -v to reject lines beginning with + or --  ;
+# Use awk to print the length of field 1 ;
+# Use head to only show first instance
+#    (observed rows seem to always have uniform lengths but this is not checked here);
+# Break out of the loop ... this only checks the first of the 2 fastq files present;
+
+cd $fastqdir
+for fastq in *.fastq.gz
+do
+  zcat $fastq | head -20 | 
+  grep "^+" -A 1 -B 1 |
+  grep -v "^+" |
+  grep -v "^--" |
+  awk '{ print length($1) }' | head -1
+  break
+done
