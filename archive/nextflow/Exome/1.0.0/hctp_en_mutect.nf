@@ -539,14 +539,14 @@ process hctp_var_call_mutect2 {
   """
 
 
-  java -Xmx4g -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+  java -Xmx4g -jar /gatk/build/libs/gatk-package-4.0.5.1-local.jar \
   GetSampleName \
   -I ${bam_realigned} \
   -O tumor_SN.txt
 
   tumorName=\$(cat tumor_SN.txt)
 
-  java -Djava.io.tmpdir=$TMPDIR -Xmx120g -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+  java -Djava.io.tmpdir=$TMPDIR -Xmx120g -jar /gatk/build/libs/gatk-package-4.0.5.1-local.jar \
   Mutect2 \
   -R ${params.ref_fa} \
   -I ${bam_realigned} \
@@ -567,7 +567,7 @@ process hctp_var_call_mutect2 {
 
   tabix ${sampleID}_intermed.vcf.gz
 
-  java -Djava.io.tmpdir=$TMPDIR -Xmx48g -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+  java -Djava.io.tmpdir=$TMPDIR -Xmx48g -jar /gatk/build/libs/gatk-package-4.0.5.1-local.jar \
   FilterMutectCalls \
   --variant ${sampleID}_intermed.vcf.gz \
   --output ${sampleID}_final_mutect_snp_indel_filtered.vcf \

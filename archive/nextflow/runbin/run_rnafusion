@@ -2,8 +2,8 @@
 #
 # Run the PDX rnafusion nextflow pipeline 
 #
-# Example:  ./run_rnaseq  TM00099  BR1367F003P6  stRNA_Fusion  --real
-# Example:  ./run_rnaseq  TM00015  BL0269F404P0  RNA_Fusion    --all_but_launch
+# Example:  ./run_rnafusion  TM00099  BR1367F003P6  stRNA_Fusion  --real
+# Example:  ./run_rnafusion  TM00015  BL0269F404P0  RNA_Fusion    --all_but_launch
 #
 # This script takes care of submitting a slurm job using sbatch.
 # When SA team releases a new pipeline version, CS-Ops updates VERSION here.
@@ -47,7 +47,6 @@ all_but_launch=no        # if --all_but_launch  do prelimaries but stop short of
 preserve_work=no         # if --preserve_work  don't delete nextflow's ./work dir at end
 resultloc="default"      # specify to put result folder somewhere other than ./analysis
 indir="default"          # specify to set a special dir to get fastq files from
-email="stephen.grubb@jax.org"
 
 
 shift 3
@@ -67,10 +66,6 @@ do
       real=no
       shift
       ;;
-    --email=*)
-      email="${iarg#*=}"
-      shift
-      ;;
     --resultloc=*)
       resultloc="${iarg#*=}"
       shift
@@ -87,6 +82,7 @@ do
 done
 
 
+# general sanity checks..
 if [ $real == "yes" ]; then
   GROUP=`id -gn`
   if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
@@ -95,13 +91,20 @@ if [ $real == "yes" ]; then
   fi
 fi
 
+if [ "$resultloc" == "" -o "$indir" == "" ]; then
+  echo "ERROR: $CMD quitting: zero-length arg detected, --resultloc or --indir "
+  exit 1
+fi
 
-# determine where the fastq files are and do sanity checks...
+
+
+# determine where the fastq files are and be sure there are two of them...
 if [ $indir == "default" ]; then
   indir=$PDX/seqdata/$MODEL/$SAMPLE/${st}RNA_Seq
 fi
 if [ -d $indir ]; then
-  test
+  # get fastq readlength, necessary for best starfusion results...
+  readlength=`get_fastq_readlength  $indir`
 else
   echo "ERROR: $CMD quitting: fastq dir doesn't exist: $indir"
   exit 1
@@ -132,7 +135,7 @@ if [ $real != "yes" -a $resultloc == "default" ]; then
   outdir="test_run_$outdir"
 fi
 if [ -d $outdir ]; then
-  echo -n "ERROR: $CMD quitting: result folder already exists ($outdir). "
+  echo -n "Notice: $CMD quitting: result folder already exists ($outdir). "
   show_folder_status $outdir
   exit 1
 fi
@@ -149,6 +152,17 @@ fi
 # create a status file with version info...
 echo "$PLATFORM  $VERSION  $NF_SCRIPT" > pipeline_running.txt
 
+# find the standard accepted readlength value 
+if [ $readlength -ge 73 -a $readlength -le 77 ]; then
+  std_rl=75
+elif [ $readlength -ge 98 -a $readlength -le 102 ]; then
+  std_rl=100
+elif [ $readlength -ge 148 -a $readlength -le 152 ]; then
+  std_rl=150
+else
+  echo "ERROR: $CMD quitting: unrecognized fastq readlength '$readlength'"
+  exit 1
+fi
 
 # build launch.sh and then run it ... takes care of 'module load singularity' 
 # (mystery as to why Carolyn's don't require this)
@@ -156,10 +170,10 @@ FREF=$pdx/refdata/rnafusion
 echo "module load singularity
 nextflow run $PDX/$NF_SCRIPT --reads \"$indir/*_R{1,2}_*.fastq.gz\" -profile slurm,singularity \
   --reference_path ${FREF}/ --star_fusion --genome GRCh38 --outdir ./   \
-  --genomes_base $FREF  --star_index $FREF/star-index-100bp_read_length \
+  --genomes_base $FREF  --star_index $FREF/star-index-${std_rl}bp_read_length  \
   --fasta $FREF/star-fusion/ctat_genome_lib_build_dir/ref_genome.fa \
   --gtf   $FREF/star-fusion/ctat_genome_lib_build_dir/ref_annot.gtf \
-  --read_length 100  --preserve_work $preserve_work  " > launch.sh
+  --read_length $std_rl  --preserve_work $preserve_work  " > launch.sh
 
 chmod +x launch.sh
 
@@ -168,10 +182,9 @@ if [ $all_but_launch != "no" ]; then
   exit 1
 fi
 
-jobname="pdx_rnafusion_${MODEL}_${SAMPLE}"
+jobname="pdx_${st}RNA_Fusion_${MODEL}_${SAMPLE}"
 
-sbatch  --job-name=$jobname \
-  --mail-user=$email  --mail-type=END \
+sbatch  --job-name=$jobname  --mail-type=NONE \
   -q batch   -t 24:00:00  --mem=2000 \
   --wrap './launch.sh'
 

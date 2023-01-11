@@ -565,7 +565,7 @@ process star_fusion {
         --chimJunctionOverhangMin 12 \\
         --alignSJDBoverhangMin 10 \\
         --alignMatesGapMax 100000 \\
-        --alignIntronMax 100000 \\
+        --alignIntronMax 6000 \\
         --chimSegmentReadGapMax 3 \\
         --alignSJstitchMismatchNmax 5 -1 5 5 \\
         --runThreadN ${task.cpus} \\

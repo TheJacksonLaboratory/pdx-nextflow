@@ -36,7 +36,6 @@ all_but_launch=no        # if --all_but_launch  do prelimaries but stop short of
 preserve_work=no         # if --preserve_work  don't delete nextflow's ./work dir at end
 resultloc="default"      # specify to put result folder somewhere other than ./analysis
 indir="default"          # specify to set a special dir to get fastq files from
-email="stephen.grubb@jax.org"
 
 shift 2
 for iarg in "$@"
@@ -53,10 +52,6 @@ do
     --all_but_launch)
       all_but_launch=yes
       real=no
-      shift
-      ;;
-    --email=*)
-      email="${iarg#*=}"
       shift
       ;;
     --resultloc=*)
@@ -78,6 +73,7 @@ do
   esac
 done
 
+# general sanity checks...
 if [ $real == "yes" ]; then
   GROUP=`id -gn`
   if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
@@ -86,7 +82,13 @@ if [ $real == "yes" ]; then
   fi
 fi
 
-# determine where the CEL file is and do sanity checks...
+if [ "$resultloc" == "" -o "$indir" == "" ]; then
+  echo "ERROR: $CMD quitting: zero-length arg detected, --resultloc or --indir "
+  exit 1
+fi
+
+
+# determine where the input CEL file is and be sure it's there...
 if [ $indir == "default" ]; then
   indir=$PDX/seqdata/$MODEL/$SAMPLE/snp_array
 fi
@@ -121,7 +123,7 @@ if [ $real != "yes" -a $resultloc == "default" ]; then
   outdir="test_run_$outdir"
 fi
 if [ -d $outdir ]; then
-  echo -n "ERROR: $CMD quitting: result folder already exists ($outdir). "
+  echo -n "Notice: $CMD quitting: result folder already exists ($outdir). "
   show_folder_status $outdir
   exit 1
 fi
@@ -190,8 +192,7 @@ fi
 jobname="pdx_CNV_${MODEL}_${SAMPLE}"
 
 # launch the pipeline........   
-sbatch  --job-name=$jobname  \
-  --mail-user=$email  --mail-type=END \
+sbatch  --job-name=$jobname  --mail-type=NONE \
   -q batch   -t 24:00:00  --mem=2000  \
   nextflow -c ./params.config   run $PDX/$NF_SCRIPT   -profile slurm,singularity  -with-dag nf_reports/flowchart.pdf
 

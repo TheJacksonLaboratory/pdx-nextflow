@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Invoke run_all_awaiting every so often in an unattended manner, 
+# such as once every 8 hours.
+# Usage:  nohup ./run_all_repeat &
+#
+
+# set desired sleep interval... use 10800 = 3hrs; 14400 = 4hrs; 21600 = 6hrs; 28800 = 8hrs; 43200 = 12hrs
+SLEEP_INTERVAL=10800
+
+# set desired delay on retry when queue busy... use 1800 = 30mins; 3600 = 60mins
+BUSY_RETRY=1800
+
+GROUP=`id -gn`
+if [ "$USER" != "svc-pdx" -o $GROUP != "pdx-data" ]; then
+  echo "ERROR: you must be svc-pdx (group pdx-data) to run this (use 'newgrp pdx-data' to set group)"
+  exit 1
+fi
+
+rep=0
+while :
+do
+  rep=`expr $rep + 1`
+
+  # check for busy squeue ... jobs belonging to anyone
+  N_CURRENT_JOBS=`squeue | wc -l`
+  if [ $N_CURRENT_JOBS -gt 40 ]; then
+    echo -n "--- run_all_repeat: rep=$rep  Cluster BUSY ($N_CURRENT_JOBS existing jobs seen).. will try again in 1 hour. "
+    date
+    sleep $BUSY_RETRY   # wait an hour then try again
+    continue
+  fi
+
+  # if we reach here, proceed with launch...
+  echo
+  echo -n "--- run_all_repeat: rep=$rep  Launching.  ($N_CURRENT_JOBS existing jobs seen) "
+  date
+  run_all_awaiting
+  if [ $? -ne 0 ]; then
+    echo "--- run_all_repeat: everything seems to be done... quitting."
+    exit 0
+  fi
+  sleep $SLEEP_INTERVAL
+
+done

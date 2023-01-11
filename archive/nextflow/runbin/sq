@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# squeue --format="%.8i  %.8u  %.10M  %.2t  %j"
+squeue --format="%.8u  %.10M  %C  %.5m  %.2t  %j  %.10i"
+
+# %.18i %.9P %.8j %.8u %.2t %.10M %.6D %R
