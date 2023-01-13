@@ -220,7 +220,7 @@ workflow WES {
 
   depth_of_coverage_hex = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
   GATK_DEPTHOFCOVERAGE(depth_of_coverage_hex, params.hex_genes)
-  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "HEX")
+  COVCALC_GATK(GATK_DEPTHOFCOVERAGE.out.txt, "targetinterval")
 }
 
 workflow.onComplete {
