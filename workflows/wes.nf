@@ -22,6 +22,7 @@ include {PICARD_CALCULATEHSMETRICS} from '../modules/picard/picard_calculatehsme
 include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
 include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
 include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
+include {COMPRESS_INDEX_VCF} from "${projectDir}/modules/utility_modules/compress_index_vcf"
 include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT;
          ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
@@ -149,7 +150,8 @@ workflow WES {
   GATK_MUTECT2(printreads_index_and_name)
 
   // Step 14 : Filter Muctect calls
-  vcf_and_index = GATK_MUTECT2.out.vcf.join(GATK_MUTECT2.out.tbi)
+  COMPRESS_INDEX_VCF(GATK_MUTECT2.out.vcf)
+  vcf_and_index = COMPRESS_INDEX_VCF.out.vcf.join(COMPRESS_INDEX_VCF.out.tbi)
   GATK_FILTERMUTECTCALLS(vcf_and_index)
 
   // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
