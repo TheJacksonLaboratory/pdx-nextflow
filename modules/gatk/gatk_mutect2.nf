@@ -35,7 +35,7 @@ process GATK_MUTECT2 {
     -O ${sampleID}_intermed.vcf \
     --disable-read-filter MateOnSameContigOrNoMappedMateReadFilter \
     --dont-use-soft-clipped-bases false \
-    --genotype-germline-sites false \
+    --genotype-germline-sites true \
     --sample-ploidy ${params.samp_ploidy} \
     -L ${params.targets_gatk} \
     --annotation QualByDepth \
