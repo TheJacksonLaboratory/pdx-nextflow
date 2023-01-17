@@ -24,11 +24,11 @@ include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename
 include {GATK_MUTECT2} from "${projectDir}/modules/gatk/gatk_mutect2"
 include {COMPRESS_INDEX_VCF} from "${projectDir}/modules/utility_modules/compress_index_vcf"
 include {GATK_FILTERMUTECTCALLS} from "${projectDir}/modules/gatk/gatk_filtermutectcalls"
-include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT;
-         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
-include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
-         SNPSIFT_ANNOTATE as ANNOTATE_ID;
-         SNPSIFT_ANNOTATE as ANNOTATE_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
+include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_MUT;
+         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_MIN_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
+include {SNPSIFT_ANNOTATE as SNPSIFT_AD;
+         SNPSIFT_ANNOTATE as SNPSIFT_ID;
+         SNPSIFT_ANNOTATE as SNPSIFT_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
 include {ADD_CALLER_GATK} from "${projectDir}/modules/utility_modules/add_caller_gatk"
 include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"
 include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
@@ -155,13 +155,13 @@ workflow WES {
   GATK_FILTERMUTECTCALLS(vcf_and_index)
 
   // Step 15 : Recompute the locus depth and Add Estimated Allele Frequency
-  AD_min_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
+  AD_MIN_AF_MUT(GATK_FILTERMUTECTCALLS.out.vcf)
 
   // Step 16 : Snpsift Annotate
-  ANNOTATE_AD(AD_min_AF_MUT.out.vcf)
+  SNPSIFT_AD(AD_MIN_AF_MUT.out.vcf)
 
   // Step 17 : Add caller gatk
-  ADD_CALLER_GATK(ANNOTATE_AD.out.vcf)
+  ADD_CALLER_GATK(SNPSIFT_AD.out.vcf)
 
   // Step 18 : Join Adjacent SNPs AS
   join_adjacent_snps = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai).join(ADD_CALLER_GATK.out.vcf)
@@ -172,7 +172,7 @@ workflow WES {
   BCF_ANNOTATE(bcf_annotate)
 
   // Step 20 : Snpsift Annotate
-  ANNOTATE_BCF(BCF_ANNOTATE.out.vcf)
+  SNPSIFT_BCF(BCF_ANNOTATE.out.vcf)
 
   // Step 21 : Microindel calling part 1
   microindel_call_a = GATK_PRINTREADS.out.bam.join(GATK_PRINTREADS.out.bai)
@@ -183,16 +183,16 @@ workflow WES {
 
   // Microindel filtering
   // Step 23 : Recompute the locus depth and Add Estimated Allele Frequency
-  AD_min_AF_IND(MICROINDEL_CALLING_B.out.vcf)
+  AD_MIN_AF_IND(MICROINDEL_CALLING_B.out.vcf)
 
   // Step 24 : Snpsift Annotate
-  ANNOTATE_ID(AD_min_AF_IND.out.vcf)
+  SNPSIFT_ID(AD_MIN_AF_IND.out.vcf)
 
   // Step 25 : Add caller pindel and get microIndels.DPfiltered.vcf 
-  ADD_CALLER_PINDEL(ANNOTATE_ID.out.vcf)
+  ADD_CALLER_PINDEL(SNPSIFT_ID.out.vcf)
 
   // Step 26 : Merge earlier annotated variants with microindels
-  variants_and_microindels = ANNOTATE_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
+  variants_and_microindels = SNPSIFT_BCF.out.vcf.join(ADD_CALLER_PINDEL.out.vcf)
   SNPSIFT_MICROINDELS(variants_and_microindels)
 
   // Variant annotation
