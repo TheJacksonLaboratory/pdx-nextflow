@@ -2,10 +2,10 @@ process SNPSIFT_DBNSFP{
   tag "$sampleID"
 
   cpus = 1
-  memory = 6.GB
-  time = '06:00:00'
+  memory = 24.GB
+  time = '12:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
+  container '/pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
 
   input:
   tuple val(sampleID), file(vcf)

@@ -5,16 +5,15 @@ process GATK_MUTECT2 {
   memory 15.GB
   time '24:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
+  container '/pdx/pdx_resource_service/elion/containers/broadinstitute-gatk-4.0.5.1.img'
 
-  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
+  publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy', pattern:'*.vcf.idx'
 
   input:
   tuple val(sampleID), file(bam), file(bai), file(tumor)
 
   output:
-  tuple val(sampleID), file("*.vcf.gz"), emit: vcf
-  tuple val(sampleID), file("*.vcf.gz.tbi"), emit: tbi
+  tuple val(sampleID), file("*.vcf"), emit: vcf
   tuple val(sampleID), file("*.vcf.idx"), emit: idx
 
   script:
@@ -26,7 +25,7 @@ process GATK_MUTECT2 {
     """
     tumorName=\$(cat ${tumor})
 
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
     Mutect2 \
     -R ${params.ref_fa} \
     -I ${bam}  \
@@ -36,7 +35,7 @@ process GATK_MUTECT2 {
     -O ${sampleID}_intermed.vcf \
     --disable-read-filter MateOnSameContigOrNoMappedMateReadFilter \
     --dont-use-soft-clipped-bases false \
-    --genotype-germline-sites false \
+    --genotype-germline-sites true \
     --sample-ploidy ${params.samp_ploidy} \
     -L ${params.targets_gatk} \
     --annotation QualByDepth \
@@ -47,16 +46,13 @@ process GATK_MUTECT2 {
     --min-base-quality-score 20 \
     --standard-min-confidence-threshold-for-calling 30
 
-    bgzip ${sampleID}_intermed.vcf
-
-    tabix ${sampleID}_intermed.vcf.gz
     """
 
   else if (params.workflow == "ctp")
     """
     tumorName=\$(cat ${tumor})
 
-    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk-4.0.5.1/gatk-package-4.0.5.1-local.jar \
+    java -Djava.io.tmpdir=$TMPDIR -Xmx${my_mem}G -jar /gatk/gatk.jar \
     Mutect2 \
     -R ${params.ref_fa} \
     -I ${bam}  \
@@ -73,9 +69,6 @@ process GATK_MUTECT2 {
     --annotation MappingQualityRankSumTest \
     --annotation ReadPosRankSumTest
 
-    bgzip ${sampleID}_intermed.vcf
-
-    tabix ${sampleID}_intermed.vcf.gz
     """
   
   else error "mutect2 not supported for ${params.workflow}"

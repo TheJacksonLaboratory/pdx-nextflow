@@ -5,7 +5,7 @@ process TMB_SCORE_PREPROCESS {
   memory 25.GB
   time '01:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_java_1.8_snpeff_4.3_R.sif'
+  container '/pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_java_1.8_snpeff_4.3_R.sif'
 
   //publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'tmb_pre' }", pattern: "*HM.tab", mode:'copy'
 

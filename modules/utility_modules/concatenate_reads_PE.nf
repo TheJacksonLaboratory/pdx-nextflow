@@ -6,7 +6,7 @@ process CONCATENATE_READS_PE {
   memory 15.GB
   time '03:00:00'
 
-  container "/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
+  container "/pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/concatenated_reads' : 'concatenated_reads' }", pattern: "*fastq.gz", mode:'copy'
 
