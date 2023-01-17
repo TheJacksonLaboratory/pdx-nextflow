@@ -2,39 +2,39 @@
 nextflow.enable.dsl=2
 
 // import modules
-include {getLibraryId} from '../bin/shared/getLibraryId.nf'
+include {getLibraryId} from "${projectDir}/bin/shared/getLibraryId.nf"
 include {param_log} from "${projectDir}/bin/log/wes"
 include {RUN_START} from "${projectDir}/bin/shared/run_start"
-include {CONCATENATE_READS_PE} from '../modules/utility_modules/concatenate_reads_PE'
-include {CONCATENATE_READS_SE} from '../modules/utility_modules/concatenate_reads_SE'
-include {QUALITY_STATISTICS} from '../modules/utility_modules/quality_stats'
-include {XENOME_CLASSIFY} from   '../modules/xenome/xenome'
-include {FASTQ_SORT as XENOME_SORT} from   '../modules/fastq-tools/fastq-tools_sort'
-include {READ_GROUPS} from '../modules/utility_modules/read_groups'
-include {BWA_MEM} from '../modules/bwa/bwa_mem'
-include {PICARD_SORTSAM} from '../modules/picard/picard_sortsam'
-include {PICARD_MARKDUPLICATES} from '../modules/picard/picard_markduplicates'
-include {GATK_REALIGNERTARGETCREATOR} from '../modules/gatk/gatk_realignertargetcreator'
-include {GATK_INDELREALIGNER} from '../modules/gatk/gatk_indelrealigner'
-include {GATK_BASERECALIBRATOR} from '../modules/gatk/gatk_baserecalibrator'
-include {GATK_PRINTREADS} from '../modules/gatk/gatk_printreads'
-include {PICARD_CALCULATEHSMETRICS} from '../modules/picard/picard_calculatehsmetrics'
-include {MSISENSOR2_MSI} from '../modules/msisensor2/msisensor2_msi'
-include {GATK_GETSAMPLENAME} from '../modules/gatk/gatk_getsamplename'
-include {GATK_MUTECT2} from '../modules/gatk/gatk_mutect2'
+include {CONCATENATE_READS_PE} from "${projectDir}/modules/utility_modules/concatenate_reads_PE"
+include {CONCATENATE_READS_SE} from "${projectDir}/modules/utility_modules/concatenate_reads_SE"
+include {QUALITY_STATISTICS} from "${projectDir}/modules/utility_modules/quality_stats"
+include {XENOME_CLASSIFY} from   "${projectDir}/modules/xenome/xenome"
+include {FASTQ_SORT as XENOME_SORT} from   "${projectDir}/modules/fastq-tools/fastq-tools_sort"
+include {READ_GROUPS} from "${projectDir}/modules/utility_modules/read_groups"
+include {BWA_MEM} from "${projectDir}/modules/bwa/bwa_mem"
+include {PICARD_SORTSAM} from "${projectDir}/modules/picard/picard_sortsam"
+include {PICARD_MARKDUPLICATES} from "${projectDir}/modules/picard/picard_markduplicates"
+include {GATK_REALIGNERTARGETCREATOR} from "${projectDir}/modules/gatk/gatk_realignertargetcreator"
+include {GATK_INDELREALIGNER} from "${projectDir}/modules/gatk/gatk_indelrealigner"
+include {GATK_BASERECALIBRATOR} from "${projectDir}/modules/gatk/gatk_baserecalibrator"
+include {GATK_PRINTREADS} from "${projectDir}/modules/gatk/gatk_printreads"
+include {PICARD_CALCULATEHSMETRICS} from "${projectDir}/modules/picard/picard_calculatehsmetrics"
+include {MSISENSOR2_MSI} from "${projectDir}/modules/msisensor2/msisensor2_msi"
+include {GATK_GETSAMPLENAME} from "${projectDir}/modules/gatk/gatk_getsamplename"
+include {GATK_MUTECT2} from "${projectDir}/modules/gatk/gatk_mutect2"
 include {COMPRESS_INDEX_VCF} from "${projectDir}/modules/utility_modules/compress_index_vcf"
-include {GATK_FILTERMUTECTCALLS} from '../modules/gatk/gatk_filtermutectcalls'
+include {GATK_FILTERMUTECTCALLS} from "${projectDir}/modules/gatk/gatk_filtermutectcalls"
 include {ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_MUT;
-         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from '../modules/utility_modules/allele_depth_min_and_AF_from_ADs'
+         ALLELE_DEPTH_MIN_AND_AF_FROM_ADS as AD_min_AF_IND} from "${projectDir}/modules/utility_modules/allele_depth_min_and_AF_from_ADs"
 include {SNPSIFT_ANNOTATE as ANNOTATE_AD;
          SNPSIFT_ANNOTATE as ANNOTATE_ID;
-         SNPSIFT_ANNOTATE as ANNOTATE_BCF} from '../modules/snpeff_snpsift/snpsift_annotate'
-include {ADD_CALLER_GATK} from '../modules/utility_modules/add_caller_gatk'
-include {JOIN_ADJACENT_SNPS_AS} from '../modules/utility_modules/join_adjacent_snps_as'
-include {BCF_ANNOTATE} from '../modules/bcftools/bcftools_annotate'
-include {MICROINDEL_CALLING_A} from '../modules/utility_modules/microindel_calling_a'
-include {MICROINDEL_CALLING_B} from '../modules/utility_modules/microindel_calling_b'
-include {ADD_CALLER_PINDEL} from '../modules/utility_modules/add_caller_pindel'
+         SNPSIFT_ANNOTATE as ANNOTATE_BCF} from "${projectDir}/modules/snpeff_snpsift/snpsift_annotate"
+include {ADD_CALLER_GATK} from "${projectDir}/modules/utility_modules/add_caller_gatk"
+include {JOIN_ADJACENT_SNPS_AS} from "${projectDir}/modules/utility_modules/join_adjacent_snps_as"
+include {BCF_ANNOTATE} from "${projectDir}/modules/bcftools/bcftools_annotate"
+include {MICROINDEL_CALLING_A} from "${projectDir}/modules/utility_modules/microindel_calling_a"
+include {MICROINDEL_CALLING_B} from "${projectDir}/modules/utility_modules/microindel_calling_b"
+include {ADD_CALLER_PINDEL} from "${projectDir}/modules/utility_modules/add_caller_pindel"
 include {SNPSIFT_MICROINDELS} from "${projectDir}/modules/snpeff_snpsift/snpsift_microindels"
 include {SNPEFF_ANNOTATE} from "${projectDir}/modules/snpeff_snpsift/snpeff_annotate"
 include {SNPSIFT_DBNSFP} from "${projectDir}/modules/snpeff_snpsift/snpsift_dbnsfp"
