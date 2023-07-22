@@ -7,7 +7,7 @@ process BWA_MEM {
   errorStrategy 'retry' 
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/bwakit_v0.7.15_cv1.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bwakit_v0.7.15_cv1.sif'
 
   input:
   tuple val(sampleID), file(fq_reads), file(read_groups)

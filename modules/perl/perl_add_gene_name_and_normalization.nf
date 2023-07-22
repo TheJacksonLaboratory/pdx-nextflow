@@ -7,7 +7,7 @@ process ADD_GENE_NAME_NORM {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/R_perl.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/R_perl.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*Normalized", mode:'copy'
 

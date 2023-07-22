@@ -5,7 +5,7 @@ process MICROINDEL_CALLING_A {
   memory = 35.GB
   time = '24:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/pindel_v0.2.5.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/pindel_v0.2.5.sif'
 
 
   input:

@@ -5,7 +5,7 @@ process COMPRESS_INDEX_VCF {
   memory 5.GB
   time '01:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/quay.io-biocontainers-samtools-1.14--hb421002_0.img'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/quay.io-biocontainers-samtools-1.14--hb421002_0.img'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
 

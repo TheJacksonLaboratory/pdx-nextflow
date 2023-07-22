@@ -7,7 +7,7 @@ process FORMAT_GATK {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2_7_3.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2_7_3.sif'
 
   input:
   tuple val(sampleID), file(txt)

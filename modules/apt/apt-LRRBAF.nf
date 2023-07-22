@@ -7,7 +7,7 @@ process LRRBAF {
     time 8.h
     errorStrategy 'finish'
 
-    container '/pdx/pdx_resource_service/elion/containers/apt2.11.3_perl.sif'
+    container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/apt2.11.3_perl.sif'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'apt' }", pattern: "*.{log}", mode:'copy'
 

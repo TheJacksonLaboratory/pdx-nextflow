@@ -5,7 +5,7 @@ process SNPEFF_ANNOTATE {
   memory 25.GB
   time '01:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
 
 
   input:

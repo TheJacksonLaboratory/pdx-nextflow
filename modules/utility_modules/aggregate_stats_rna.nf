@@ -4,7 +4,7 @@ process RNA_SUMMARY_STATS {
     cpus = 1
     time = '00:15:00'
 
-    container '/pdx/pdx_resource_service/elion/containers/perl.sif'
+    container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/perl.sif'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'summary_stats' }", pattern: "*stats.txt", mode:'copy'
 

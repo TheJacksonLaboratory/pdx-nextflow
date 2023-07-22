@@ -7,7 +7,7 @@ process RSEM_ALIGNMENT_EXPRESSION {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/rsem_bowtie2_samtools_picard.v2.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/rsem_bowtie2_samtools_picard.v2.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*stats", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*results*", mode:'copy'

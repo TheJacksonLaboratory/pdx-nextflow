@@ -8,7 +8,7 @@ process FASTQ_SORT {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/fastq-tools.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/fastq-tools.sif'
 
   input:
   tuple val(sampleID), file(trimmed_hsa)

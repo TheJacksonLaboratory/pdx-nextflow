@@ -5,7 +5,7 @@ process PICARD_SORTSAM {
   memory 8.GB
   time '06:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/picard_2.8.1.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/picard_2.8.1.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'picard' }", pattern: "*_sortsam.bam", mode:'copy', enabled: params.keep_intermediate
 

@@ -5,7 +5,7 @@ process PICARD_MARKDUPLICATES {
   memory 16.GB
   time '12:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/picard_2.8.1.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/picard_2.8.1.sif'
 
   // save if mouse and wes or save if keep intermediate
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'picard' }", pattern: "*.bam", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate

@@ -7,7 +7,7 @@ process COVCALC_GATK {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/python_2.7.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "${sampleID}_${filename}_avg_median_coverage.bed", mode:'copy'
 

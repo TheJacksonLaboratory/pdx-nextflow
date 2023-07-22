@@ -5,7 +5,7 @@ process SNPSIFT_ANNOTATE{
   memory = 6.GB
   time = '06:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/perl_java_1.8_python_2.7.3_tabix_snpeff_4_3.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/perl_java_1.8_python_2.7.3_tabix_snpeff_4_3.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'snpeff' }", pattern:"*.vcf", mode:'copy'
 

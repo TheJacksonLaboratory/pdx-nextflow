@@ -8,7 +8,7 @@ process QUALITY_STATISTICS {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/python_2.7.3.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'quality_stats' }", pattern: "*_fastqs_stat.txt", mode:'copy'
 

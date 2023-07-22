@@ -5,7 +5,7 @@ process PICARD_REORDERSAM {
   memory 8.GB
   time '06:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/java_samtools_python_R_picard.sif'
+  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/java_samtools_python_R_picard.sif'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'picard' }", pattern: "*.bam", mode:'copy', enabled: params.keep_intermediate
 

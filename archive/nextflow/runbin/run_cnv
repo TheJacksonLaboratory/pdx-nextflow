@@ -15,7 +15,7 @@
 
 VERSION="1.0.0"
 NF_SCRIPT=pipelines/CNV/$VERSION/hCNV.nf 
-PDX=/pdx/pdx_resource_service/elion
+PDX=/projects/omics_share/.pdx/pdx_resource_service/elion
 CMD=run_cnv
 
 
@@ -158,25 +158,25 @@ params
     outdir     = '.'
     outputdir  = ';'
     preserve_work = \"$preserve_work\"
-    hapmap_dat = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap.ncbi.nlm.nih.gov/'
-    hapmap_fm  = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap_female300_SNP6.txt'
-    hapmap_m   = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap_male300_SNP6.txt'
-    genoclust  = '/pdx/pdx_resource_service/elion/refdata/CNV/gw6.genocluster'
-    snp6chip   = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.cdf'
-    snp6chip_birdseed_mod = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.birdseed.models'
-    snp6chip_specsnps     = '/pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.specialSNPs'
-    hapmap_norm_target    = '/pdx/pdx_resource_service/elion/refdata/CNV/hapmap.quant-norm.normalization-target.txt'
-    gw6_pfb_file = '/pdx/pdx_resource_service/elion/refdata/CNV/affygw6.hg38.pfb'
-    SNPpos     = '/pdx/pdx_resource_service/elion/refdata/CNV/SNPpos_Affy_na36_hg38.txt'
-    GC         = '/pdx/pdx_resource_service/elion/refdata/CNV/GC_AffySNP6_na36_hg38.txt'
-    chr_arm    = '/pdx/pdx_resource_service/elion/refdata/GRCh38_chromosome_arm.txt'
-    exp_mart_genes        = '/pdx/pdx_resource_service/elion/refdata/CNV/mart_export_gene_chr1-Y.GRCh38ensembl84.20170420.txt'
+    hapmap_dat = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/hapmap.ncbi.nlm.nih.gov/'
+    hapmap_fm  = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/hapmap_female300_SNP6.txt'
+    hapmap_m   = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/hapmap_male300_SNP6.txt'
+    genoclust  = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/gw6.genocluster'
+    snp6chip   = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.cdf'
+    snp6chip_birdseed_mod = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.birdseed.models'
+    snp6chip_specsnps     = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/GenomeWideSNP_6.specialSNPs'
+    hapmap_norm_target    = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/hapmap.quant-norm.normalization-target.txt'
+    gw6_pfb_file = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/affygw6.hg38.pfb'
+    SNPpos     = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/SNPpos_Affy_na36_hg38.txt'
+    GC         = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/GC_AffySNP6_na36_hg38.txt'
+    chr_arm    = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/GRCh38_chromosome_arm.txt'
+    exp_mart_genes        = '/projects/omics_share/.pdx/pdx_resource_service/elion/refdata/CNV/mart_export_gene_chr1-Y.GRCh38ensembl84.20170420.txt'
  } "                  > params.config
 
 # params.config should resemble this....
 # params
 # {
-#     CELPATH="/pdx/pdx_resource_service/elion/seqdata/TM01386/TM01386F1075P0/snp_array"
+#     CELPATH="/projects/omics_share/.pdx/pdx_resource_service/elion/seqdata/TM01386/TM01386F1075P0/snp_array"
 #     celInput = "${CELPATH}/TM01386_TM01386F1075P0_GES14_01809_SNP.CEL"
 #     outdir = "."
 #     outputdir = ";"

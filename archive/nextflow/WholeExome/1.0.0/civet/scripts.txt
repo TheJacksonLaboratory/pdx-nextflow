@@ -1,68 +1,68 @@
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/aggregate_stats_updated.xml:    <command program="aggregate_stats_updated.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/bwa_mem.xml:    <command program="read_group_from_fastq.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/bwa_mem.xml:    <command program="">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/exon_coverage_summary.xml:<command program="bedtools">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/exon_coverage_summary.xml: <command program="bedtools">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml:<command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml:<command program="gatk_formatter.sh" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml: <command program="coveragecalculator.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/merge_SNP_INDEL.xml:    <command program="make_one_combined_vcf.pl">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="samtools">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="echo">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="pindel">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="cat" delimiters="||">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="pindel2vcf" delimiters="||">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="bedtools">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:<command program="allele_depth_min_and_AF_from_ADs.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:<command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="touch" delimiters="||">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:     <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="Cosmic_Annotation.pl" stdout_id="out_1">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java" stdout_id="out_2">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java"  stdout_id="out_3">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program=""  stdout_id="out_4">        cat {out_3} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:     <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="Cosmic_Annotation.pl" stdout_id="out_5">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java" stdout_id="out_6">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java"  stdout_id="out_7">     -jar {snpsiftJar} dbnsfp -a -f SIFT_score,SIFT_pred,Polyphen2_HDIV_score,MutationAssessor_score,phyloP100way_vertebrate,1000Gp1_AF,1000Gp1_AFR_AF,1000Gp1_EUR_AF,1000Gp1_AMR_AF,1000Gp1_ASN_AF,ESP6500_AA_AF,ESP6500_EA_AF  -v -a {dbNSFP} {out_6}
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program=""  stdout_id="out_8">     cat {out_7} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/qual_statistics_new_xenome.xml:    <command program="filter_trim.py" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/read_group.xml:  <command program="read_group_from_fastq.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/removeFiles.xml:  <command program="">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:     <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:<command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:<command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="cat">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:   <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:     <command program="clean_intergenic_region_gene_names.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="cat" delimiters="//" stdout_id="out_2">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:     <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="cat">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml:    <command program="allele_depth_min_and_AF_from_ADs.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml: <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml: <command program="caller_add_gatk.sh" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:      <command program="samtools" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="python" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="java" >
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_1.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_1.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_3.xml:    <command program="java">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_3.xml:    <command program="filter_dna_coverage.py">
-/pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/xenome_classification_DNA.xml:    <command program="xenome" stdout_id="out_3">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/aggregate_stats_updated.xml:    <command program="aggregate_stats_updated.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/bwa_mem.xml:    <command program="read_group_from_fastq.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/bwa_mem.xml:    <command program="">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/exon_coverage_summary.xml:<command program="bedtools">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/exon_coverage_summary.xml: <command program="bedtools">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml:<command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml:<command program="gatk_formatter.sh" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/gatkcoveragestats.xml: <command program="coveragecalculator.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/merge_SNP_INDEL.xml:    <command program="make_one_combined_vcf.pl">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="samtools">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="echo">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="pindel">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="cat" delimiters="||">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="pindel2vcf" delimiters="||">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="bedtools">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:<command program="allele_depth_min_and_AF_from_ADs.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:<command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/microIndel_calling.xml:    <command program="touch" delimiters="||">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:     <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="Cosmic_Annotation.pl" stdout_id="out_1">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java" stdout_id="out_2">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java"  stdout_id="out_3">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program=""  stdout_id="out_4">        cat {out_3} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:     <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="Cosmic_Annotation.pl" stdout_id="out_5">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java" stdout_id="out_6">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program="java"  stdout_id="out_7">     -jar {snpsiftJar} dbnsfp -a -f SIFT_score,SIFT_pred,Polyphen2_HDIV_score,MutationAssessor_score,phyloP100way_vertebrate,1000Gp1_AF,1000Gp1_AFR_AF,1000Gp1_EUR_AF,1000Gp1_AMR_AF,1000Gp1_ASN_AF,ESP6500_AA_AF,ESP6500_EA_AF  -v -a {dbNSFP} {out_6}
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/post_call_processing.xml:    <command program=""  stdout_id="out_8">     cat {out_7} | perl /opt/compsci/snpEff/3.6c/scripts/vcfEffOnePerLine.pl | java -jar {snpsiftJar}  extractFields - CHROM POS REF ALT ID FILTER DP "LOF[*].NUMTR" "LOF[*].PERC" "EFF[*].GENE" "EFF[*].EFFECT" "EFF[*].IMPACT" "EFF[*].FUNCLASS" "EFF[*].RANK" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" "EFF[*].CODING" "EFF[*].TRID" "dbNSFP_SIFT_score" "dbNSFP_SIFT_pred" "dbNSFP_Polyphen2_HDIV_score" "dbNSFP_MutationAssessor_score" "dbNSFP_phyloP100way_vertebrate" "dbNSFP_1000Gp1_AF" "dbNSFP_1000Gp1_AFR_AF" "dbNSFP_1000Gp1_EUR_AF" "dbNSFP_1000Gp1_AMR_AF" "dbNSFP_1000Gp1_ASN_AF" "dbNSFP_ESP6500_AA_AF" "dbNSFP_ESP6500_EA_AF"
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/qual_statistics_new_xenome.xml:    <command program="filter_trim.py" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/read_group.xml:  <command program="read_group_from_fastq.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/removeFiles.xml:  <command program="">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:     <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:<command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:<command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="cat">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:   <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:     <command program="clean_intergenic_region_gene_names.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_annotation.xml:    <command program="cat" delimiters="//" stdout_id="out_2">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:     <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_calling.xml:    <command program="cat">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml:    <command program="allele_depth_min_and_AF_from_ADs.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml: <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_filtration.xml: <command program="caller_add_gatk.sh" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:      <command program="samtools" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="python" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_fixAdjSNP.xml:    <command program="java" >
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_1.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_1.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_2.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_3.xml:    <command program="java">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/variant_pre_proc_3.xml:    <command program="filter_dna_coverage.py">
+/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/Cadillac/civet_4.7.1.1/Exome/WholeExome/xenome_classification_DNA.xml:    <command program="xenome" stdout_id="out_3">
