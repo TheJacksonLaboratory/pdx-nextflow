@@ -7,7 +7,7 @@ process ASCAT {
     time 4.h
     errorStrategy 'finish'
 
-    container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/devtools_ASCAT_R.sif'
+    container 'quay.io/jaxpdx/devtools_ascat_r:latest'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'ascat' }", pattern: "*.{txt,png,Rout}", mode:'copy'
 

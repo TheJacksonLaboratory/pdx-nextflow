@@ -5,7 +5,7 @@ process GATK_FILTERMUTECTCALLS {
   memory 15.GB
   time '05:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/broadinstitute-gatk-4.0.5.1.img'
+  container 'broadinstitute/gatk:4.0.5.1'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", mode:'copy'
 

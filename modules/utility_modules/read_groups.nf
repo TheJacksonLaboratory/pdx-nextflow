@@ -5,7 +5,7 @@ process READ_GROUPS {
   memory 5.GB
   time '01:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/python_2.7.3.sif'
+  container 'quay.io/jaxpdx/python_2.7.3:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'read_groups' }", pattern: "*read_group.txt", mode:'copy', enabled: params.keep_intermediate
 

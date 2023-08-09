@@ -5,7 +5,7 @@ process FASTQC {
   memory 4.GB
   time '10:00:00'
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/quay.io-biocontainers-fastqc-0.11.9--hdfd78af_1.img'
+  container 'quay.io/biocontainers/fastqc:0.11.9--hdfd78af_1'
   
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/stats' : 'fastqc' }", pattern: "*_fastqc.{zip,html}", mode:'copy'
 

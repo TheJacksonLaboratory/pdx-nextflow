@@ -7,7 +7,7 @@ process GATK_DEPTHOFCOVERAGE {
   time '05:00:00'
 
 
-  container '/projects/omics_share/.pdx/pdx_resource_service/elion/containers/bedtools_2.27.1_python_2.7.3_java_1.8_GATK_3.4_samtools_1.3.1.sif'
+  container 'quay.io/jaxpdx/bedtools_2.27.1_python_2_7_3_java_1.8_gatk_3.4_samtools_1.3.1:latest'
 
   input:
   tuple val(sampleID), file(bam), file(bai)
