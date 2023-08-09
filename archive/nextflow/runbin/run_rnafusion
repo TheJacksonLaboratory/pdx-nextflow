@@ -16,7 +16,7 @@
 
 VERSION="1.0.0"
 NF_SCRIPT=pipelines/rnafusion/main.nf 
-PDX=/projects/omics_share/.pdx/pdx_resource_service/elion
+PDX=/pdx/pdx_resource_service/elion
 CMD=run_rnafusion
 
 # get mandatory first three command line args...

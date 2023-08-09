@@ -11,5 +11,5 @@
 ~/bin/nextflow \
 -c ./params.config \
 run \
-/projects/omics_share/.pdx/pdx_resource_service/elion/pipelines/CNV/1.0.0/hCNV_keep_intermed.nf \
+/pdx/pdx_resource_service/elion/pipelines/CNV/1.0.0/hCNV_keep_intermed.nf \
 -profile slurm,singularity

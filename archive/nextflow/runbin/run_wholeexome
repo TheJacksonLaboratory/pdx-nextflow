@@ -17,7 +17,7 @@
 VERSION="1.0.0"
 # NF_SCRIPT=pipelines/Exome/$VERSION/hctp_en_mutect.nf
 NF_SCRIPT=pipelines/WholeExome/$VERSION/hwes_en.nf
-PDX=/projects/omics_share/.pdx/pdx_resource_service/elion
+PDX=/pdx/pdx_resource_service/elion
 CMD=run_wholeexome
 
 
