@@ -7,7 +7,7 @@ process COVCALC_GATK {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/python_2.7.sif'
+  container 'quay.io/jaxpdx/python_2.7:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.bed", mode:'copy'
 

@@ -7,7 +7,7 @@ process ADD_GENE_NAME_NORM {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/R_perl.sif'
+  container 'quay.io/jaxpdx/r_perl:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'rsem' }", pattern: "*Normalized", mode:'copy'
 

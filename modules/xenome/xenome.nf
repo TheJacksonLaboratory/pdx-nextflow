@@ -8,7 +8,7 @@ process XENOME_CLASSIFY {
   errorStrategy 'retry'
   maxRetries 1
 
-  container '/pdx/pdx_resource_service/elion/containers/xenome_1.0.1.sif'
+  container 'quay.io/jaxpdx/xenome_1.0.1:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'xenome' }", pattern: "*.txt", mode:'copy'
 

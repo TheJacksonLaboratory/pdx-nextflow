@@ -5,7 +5,7 @@ process PICARD_COLLECTRNASEQMETRICS {
   memory 8.GB
   time '03:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/java_samtools_python_R_picard.sif'
+  container 'quay.io/jaxpdx/java_samtools_python_r_picard:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", pattern: "*.pdf", mode:'copy'
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", pattern: "*picard_aln_metrics.txt", mode:'copy'

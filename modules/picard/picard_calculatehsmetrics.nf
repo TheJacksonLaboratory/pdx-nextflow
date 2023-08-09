@@ -5,7 +5,7 @@ process PICARD_CALCULATEHSMETRICS {
   memory = 6.GB
   time = '03:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/picard-1.95_python_2_7_3.sif'
+  container 'quay.io/jaxpdx/picard-1.95_python_2_7_3:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'picard' }", mode:'copy'
 

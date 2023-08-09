@@ -5,7 +5,7 @@ process ADD_CALLER_PINDEL {
   memory 5.GB
   time '01:00:00'
 
-  container "/pdx/pdx_resource_service/elion/containers/python_2.7.3.sif"
+  container "quay.io/jaxpdx/python_2.7.3:latest"
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'pindel' }", mode:'copy'
 

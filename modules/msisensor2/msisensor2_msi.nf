@@ -5,7 +5,7 @@ process MSISENSOR2_MSI {
   memory = 6.GB
   time = '03:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/msisensor2_latest.sif'
+  container 'quay.io/jaxpdx/msisensor2:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'msisensor2' }", mode:'copy'
 

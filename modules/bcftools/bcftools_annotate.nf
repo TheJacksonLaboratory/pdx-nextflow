@@ -5,7 +5,7 @@ process BCF_ANNOTATE {
   memory 6.GB
   time '06:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/perl_java_1.8_python_2.7.3_tabix_samtools_bcftools_htslib_snpEff_4_3.sif'
+  container 'quay.io/jaxpdx/perl_java_1.8_python_2.7.3_tabix_samtools_bcftools_htslib_snpeff_4_3:latest'
 
 
   input:

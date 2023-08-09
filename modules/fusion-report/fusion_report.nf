@@ -7,7 +7,7 @@ process FUSION_REPORT {
     time { 2.h * task.attempt }
     errorStrategy 'finish'
 
-    container '/pdx/pdx_resource_service/elion/containers/quay.io-biocontainers-fusion-report-2.1.4--py_0.img'
+    container 'quay.io/biocontainers/fusion-report:2.1.4--py_0'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/Fusion-Report/' : 'star-fusion' }", mode:'copy'
 

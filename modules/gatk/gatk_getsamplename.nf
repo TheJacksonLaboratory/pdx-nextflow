@@ -5,7 +5,7 @@ process GATK_GETSAMPLENAME {
   memory 15.GB
   time '05:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/gatk-4.0.5.1_java_1.8_htslib_tabix.sif'
+  container 'quay.io/jaxpdx/gatk-4.0.5.1_java_1.8_htslib_tabix:latest'
 
   input:
   tuple val(sampleID), file(bam), file(bai)

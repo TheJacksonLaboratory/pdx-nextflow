@@ -5,7 +5,7 @@ process GATK_BASERECALIBRATOR {
   memory = 35.GB
   time = '12:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/GATK_3.4_java_1.7_samtools.sif'
+  container 'quay.io/jaxpdx/gatk_3.4_java_1.7_samtools:latest'
 
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'gatk' }", pattern: "*.grp", mode:'copy'
 

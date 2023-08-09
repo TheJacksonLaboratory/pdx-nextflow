@@ -5,7 +5,7 @@ process GATK_INDELREALIGNER{
   memory = 35.GB
   time = '08:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/GATK_3.4_java_1.7_samtools.sif'
+  container 'quay.io/jaxpdx/gatk_3.4_java_1.7_samtools:latest'
 
   // save if mouse and wes or save if keep intermediate
   publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID+'/bam' : 'gatk' }", pattern: "*.bam", mode:'copy', enabled: params.workflow=='wes' ? true : params.keep_intermediate

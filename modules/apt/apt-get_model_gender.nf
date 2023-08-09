@@ -7,7 +7,7 @@ process GET_MODEL_GENDER {
     time 8.h
     errorStrategy 'finish'
 
-    container '/pdx/pdx_resource_service/elion/containers/apt2.11.3_python2.7.11.sif'
+    container 'quay.io/jaxpdx/apt2.11.3_python2.7.11:latest'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'apt' }", pattern: "*.{txt,log}", mode:'copy'
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'apt' }", pattern: "listfile1", mode:'copy'

@@ -8,7 +8,7 @@ process STAR_FUSION {
     errorStrategy 'finish'
     //maxRetries 1
 
-    container '/pdx/pdx_resource_service/elion/containers/trinityctat-starfusion-1.10.0.img'
+    container 'quay.io/jaxpdx/trinityctat-starfusion-1.10.0:latest'
 
     publishDir "${params.pubdir}/${ params.organize_by=='sample' ? sampleID : 'star-fusion' }", pattern: "*.{tsv,txt}", mode:'copy'
 

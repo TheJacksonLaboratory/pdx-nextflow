@@ -5,7 +5,7 @@ process SNPSIFT_DBNSFP{
   memory = 24.GB
   time = '12:00:00'
 
-  container '/pdx/pdx_resource_service/elion/containers/java_perl_vcftools_python_2_snpEff_4_3.sif'
+  container 'quay.io/jaxpdx/java_perl_vcftools_python_2_snpeff_4_3:latest'
 
   input:
   tuple val(sampleID), file(vcf)
